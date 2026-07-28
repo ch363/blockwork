@@ -643,11 +643,28 @@ export const balanceSchema = z.strictObject({
     theftCheckMinutes: positiveCount,
     theftBaseChance: fraction,
     guardSuppressionFactor: fraction,
+    /** Guards in the room at this count drive guardsInRoomFactor to 1. */
+    guardsInRoomSaturateAt: positiveCount,
+    traitTheftModifiers: z.record(id, rate),
+    defaultTraitTheftModifier: rate,
+    /** Chance a successful theft is hidden in the inmate's cell stash. */
+    stashInCellChance: fraction,
     tradeCheckMinutes: positiveCount,
     priceDemandClamp: z.strictObject({ min: rate, max: rate }),
     throwInRangeTiles: positiveCount,
+    throwInArrangeChance: fraction,
+    throwInDelayMinutes: z.strictObject({ min: positiveCount, max: positiveCount }),
     metalDetector: z.strictObject({ base: fraction, moraleScale: fraction }),
     dogRadiusTiles: positiveCount,
+    arrivalPossessionChanceByCategory: z.record(id, fraction),
+    visitSmuggleChanceTables: fraction,
+    visitSmuggleChanceBooths: fraction,
+    craftCheckMinutes: positiveCount,
+    craftBaseChance: fraction,
+    startingMoney: z.strictObject({ min: money, max: money }),
+    deliveryContaminationChance: fraction,
+    /** Delivery stock item id → possible contraband item ids. */
+    deliveryContamination: z.record(id, z.array(id).nonempty()),
   }),
 
   failure: def({

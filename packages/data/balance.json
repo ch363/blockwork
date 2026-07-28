@@ -321,11 +321,46 @@
     "theftCheckMinutes": 6,
     "theftBaseChance": 0.02,
     "guardSuppressionFactor": 0.65,
+    "guardsInRoomSaturateAt": 2,
+    "traitTheftModifiers": {
+      "thief": 2.5,
+      "reckless": 1.5,
+      "clever": 1.25
+    },
+    "defaultTraitTheftModifier": 1,
+    "stashInCellChance": 0.7,
     "tradeCheckMinutes": 60,
     "priceDemandClamp": { "min": 0.25, "max": 4 },
     "throwInRangeTiles": 10,
+    "throwInArrangeChance": 0.04,
+    "throwInDelayMinutes": { "min": 30, "max": 120 },
     "metalDetector": { "base": 0.55, "moraleScale": 0.35 },
-    "dogRadiusTiles": 3
+    "dogRadiusTiles": 3,
+    "arrivalPossessionChanceByCategory": {
+      "minimum": 0.2,
+      "medium": 0.4,
+      "maximum": 0.6,
+      "supermax": 0.75,
+      "protective": 0.25,
+      "condemned": 0.55
+    },
+    "visitSmuggleChanceTables": 0.35,
+    "visitSmuggleChanceBooths": 0.01,
+    "craftCheckMinutes": 6,
+    "craftBaseChance": 0.015,
+    "startingMoney": { "min": 10, "max": 80 },
+    "deliveryContaminationChance": 0.12,
+    "deliveryContamination": {
+      "ingredient_starch": ["fork", "liquor"],
+      "ingredient_protein": ["kitchen_knife", "fork"],
+      "ingredient_veg": ["liquor"],
+      "ingredient_dairy": ["liquor"],
+      "ingredient_fruit": ["liquor"],
+      "uniform": ["cigarettes", "mobile_phone", "lighter"],
+      "timber": ["screwdriver", "hammer", "crowbar"],
+      "sheet_metal": ["screwdriver", "handsaw", "wire_cutters"],
+      "commissary_goods": ["cigarettes", "snack_food", "lighter", "liquor"]
+    }
   },
 
   "failure": {

@@ -382,6 +382,8 @@ function applyTruckArrival(
   for (const line of truck.lines) {
     supply.addDockStock(line.itemId, line.units, line.siteId)
     landed += line.units
+    // ContrabandSystem rolls contamination on its next tick (T4.2).
+    world.contraband.queueDelivery(line.itemId, line.units, truck.id)
   }
 
   let refuseTaken = 0

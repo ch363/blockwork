@@ -18,7 +18,8 @@
  * movement (slots 4–5), needs (slot 6), activity (slot 7), logistics — meals,
  * supply, deliveries (slot 8) — construction (slot 9), then rooms, objects,
  * and intake. Economy is PRD slot 16 (hourly); Contracts settle immediately
- * after so insolvency reveals land on the same hour tick. Rooms sit immediately
+ * after so insolvency reveals land on the same hour tick. Contraband is PRD
+ * slot 11 (Utilities slot 10 is not yet present). Rooms sit immediately
  * after construction because construction is what invalidates them — a wall
  * finished in slot 9 has to be reflected before anything grades the room it
  * just closed. Adding a system in the wrong place changes what the game does
@@ -75,6 +76,7 @@ import { createPathingSystem } from '../systems/pathingSystem'
 import { createMovementSystem } from '../systems/movementSystem'
 import { createEconomySystem } from '../systems/economySystem'
 import { createContractSystem, contractCommandHandlers } from '../systems/contractSystem'
+import { createContrabandSystem } from '../systems/contrabandSystem'
 import type { GameData } from '../data/loader'
 
 import { blueprintCommandHandlers } from './undo'
@@ -212,7 +214,8 @@ export function createGame(options: GameOptions): Game {
   // slot 6; activity is slot 7; logistics (meals, supply, deliveries, cleaning,
   // laundry) is slot 8; construction is slot 9. Supply runs before deliveries
   // so new orders land in the pending queue in time for the same-minute truck
-  // schedule check.
+  // schedule check. Utilities (slot 10) is not yet present; Contraband is
+  // slot 11 and sits after intake so arrival queues flush on its period.
   const systems: readonly System[] = [
     createRoutineSystem({ data }),
     createJobSystem({ data }),
@@ -236,6 +239,7 @@ export function createGame(options: GameOptions): Game {
     createRoomSystem({ data }),
     createObjectSystem({ data }),
     createIntakeSystem({ data }),
+    createContrabandSystem({ data }),
     createEconomySystem({ data }),
     createContractSystem({ data }),
   ]
