@@ -79,6 +79,51 @@
       "title": "Staff demand a {demandedRaise} wage rise",
       "detail": "Accept to raise wages immediately and end the strike. Refuse and the next walkout becomes more likely.",
       "meta": "Current wage multiplier {currentWageMultiplier}"
+    },
+    "danger.recomputed": {
+      "title": "Danger level is {danger}",
+      "detail": "Critical needs {criticalNeeds}, misconduct {misconduct}, armed {armedInmates}, morale {staffMorale}, coverage {guardCoverage}, max-sec {maxSecurityShare}.",
+      "meta": "Population {population}"
+    },
+    "riot.started": {
+      "title": "Riot started — inmate {inmateId}",
+      "detail": "Danger was {danger} across a population of {population}.",
+      "meta": "Day {day} · {time}"
+    },
+    "riot.contained": {
+      "title": "Riot contained",
+      "detail": "No rioting inmates for {quietMinutes} continuous minutes.",
+      "meta": "Day {day} · {time}"
+    },
+    "failure.riotWarning": {
+      "title": "Directorate warning — uncontained riot",
+      "detail": "{message}",
+      "meta": "Failure at tick {failureAtTick}"
+    },
+    "failure.riot": {
+      "title": "Facility seized — uncontained riot",
+      "detail": "The riot ran past the warning window. The national response has taken the prison and you have been dismissed.",
+      "meta": "Riot began at tick {riotStartedAtTick}"
+    },
+    "failure.riotCancelled": {
+      "title": "Riot failure countdown cancelled",
+      "detail": "Order was restored before the Directorate seized the facility.",
+      "meta": "Reason {reason}"
+    },
+    "emergency.riotSquadCalled": {
+      "title": "Riot squad deployed",
+      "detail": "{staffIds} units on site at ${hourlyWage}/hour. Fear boost {fearBoost}.",
+      "meta": "Level {level}"
+    },
+    "emergency.nationalGuardCalled": {
+      "title": "National guard deployed",
+      "detail": "Cost ${cost}. Player dismissed: {playerFired}.",
+      "meta": "Level {level}"
+    },
+    "emergency.playerFired": {
+      "title": "You have been dismissed",
+      "detail": "Reason: {reason}.",
+      "meta": "Day {day} · {time}"
     }
   }
 }

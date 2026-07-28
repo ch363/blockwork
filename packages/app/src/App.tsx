@@ -39,6 +39,7 @@ export function App({ session }: AppProps): JSX.Element {
         session.discard()
         session.closeInspector()
         session.closePosts()
+        session.closeEmergency()
         session.closeTrace()
       }
     }
@@ -109,6 +110,37 @@ export function App({ session }: AppProps): JSX.Element {
       }}
       onPostsClose={() => {
         session.closePosts()
+      }}
+      emergency={state.emergency.value}
+      onEmergencyClose={() => {
+        session.closeEmergency()
+      }}
+      onEmergencySectorLockdown={() => {
+        session.emergencySectorLockdown()
+      }}
+      onEmergencyLiftSectorLockdown={() => {
+        session.emergencyLiftSectorLockdown()
+      }}
+      onEmergencyFullLockdown={() => {
+        session.emergencyFullLockdown()
+      }}
+      onEmergencyLiftFullLockdown={() => {
+        session.emergencyLiftFullLockdown()
+      }}
+      onEmergencyCallRiotSquad={() => {
+        session.emergencyCallRiotSquad()
+      }}
+      onEmergencyDismissRiotSquad={() => {
+        session.emergencyDismissRiotSquad()
+      }}
+      onEmergencyAuthoriseFreeFire={() => {
+        session.emergencyAuthoriseFreeFire()
+      }}
+      onEmergencyRevokeFreeFire={() => {
+        session.emergencyRevokeFreeFire()
+      }}
+      onEmergencyCallNationalGuard={() => {
+        session.emergencyCallNationalGuard()
       }}
       onDismissToast={(toast) => {
         session.dismissToast(toast)

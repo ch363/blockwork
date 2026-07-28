@@ -703,6 +703,61 @@ export {
 export type { StaffNeedsSystemOptions } from './systems/staffNeedsSystem'
 
 export {
+  COMBAT_EVENTS,
+  STUB_MELEE_DAMAGE,
+  hashCombatCooldowns,
+  requestMeleeAttack,
+} from './entities/combat'
+export type { CombatActorKind, CombatActorRef, MeleeAttackResult } from './entities/combat'
+
+export {
+  EmergencyState,
+  MisconductWindow,
+  RiotState,
+} from './entities/securityState'
+
+export {
+  DANGER_EVENTS,
+  DANGER_SYSTEM_NAME,
+  DANGER_SYSTEM_PERIOD,
+  clampDanger,
+  computeDanger,
+  createDangerSystem,
+  dangerComponents,
+  inmateHasCriticalNeed,
+  inmateIsArmed,
+  sampleDangerInputs,
+} from './systems/dangerSystem'
+export type { DangerComponents, DangerInputs, DangerSystemOptions } from './systems/dangerSystem'
+
+export {
+  RIOT_EVENTS,
+  RIOT_SYSTEM_NAME,
+  RIOT_SYSTEM_PERIOD,
+  beginRiot,
+  chebyshevTiles,
+  computeInmateMood,
+  createRiotSystem,
+  markRioting,
+  riotSpreadProbability,
+  riotTriggerProbability,
+} from './systems/riotSystem'
+export type { RiotSystemOptions } from './systems/riotSystem'
+
+export {
+  EMERGENCY_COMMANDS,
+  EMERGENCY_EVENTS,
+  EMERGENCY_LEVELS,
+  EMERGENCY_SYSTEM_NAME,
+  EMERGENCY_SYSTEM_PERIOD,
+  createEmergencySystem,
+  emergencyCommandHandlers,
+  onRiotContained,
+  summonCallableStaff,
+} from './systems/emergencySystem'
+export type { EmergencyLevel, EmergencySystemOptions } from './systems/emergencySystem'
+
+export {
   JOB_EVENTS,
   JOB_KINDS,
   JOB_STATES,

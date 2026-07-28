@@ -54,6 +54,7 @@ import { signal } from '@preact/signals'
 import type { Signal } from '@preact/signals'
 import type {
   DockToolId,
+  EmergencyModel,
   InspectorModel,
   PostsModel,
   PostsTab,
@@ -111,6 +112,8 @@ export interface SessionState {
   /** Open Posts panel, or null when closed (T4.1, PRD 3.5). */
   readonly posts: Signal<PostsModel | null>
   readonly postsTab: Signal<PostsTab>
+  /** Open Emergency panel, or null when closed (T4.6, PRD 3.7). */
+  readonly emergency: Signal<EmergencyModel | null>
   readonly hint: Signal<string | null>
   readonly hud: Signal<string | null>
   readonly committing: Signal<boolean>
@@ -146,6 +149,77 @@ const EMPTY_POSTS_MODEL: PostsModel = {
   posts: [],
   patrols: [],
   sectors: [],
+}
+
+function emptyEmergencyModel(data: GameData): EmergencyModel {
+  const emergency = data.balance.emergency
+  const riotWage = data.staff.get(emergency.riotSquadDefId).hourlyWage * emergency.riotSquadCount
+  return {
+    danger: 0,
+    riotActive: false,
+    riotingCount: 0,
+    containmentQuietMinutes: null,
+    containmentNeededMinutes: data.balance.riot.containedMinutes,
+    failureWarning: false,
+    failureAtTick: null,
+    playerFired: false,
+    riotSquadHourlyCost: riotWage,
+    nationalGuardCost: emergency.nationalGuardCost,
+    selectedSectorId: null,
+    selectedSectorName: null,
+    levels: [
+      {
+        id: 'sector_lockdown',
+        level: 1,
+        label: 'Sector lockdown',
+        costLabel: 'Free',
+        sideEffect: '+suppression in that sector',
+        active: false,
+        disabled: true,
+        disabledReason: 'Select a sector in Posts first',
+      },
+      {
+        id: 'full_lockdown',
+        level: 2,
+        label: 'Full lockdown',
+        costLabel: 'Free',
+        sideEffect: '+suppression prison-wide, needs go unmet',
+        active: false,
+        disabled: false,
+        disabledReason: null,
+      },
+      {
+        id: 'riot_squad',
+        level: 3,
+        label: 'Call in riot squad',
+        costLabel: `$${riotWage}/hour`,
+        sideEffect: 'Injuries, +fear',
+        active: false,
+        disabled: false,
+        disabledReason: null,
+      },
+      {
+        id: 'free_fire',
+        level: 4,
+        label: 'Free fire authorisation',
+        costLabel: 'Free',
+        sideEffect: 'Deaths, huge re-offending and PR penalty',
+        active: false,
+        disabled: false,
+        disabledReason: null,
+      },
+      {
+        id: 'national_guard',
+        level: 5,
+        label: 'Call the national guard',
+        costLabel: `$${emergency.nationalGuardCost}`,
+        sideEffect: 'Prison retaken; you are almost certainly fired',
+        active: false,
+        disabled: false,
+        disabledReason: null,
+      },
+    ],
+  }
 }
 
 /** PRD 6.5: the toast rail holds a handful, and the alerts panel holds the rest. */
@@ -314,6 +388,7 @@ export class Session {
       trace: signal<TraceModel | null>(null),
       posts: signal<PostsModel | null>(null),
       postsTab: signal<PostsTab>('posts'),
+      emergency: signal<EmergencyModel | null>(null),
       hint: signal<string | null>(null),
       hud: signal<string | null>(null),
       committing: signal(false),
@@ -426,13 +501,21 @@ export class Session {
       this.state.palette.value = []
       this.state.paletteSelection.value = null
       this.closePosts()
+      this.closeEmergency()
     } else if (next === 'posts') {
       // Posts is a full panel, not a tray palette.
       this.state.palette.value = []
       this.state.paletteSelection.value = null
+      this.closeEmergency()
       this.openPosts()
+    } else if (next === 'emergency') {
+      this.state.palette.value = []
+      this.state.paletteSelection.value = null
+      this.closePosts()
+      this.openEmergency()
     } else {
       this.closePosts()
+      this.closeEmergency()
       const palette = this.#palettes[next]
       this.state.palette.value = palette.groups
       this.state.paletteSelection.value = palette.initial
@@ -453,6 +536,88 @@ export class Session {
 
   setPostsTab(tab: PostsTab): void {
     this.state.postsTab.value = tab
+  }
+
+  openEmergency(): void {
+    const model = emptyEmergencyModel(this.data)
+    const digest = this.state.topBar.value
+    this.state.emergency.value = { ...model, danger: digest.danger }
+  }
+
+  closeEmergency(): void {
+    this.state.emergency.value = null
+    if (this.state.tool.value === 'emergency') this.state.tool.value = null
+  }
+
+  #emergencyEmergency(type: string, payload: Record<string, number | boolean | string> = {}): void {
+    this.bridge.sendCommand({
+      type,
+      issuedAtTick: this.#tick(),
+      payload,
+    })
+  }
+
+  emergencySectorLockdown(): void {
+    const sectorId = this.state.emergency.value?.selectedSectorId
+    if (sectorId === null || sectorId === undefined) return
+    this.#dispatchEmergency('emergency.sectorLockdown', { sectorId })
+    this.#patchEmergencyLevel('sector_lockdown', true)
+  }
+
+  emergencyLiftSectorLockdown(): void {
+    const sectorId = this.state.emergency.value?.selectedSectorId
+    if (sectorId === null || sectorId === undefined) return
+    this.#dispatchEmergency('emergency.liftSectorLockdown', { sectorId })
+    this.#patchEmergencyLevel('sector_lockdown', false)
+  }
+
+  emergencyFullLockdown(): void {
+    this.#dispatchEmergency('emergency.fullLockdown')
+    this.#patchEmergencyLevel('full_lockdown', true)
+  }
+
+  emergencyLiftFullLockdown(): void {
+    this.#dispatchEmergency('emergency.liftFullLockdown')
+    this.#patchEmergencyLevel('full_lockdown', false)
+  }
+
+  emergencyCallRiotSquad(): void {
+    this.#dispatchEmergency('emergency.callRiotSquad')
+    this.#patchEmergencyLevel('riot_squad', true)
+  }
+
+  emergencyDismissRiotSquad(): void {
+    this.#dispatchEmergency('emergency.dismissRiotSquad')
+    this.#patchEmergencyLevel('riot_squad', false)
+  }
+
+  emergencyAuthoriseFreeFire(): void {
+    this.#dispatchEmergency('emergency.authoriseFreeFire')
+    this.#patchEmergencyLevel('free_fire', true)
+  }
+
+  emergencyRevokeFreeFire(): void {
+    this.#dispatchEmergency('emergency.revokeFreeFire')
+    this.#patchEmergencyLevel('free_fire', false)
+  }
+
+  emergencyCallNationalGuard(): void {
+    this.#dispatchEmergency('emergency.callNationalGuard')
+    this.#patchEmergencyLevel('national_guard', true)
+  }
+
+  #patchEmergencyLevel(
+    id: EmergencyModel['levels'][number]['id'],
+    active: boolean,
+  ): void {
+    const current = this.state.emergency.value
+    if (current === null) return
+    this.state.emergency.value = {
+      ...current,
+      levels: current.levels.map((level) =>
+        level.id === id ? { ...level, active } : level,
+      ),
+    }
   }
 
   selectPaletteItem(itemId: string): void {

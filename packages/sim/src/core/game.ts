@@ -75,6 +75,12 @@ import { createPathingSystem } from '../systems/pathingSystem'
 import { createMovementSystem } from '../systems/movementSystem'
 import { createEconomySystem } from '../systems/economySystem'
 import { createContractSystem, contractCommandHandlers } from '../systems/contractSystem'
+import { createDangerSystem } from '../systems/dangerSystem'
+import { createRiotSystem } from '../systems/riotSystem'
+import {
+  createEmergencySystem,
+  emergencyCommandHandlers,
+} from '../systems/emergencySystem'
 import type { GameData } from '../data/loader'
 
 import { blueprintCommandHandlers } from './undo'
@@ -238,6 +244,10 @@ export function createGame(options: GameOptions): Game {
     createIntakeSystem({ data }),
     createEconomySystem({ data }),
     createContractSystem({ data }),
+    // PRD slots 12–14: security / combat stub hooks live inside these.
+    createDangerSystem({ data }),
+    createRiotSystem({ data }),
+    createEmergencySystem({ data }),
   ]
 
   const simulation = new Simulation({
@@ -256,6 +266,7 @@ export function createGame(options: GameOptions): Game {
       ...contractCommandHandlers(data),
       ...sectorCommandHandlers(data),
       ...postCommandHandlers(data),
+      ...emergencyCommandHandlers(data),
     },
     ...(options.events === undefined ? {} : { events: options.events }),
   })

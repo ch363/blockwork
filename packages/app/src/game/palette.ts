@@ -294,7 +294,6 @@ export const UNBUILT_TOOLS: readonly DockToolId[] = [
   'plan',
   'reports',
   'overlay',
-  'emergency',
 ]
 
 /** The one-line instruction shown over the world for the selected chip. */

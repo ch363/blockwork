@@ -80,7 +80,8 @@
     },
     "misconductWindowHours": 6,
     "misconductScale": 400,
-    "armedScale": 300
+    "armedScale": 300,
+    "maxSecurityCategories": ["maximum", "supermax", "protective", "condemned"]
   },
 
   "riot": {
@@ -92,7 +93,30 @@
     "agitatorFactor": 1,
     "lockdownFactor": 0.2,
     "spreadTiles": 5,
-    "containedMinutes": 10
+    "containedMinutes": 10,
+    "spreadBaseProbability": 0.2,
+    "spreadMoodPivot": 50,
+    "objectDamageHpPerMinute": 12,
+    "doorBreakMinutes": 4,
+    "attackStaffRangeTiles": 1,
+    "destructiveTraitDamageMultiplier": 2
+  },
+
+  "emergency": {
+    "_tuning": true,
+    "sectorLockdownSuppressionPerHour": 2,
+    "fullLockdownSuppressionPerHour": 4,
+    "riotSquadDefId": "riot_team",
+    "riotSquadCount": 4,
+    "riotSquadFearBoost": 20,
+    "freeFireKillChancePerMinute": 0.08,
+    "freeFireReoffendPenalty": 0.2,
+    "freeFirePrPenalty": 50,
+    "nationalGuardDefId": "national_guard",
+    "nationalGuardCount": 12,
+    "nationalGuardCost": 75000,
+    "nationalGuardFireProbability": 0.9,
+    "inmatesPerGuardForCoverage": 8
   },
 
   "tunnels": {

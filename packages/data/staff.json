@@ -163,6 +163,16 @@
       "needs": [],
       "capabilities": ["riotControl", "armed", "escort"]
     },
+    {
+      "_tuning": true,
+      "id": "national_guard",
+      "name": "National Guard",
+      "hourlyWage": 0,
+      "hireCost": 0,
+      "callable": true,
+      "needs": [],
+      "capabilities": ["riotControl", "armed", "escort"]
+    },
 
     {
       "_tuning": true,

@@ -36,6 +36,7 @@ export const LEDGER_CATEGORIES = [
   'commissary',
   'program',
   'research',
+  'emergency',
   'other',
 ] as const
 

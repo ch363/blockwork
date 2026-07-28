@@ -644,6 +644,34 @@ function checkBalance(
       )
     }
   }
+
+  const staffTarget: Target = { file: 'staff', has: (id) => r.staff.has(id) }
+  issues.ref(
+    'balance',
+    ['emergency', 'riotSquadDefId'],
+    'emergency.riotSquadDefId',
+    balance.emergency.riotSquadDefId,
+    staffTarget,
+    'staff',
+  )
+  issues.ref(
+    'balance',
+    ['emergency', 'nationalGuardDefId'],
+    'emergency.nationalGuardDefId',
+    balance.emergency.nationalGuardDefId,
+    staffTarget,
+    'staff',
+  )
+  balance.danger.maxSecurityCategories.forEach((categoryId, index) => {
+    issues.ref(
+      'balance',
+      ['danger', 'maxSecurityCategories', index],
+      'danger.maxSecurityCategories',
+      categoryId,
+      categories,
+      'security category',
+    )
+  })
 }
 
 function checkMaterials(issues: Issues, r: Registries, nodes: Target): void {
