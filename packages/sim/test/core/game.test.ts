@@ -122,6 +122,7 @@ describe('createGame', () => {
       'routine',
       'jobAssignment',
       'staff',
+      'posts',
       'navigation',
       'pathing',
       'movement',
@@ -137,6 +138,8 @@ describe('createGame', () => {
       'rooms',
       'objects',
       'intake',
+      'misconduct',
+      'punishment',
       'economy',
       'contracts',
     ])

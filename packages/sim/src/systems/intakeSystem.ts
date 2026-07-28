@@ -70,6 +70,13 @@ import { DeliverySchedule } from './logistics/deliveries'
 import { CleaningLogistics } from './logistics/cleaning'
 import { LaundryLogistics } from './logistics/laundry'
 import { ContrabandState, createContrabandState } from '../entities/contraband'
+import {
+  createDefaultStandingOrders,
+  hashStandingOrders,
+} from '../entities/standingOrders'
+import type { StandingOrdersState } from '../entities/standingOrders'
+import { createPunishmentRuntime } from '../entities/punishment'
+import type { PunishmentRuntime } from '../entities/punishment'
 
 /* -------------------------------------------------------------------------- */
 /* Policy                                                                      */
@@ -178,6 +185,17 @@ export class InmateWorld extends ObjectWorld {
   readonly morale: MoraleState
   /** Illicit economy: stashes, throw-ins, live prices (T4.2). */
   readonly contraband: ContrabandState
+  /** Standing Orders policy matrix (T4.3 / T4.4). */
+  readonly standingOrders: StandingOrdersState
+  /** Active punishment holds and agitator boosts (T4.4). */
+  readonly punishments: PunishmentRuntime
+  /**
+   * Per-room cell grades for the misconduct cell-grade modifier (T5.2 writes;
+   * until then stays empty and `averageCellGrade` is used).
+   */
+  readonly cellGrades = new Map<number, number>()
+  /** Prison-wide mean cell grade used when a room has no entry. */
+  averageCellGrade = 5
   /** Sandbox / map mutators (staff needs default on). */
   readonly settings: MapRuntimeSettings
   /**
@@ -253,6 +271,8 @@ export class InmateWorld extends ObjectWorld {
     this.contracts = contracts
     this.morale = morale
     this.contraband = contraband
+    this.standingOrders = createDefaultStandingOrders()
+    this.punishments = createPunishmentRuntime()
     this.settings = settings
     this.sectors = new SectorRegistry(grid.size)
     this.posts = new PostRegistry()
@@ -307,6 +327,15 @@ export class InmateWorld extends ObjectWorld {
     this.fog.hashInto(hasher)
     this.morale.hashInto(hasher)
     this.contraband.hashInto(hasher)
+    hashStandingOrders(hasher, this.standingOrders)
+    this.punishments.hashInto(hasher)
+    hasher.writeFloat64(this.averageCellGrade)
+    const grades = [...this.cellGrades.entries()].sort((a, b) => a[0] - b[0])
+    hasher.writeUint32(grades.length)
+    for (const [roomId, grade] of grades) {
+      hasher.writeUint32(roomId)
+      hasher.writeFloat64(grade)
+    }
     this.sectors.hashInto(hasher)
     this.posts.hashInto(hasher)
     hasher.writeUint32(this.settings.staffNeeds ? 1 : 0)
