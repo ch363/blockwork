@@ -171,6 +171,9 @@ export {
   INCIDENT_KINDS,
   LABOUR_ASSIGNMENTS,
   MATERIAL_SURFACES,
+  MISCONDUCT_KINDS,
+  PUNISHMENT_KINDS,
+  REASSIGNMENT_STRICTNESS,
   NEED_DRIVERS,
   OBJECT_PLACEMENTS,
   POWER_PRIORITIES,
@@ -204,6 +207,9 @@ export type {
   ContrabandCategory,
   ContrabandDef,
   ContractDef,
+  MisconductKind,
+  PunishmentKind,
+  ReassignmentStrictness,
   ContractPredicate,
   ConvictionDef,
   CriticalBehaviour,
@@ -549,6 +555,61 @@ export {
   createNeedsSystem,
 } from './systems/needsSystem'
 export type { NeedsSystemOptions } from './systems/needsSystem'
+
+export {
+  MISCONDUCT_EVENTS,
+  applyAutoReclassification,
+  applyEntitlementOnMisconduct,
+  cellGradeMisconductModifier,
+  chebyshevTiles,
+  computeMisconductProbability,
+  countCriticalNeeds,
+  isMajorMisconduct,
+  misconductKindWeights,
+  pickMisconductKind,
+  relieveFoodNeed,
+} from './entities/misconduct'
+export type { MisconductRecord, MisconductRollInput, ReclassificationResult } from './entities/misconduct'
+
+export {
+  PunishmentRuntime,
+  clampSuppression,
+  createPunishmentRuntime,
+  hoursToMinutes,
+} from './entities/punishment'
+export type {
+  ActivePunishment,
+  ActivePunishmentKind,
+  PunishmentPhase,
+} from './entities/punishment'
+
+export {
+  createDefaultStandingOrders,
+  hashStandingOrders,
+  orderForKind,
+  setMisconductOrder,
+} from './entities/standingOrders'
+export type {
+  MealPolicyQuantity,
+  MisconductStandingOrder,
+  StandingOrdersPolicy,
+} from './entities/standingOrders'
+
+export {
+  MISCONDUCT_SYSTEM_NAME,
+  MISCONDUCT_SYSTEM_PERIOD,
+  commitMisconduct,
+  createMisconductSystem,
+} from './systems/misconductSystem'
+export type { CommitMisconductOptions, MisconductSystemOptions } from './systems/misconductSystem'
+
+export {
+  PUNISHMENT_SYSTEM_NAME,
+  PUNISHMENT_SYSTEM_PERIOD,
+  beginPunishment,
+  createPunishmentSystem,
+} from './systems/punishmentSystem'
+export type { BeginPunishmentOptions, PunishmentSystemOptions } from './systems/punishmentSystem'
 
 export {
   ACTIVITY_EVENTS,

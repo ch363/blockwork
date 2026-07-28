@@ -42,7 +42,60 @@
     "guardProximityMultiplier": 0.35,
     "guardProximityTiles": 4,
     "violentTraitMultiplier": 1.6,
-    "cellGrade": { "perPoint": 0.08, "min": 0.5, "max": 2.0 }
+    "cellGrade": { "perPoint": 0.08, "min": 0.5, "max": 2.0 },
+    "kinds": [
+      "complaint",
+      "contraband",
+      "intoxication",
+      "destruction",
+      "attackInmate",
+      "attackStaff",
+      "seriousInjury",
+      "homicide",
+      "escapeAttempt"
+    ],
+    "kindBaseWeights": {
+      "complaint": 40,
+      "contraband": 12,
+      "intoxication": 8,
+      "destruction": 14,
+      "attackInmate": 10,
+      "attackStaff": 5,
+      "seriousInjury": 3,
+      "homicide": 1,
+      "escapeAttempt": 7
+    },
+    "kindPerCriticalNeed": {
+      "complaint": 2,
+      "contraband": 1,
+      "intoxication": 3,
+      "destruction": 6,
+      "attackInmate": 5,
+      "attackStaff": 4,
+      "seriousInjury": 3,
+      "homicide": 1,
+      "escapeAttempt": 4
+    },
+    "violentKindBonus": {
+      "complaint": 0,
+      "contraband": 0,
+      "intoxication": 0,
+      "destruction": 0,
+      "attackInmate": 12,
+      "attackStaff": 8,
+      "seriousInjury": 4,
+      "homicide": 2,
+      "escapeAttempt": 0
+    },
+    "majorSeverityFrom": "destruction",
+    "homicideSentenceYears": 25,
+    "reclassLadder": ["minimum", "medium", "maximum", "supermax"],
+    "agitator": {
+      "reputationId": "agitator",
+      "nearbyTiles": 5,
+      "boostFactor": 3,
+      "boostMinutes": 30
+    }
   },
 
   "entitlement": {
@@ -64,7 +117,17 @@
     "misconductFactor": 0.4,
     "programFactor": 0.5,
     "voluntaryRefusalThreshold": 60,
-    "psychReferralThreshold": 85
+    "psychReferralThreshold": 85,
+    "statusThreshold": 20,
+    "reformPenaltyPerPoint": 0.35,
+    "stoicReputationId": "stoic",
+    "max": 100
+  },
+
+  "punishment": {
+    "_tuning": true,
+    "mealFoodRelief": 55,
+    "indefiniteHours": 0
   },
 
   "danger": {

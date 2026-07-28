@@ -198,6 +198,25 @@ export const STATUS_EFFECTS = [
 
 export const CONTRABAND_CATEGORIES = ['weapon', 'tool', 'narcotic', 'luxury'] as const
 
+/** Misconduct kinds (PRD 5.4 / T4.4). Order is severity for entitlement cuts. */
+export const MISCONDUCT_KINDS = [
+  'complaint',
+  'contraband',
+  'intoxication',
+  'destruction',
+  'attackInmate',
+  'attackStaff',
+  'seriousInjury',
+  'homicide',
+  'escapeAttempt',
+] as const
+
+/** Standing Orders punishment responses (PRD 5.4 / T4.3 stub). */
+export const PUNISHMENT_KINDS = ['ignore', 'lockdown', 'isolation'] as const
+
+/** Cell reassignment strictness on Standing Orders. */
+export const REASSIGNMENT_STRICTNESS = ['off', 'lenient', 'strict'] as const
+
 /** Load-shedding order, lowest priority shed first (PRD 5.12). */
 export const POWER_PRIORITIES = ['lifeSafety', 'security', 'production', 'comfort'] as const
 
@@ -279,6 +298,19 @@ export const balanceSchema = z.strictObject({
     guardProximityTiles: positiveCount,
     violentTraitMultiplier: rate,
     cellGrade: z.strictObject({ perPoint: rate, min: rate, max: rate }),
+    kinds: z.array(z.enum(MISCONDUCT_KINDS)).min(1),
+    kindBaseWeights: z.record(z.enum(MISCONDUCT_KINDS), rate),
+    kindPerCriticalNeed: z.record(z.enum(MISCONDUCT_KINDS), rate),
+    violentKindBonus: z.record(z.enum(MISCONDUCT_KINDS), rate),
+    majorSeverityFrom: z.enum(MISCONDUCT_KINDS),
+    homicideSentenceYears: positiveCount,
+    reclassLadder: z.array(id).min(2),
+    agitator: z.strictObject({
+      reputationId: id,
+      nearbyTiles: positiveCount,
+      boostFactor: rate,
+      boostMinutes: positiveCount,
+    }),
   }),
 
   entitlement: def({
@@ -299,6 +331,20 @@ export const balanceSchema = z.strictObject({
     programFactor: fraction,
     voluntaryRefusalThreshold: z.number().min(0).max(100),
     psychReferralThreshold: z.number().min(0).max(100),
+    statusThreshold: z.number().min(0).max(100),
+    reformPenaltyPerPoint: rate,
+    stoicReputationId: id,
+    max: z.number().min(0).max(100),
+  }),
+
+  punishment: def({
+    /** Food need points cleared when a meal is delivered during a hold. */
+    mealFoodRelief: rate,
+    /**
+     * Hours stored for indefinite holds in Standing Orders (`0` means
+     * indefinite — homicide default). Finite holds use a positive hour count.
+     */
+    indefiniteHours: count,
   }),
 
   danger: def({
@@ -1137,6 +1183,9 @@ export type ProgramAttendance = (typeof PROGRAM_ATTENDANCE)[number]
 export type ProgramDifficulty = (typeof PROGRAM_DIFFICULTIES)[number]
 export type LabourAssignment = (typeof LABOUR_ASSIGNMENTS)[number]
 export type StatusEffectId = (typeof STATUS_EFFECTS)[number]
+export type MisconductKind = (typeof MISCONDUCT_KINDS)[number]
+export type PunishmentKind = (typeof PUNISHMENT_KINDS)[number]
+export type ReassignmentStrictness = (typeof REASSIGNMENT_STRICTNESS)[number]
 export type ContrabandCategory = (typeof CONTRABAND_CATEGORIES)[number]
 export type PowerPriority = (typeof POWER_PRIORITIES)[number]
 export type IncidentKind = (typeof INCIDENT_KINDS)[number]

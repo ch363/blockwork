@@ -17,6 +17,7 @@ import type { Fnv1aHasher } from '../core/hash'
 import type { RngStream } from '../core/rng'
 import type { GameData } from '../data/loader'
 import type { ConvictionDef, RiskTier, StatusEffectId } from '../data/schemas'
+import type { MisconductRecord } from './misconduct'
 import { inmateAccessMask } from '../pathfinding/regionGraph'
 import type { RoomContents } from '../world/rooms'
 import { NO_ROOM } from '../world/rooms'
@@ -73,9 +74,11 @@ export interface InmateGrades {
 export interface InmateComponent {
   readonly name: string
   readonly portraitSeed: number
-  readonly category: string
+  /** Mutable: auto-reclassification (T4.4) may bump the category. */
+  category: string
   readonly convictions: readonly InmateConviction[]
-  readonly sentenceHours: number
+  /** Mutable: homicide adds sentence years (T4.4). */
+  sentenceHours: number
   servedHours: number
   readonly traits: readonly string[]
   readonly reputations: readonly InmateReputation[]
@@ -88,8 +91,10 @@ export interface InmateComponent {
   cellId: number
   jobId: string | null
   programEnrolment: null
-  readonly misconductLog: readonly never[]
-  readonly grades: InmateGrades
+  /** Rap sheet (T4.4). */
+  misconductLog: MisconductRecord[]
+  /** Mutable grades; reform is harmed by isolation suppression (T4.4). */
+  grades: InmateGrades
   reoffendChance: number
   /** Mutable: needs / combat / programs append status effects. */
   status: StatusEffectId[]
@@ -524,6 +529,17 @@ export class InmateRegistry {
       }
       hasher.writeFloat64(entity.inmate.suppression)
       hasher.writeUint32(entity.inmate.entitlement)
+      hasher.writeUint32(entity.inmate.misconductLog.length)
+      for (const entry of entity.inmate.misconductLog) {
+        hasher.writeUint32(entry.tick)
+        hasher.writeString(entry.kind)
+        hasher.writeString(entry.punishment)
+        hasher.writeUint32(entry.durationHours)
+      }
+      hasher.writeFloat64(entity.inmate.grades.punishment)
+      hasher.writeFloat64(entity.inmate.grades.reform)
+      hasher.writeFloat64(entity.inmate.grades.security)
+      hasher.writeFloat64(entity.inmate.grades.health)
       hasher.writeUint32(entity.inmate.cellId)
       hasher.writeFloat64(entity.inmate.aptitude)
       hasher.writeFloat64(entity.inmate.reoffendChance)

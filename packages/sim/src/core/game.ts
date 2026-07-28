@@ -75,6 +75,8 @@ import { createPathingSystem } from '../systems/pathingSystem'
 import { createMovementSystem } from '../systems/movementSystem'
 import { createEconomySystem } from '../systems/economySystem'
 import { createContractSystem, contractCommandHandlers } from '../systems/contractSystem'
+import { createMisconductSystem } from '../systems/misconductSystem'
+import { createPunishmentSystem } from '../systems/punishmentSystem'
 import type { GameData } from '../data/loader'
 
 import { blueprintCommandHandlers } from './undo'
@@ -210,7 +212,8 @@ export function createGame(options: GameOptions): Game {
   // (staff escorts share the slot until escorts migrate onto the job pool);
   // navigation feeds pathing/movement (slots 4–5); needs + staff needs are
   // slot 6; activity is slot 7; logistics (meals, supply, deliveries, cleaning,
-  // laundry) is slot 8; construction is slot 9. Supply runs before deliveries
+  // laundry) is slot 8; construction is slot 9; misconduct + punishment are
+  // security (slot 12) until contraband / search land. Supply runs before deliveries
   // so new orders land in the pending queue in time for the same-minute truck
   // schedule check.
   const systems: readonly System[] = [
@@ -236,6 +239,9 @@ export function createGame(options: GameOptions): Game {
     createRoomSystem({ data }),
     createObjectSystem({ data }),
     createIntakeSystem({ data }),
+    // Security slot (PRD 4.4 #12): misconduct rolls then punishment / suppression.
+    createMisconductSystem({ data }),
+    createPunishmentSystem({ data }),
     createEconomySystem({ data }),
     createContractSystem({ data }),
   ]
