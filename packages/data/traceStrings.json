@@ -1,0 +1,84 @@
+{
+  "kinds": {
+    "inmate.starved": {
+      "title": "Inmate {inmateId} starved to death",
+      "detail": "Food need held above {foodNeed} for {hours} continuous in-game hours.",
+      "meta": "Day {day} · {time} · {location}"
+    },
+    "inmate.missedMeal": {
+      "title": "Ate {mealsEaten} meals in the last {blocks} meal blocks",
+      "detail": "Attended {messName} at {blockTimes} and left without eating each time.",
+      "meta": "Day {day} · caused by the node below"
+    },
+    "mess.emptyAtMealtime": {
+      "title": "{messName} had {mealsAvailable} meals on the serving counters at {time}",
+      "detail": "{routed} inmates were routed to {messName}. {mealsDelivered} meals were delivered. {leftHungry} inmates left hungry, of whom {missedThreePlus} have now missed 3 or more blocks.",
+      "meta": "Day {day} · {time}"
+    },
+    "kitchen.producedShortfall": {
+      "title": "Kitchen {kitchenName} produced {produced} meals, needed {needed}",
+      "detail": "Preparation began at {prepStart} as scheduled. Production stopped at capacity.",
+      "meta": "Day {day} · {prepStart} to {mealTime}"
+    },
+    "kitchen.underCapacity": {
+      "title": "Kitchen {kitchenName} has {cookers} cookers and {cooks} assigned cook{cooksPlural}",
+      "detail": "Capacity is {cookers} × {mealsPerCookerPerHour} × {assistFactor} = {mealsPerHour} meals per hour. Serving {needed} inmates in a {prepHours} hour preparation window needs {neededCookers} cookers or {altCookers} cookers and {altCooks} assigned cooks.",
+      "meta": "Root cause"
+    },
+    "kitchen.noIngredients": {
+      "title": "Kitchen {kitchenName} has no ingredients in its fridges",
+      "detail": "Preparation for {needed} meals could not start. Stock at least {variety} distinct ingredient type{varietyPlural}.",
+      "meta": "Root cause"
+    },
+    "kitchen.noCookAssigned": {
+      "title": "Kitchen {kitchenName} has no cook assigned",
+      "detail": "{cookers} cooker{cookersPlural} sit idle. Hire a cook or assign kitchen labour before the next meal block.",
+      "meta": "Root cause"
+    },
+    "kitchen.noRouteToMess": {
+      "title": "Kitchen {kitchenName} has no route to a mess hall",
+      "detail": "No mess hall is reachable for meal delivery. Build a mess hall or override kitchen routing after researching Delegation.",
+      "meta": "Root cause"
+    },
+    "mess.full": {
+      "title": "{messName} serving counters are full",
+      "detail": "Counters hold {mealsHeld} of {capacity} meals. Kitchen {kitchenName} could not stage {blocked} more meals.",
+      "meta": "Day {day} · {time}"
+    },
+    "laundry.noRouteToHousing": {
+      "title": "Laundry {laundryName} has no route to a housing block",
+      "detail": "No cell or dormitory is available for uniform redistribution. Build housing or override laundry routing after researching Delegation.",
+      "meta": "Root cause"
+    },
+    "laundry.underCapacity": {
+      "title": "Laundry {laundryName} has {machines} washing machine{machinesPlural} and {labour} assigned worker{labourPlural}",
+      "detail": "Capacity is {machines} × {uniformsPerMachinePerHour} × {assistFactor} = {uniformsPerHour} uniforms per hour. Serving {needed} inmates needs more machines or labour.",
+      "meta": "Root cause"
+    },
+    "laundry.noLabour": {
+      "title": "Laundry {laundryName} has no labour assigned",
+      "detail": "{machines} washing machine{machinesPlural} sit idle. Hire a cleaner or assign laundry labour during work blocks.",
+      "meta": "Root cause"
+    },
+    "cleaning.noCleaners": {
+      "title": "No cleaners are working while floors are dirty",
+      "detail": "Mean indoor dirt is {meanDirt}. Hire cleaners, groundskeepers for outdoor tiles, or assign cleaning labour during work blocks.",
+      "meta": "Day {day} · {time}"
+    },
+    "morale.bribeTaken": {
+      "title": "Officer {officerId} pocketed {contrabandId} during a search",
+      "detail": "Staff morale was {morale}. Bribe chance was {chance}. The inmate kept their secret and the officer kept the goods.",
+      "meta": "Day {day} · inmate {inmateId}"
+    },
+    "morale.strikeStarted": {
+      "title": "Staff walked out — morale fell to {morale}",
+      "detail": "Non-emergency staff stop working for 24 hours. A pay demand of +{demandedRaise} is open until they return.",
+      "meta": "Day {day} · ends at tick {endsAtTick}"
+    },
+    "morale.payDemand": {
+      "title": "Staff demand a {demandedRaise} wage rise",
+      "detail": "Accept to raise wages immediately and end the strike. Refuse and the next walkout becomes more likely.",
+      "meta": "Current wage multiplier {currentWageMultiplier}"
+    }
+  }
+}
