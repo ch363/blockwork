@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+pnpm-lock.yaml
+
+# Hand-authored source-of-truth documents. Prettier must not reflow these.
+CLAUDE.md
+docs/

@@ -1,0 +1,975 @@
+{
+  "objects": [
+    {
+      "_tuning": true,
+      "id": "bed",
+      "name": "Bed",
+      "cost": 200,
+      "hp": 60,
+      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.35, "concurrentUsers": 1 }],
+      "countsForRooms": ["cell", "dormitory"]
+    },
+    {
+      "_tuning": true,
+      "id": "bunk_bed",
+      "name": "Bunk bed",
+      "cost": 350,
+      "hp": 80,
+      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.35, "concurrentUsers": 2 }],
+      "countsForRooms": ["dormitory"]
+    },
+    {
+      "_tuning": true,
+      "id": "comfort_bed",
+      "name": "Sprung bed",
+      "cost": 600,
+      "hp": 60,
+      "servesNeeds": [
+        { "need": "sleep", "ratePerMinute": 0.5, "concurrentUsers": 1 },
+        { "need": "comfort", "ratePerMinute": 1.5, "concurrentUsers": 1 }
+      ],
+      "countsForRooms": ["cell", "dormitory"]
+    },
+    {
+      "_tuning": true,
+      "id": "foam_mattress",
+      "name": "Foam mattress",
+      "cost": 60,
+      "hp": 25,
+      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.22, "concurrentUsers": 1 }],
+      "countsForRooms": ["cell", "dormitory", "holding_pen"]
+    },
+    {
+      "_tuning": true,
+      "id": "isolation_pallet",
+      "name": "Isolation pallet",
+      "cost": 90,
+      "hp": 120,
+      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.18, "concurrentUsers": 1 }],
+      "countsForRooms": ["isolation"]
+    },
+    {
+      "_tuning": true,
+      "id": "bedside_cabinet",
+      "name": "Bedside cabinet",
+      "cost": 120,
+      "hp": 40,
+      "servesNeeds": [{ "need": "privacy", "ratePerMinute": 0.6, "concurrentUsers": 1 }],
+      "countsForRooms": ["cell", "dormitory"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "toilet",
+      "name": "Toilet",
+      "cost": 150,
+      "hp": 50,
+      "needsWater": true,
+      "servesNeeds": [{ "need": "bladder", "ratePerMinute": 22, "concurrentUsers": 1 }],
+      "countsForRooms": ["cell", "dormitory", "holding_pen", "isolation", "washroom", "break_room"]
+    },
+    {
+      "_tuning": true,
+      "id": "sink",
+      "name": "Sink",
+      "cost": 110,
+      "hp": 40,
+      "needsWater": true,
+      "servesNeeds": [{ "need": "hygiene", "ratePerMinute": 2.5, "concurrentUsers": 1 }],
+      "countsForRooms": ["cell", "washroom", "break_room", "clinic"]
+    },
+    {
+      "_tuning": true,
+      "id": "shower_head",
+      "name": "Shower head",
+      "cost": 180,
+      "hp": 35,
+      "placement": "wall",
+      "needsWater": true,
+      "servesNeeds": [{ "need": "hygiene", "ratePerMinute": 9, "concurrentUsers": 1 }],
+      "countsForRooms": ["washroom", "cell"]
+    },
+    {
+      "_tuning": true,
+      "id": "floor_drain",
+      "name": "Floor drain",
+      "cost": 40,
+      "hp": 60,
+      "needsWater": true,
+      "countsForRooms": ["washroom", "kitchen", "laundry"]
+    },
+    {
+      "_tuning": true,
+      "id": "mirror",
+      "name": "Mirror",
+      "cost": 70,
+      "hp": 15,
+      "placement": "wall",
+      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 0.8, "concurrentUsers": 1 }],
+      "countsForRooms": ["cell", "washroom"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "stool",
+      "name": "Stool",
+      "cost": 45,
+      "hp": 20,
+      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 1, "concurrentUsers": 1 }],
+      "countsForRooms": ["cell", "mess_hall", "dayroom", "workshop", "visit_hall"]
+    },
+    {
+      "_tuning": true,
+      "id": "chair",
+      "name": "Chair",
+      "cost": 90,
+      "hp": 25,
+      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 1.4, "concurrentUsers": 1 }],
+      "countsForRooms": ["office", "control_room", "classroom", "library", "hearing_room", "clinic"]
+    },
+    {
+      "_tuning": true,
+      "id": "padded_chair",
+      "name": "Padded chair",
+      "cost": 240,
+      "hp": 30,
+      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 2.4, "concurrentUsers": 1 }],
+      "countsForRooms": ["office", "break_room", "dayroom", "hearing_room"]
+    },
+    {
+      "_tuning": true,
+      "id": "bench",
+      "name": "Bench",
+      "cost": 80,
+      "hp": 45,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 0.9, "concurrentUsers": 2 }],
+      "countsForRooms": [
+        "mess_hall",
+        "holding_pen",
+        "chapel",
+        "visit_hall",
+        "exercise_yard",
+        "intake_hall"
+      ]
+    },
+    {
+      "_tuning": true,
+      "id": "couch",
+      "name": "Couch",
+      "cost": 320,
+      "hp": 40,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "servesNeeds": [
+        { "need": "comfort", "ratePerMinute": 2.8, "concurrentUsers": 2 },
+        { "need": "recreation", "ratePerMinute": 0.8, "concurrentUsers": 2 }
+      ],
+      "countsForRooms": ["break_room", "dayroom"]
+    },
+    {
+      "_tuning": true,
+      "id": "bleacher",
+      "name": "Bleacher",
+      "cost": 260,
+      "hp": 70,
+      "size": { "w": 3, "h": 1 },
+      "rotatable": true,
+      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 0.8, "concurrentUsers": 4 }],
+      "countsForRooms": ["exercise_yard"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "table",
+      "name": "Table",
+      "cost": 130,
+      "hp": 45,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "countsForRooms": [
+        "mess_hall",
+        "dayroom",
+        "workshop",
+        "armoury",
+        "commissary",
+        "mail_sort",
+        "intake_hall"
+      ]
+    },
+    {
+      "_tuning": true,
+      "id": "long_table",
+      "name": "Long table",
+      "cost": 220,
+      "hp": 60,
+      "size": { "w": 4, "h": 1 },
+      "rotatable": true,
+      "countsForRooms": ["mess_hall", "library", "classroom"]
+    },
+    {
+      "_tuning": true,
+      "id": "office_desk",
+      "name": "Office desk",
+      "cost": 260,
+      "hp": 50,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "countsForRooms": ["office", "control_room", "classroom", "intake_hall", "hearing_room"]
+    },
+    {
+      "_tuning": true,
+      "id": "sorting_desk",
+      "name": "Sorting desk",
+      "cost": 180,
+      "hp": 45,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "jobSlots": 1,
+      "countsForRooms": ["library", "mail_sort"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "cooker",
+      "name": "Cooker",
+      "cost": 700,
+      "hp": 90,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "needsPower": 400,
+      "jobSlots": 1,
+      "producesHeat": 6,
+      "countsForRooms": ["kitchen"]
+    },
+    {
+      "_tuning": true,
+      "id": "fridge",
+      "name": "Fridge",
+      "cost": 550,
+      "hp": 70,
+      "needsPower": 250,
+      "countsForRooms": ["kitchen"]
+    },
+    {
+      "_tuning": true,
+      "id": "kitchen_sink",
+      "name": "Kitchen sink",
+      "cost": 200,
+      "hp": 50,
+      "needsWater": true,
+      "jobSlots": 1,
+      "countsForRooms": ["kitchen"]
+    },
+    {
+      "_tuning": true,
+      "id": "serving_counter",
+      "name": "Serving counter",
+      "cost": 480,
+      "hp": 80,
+      "size": { "w": 3, "h": 1 },
+      "rotatable": true,
+      "jobSlots": 2,
+      "servesNeeds": [{ "need": "food", "ratePerMinute": 12, "concurrentUsers": 2 }],
+      "countsForRooms": ["mess_hall"]
+    },
+    {
+      "_tuning": true,
+      "id": "tray_rack",
+      "name": "Tray rack",
+      "cost": 120,
+      "hp": 40,
+      "countsForRooms": ["mess_hall", "kitchen"]
+    },
+    {
+      "_tuning": true,
+      "id": "food_crate",
+      "name": "Food crate",
+      "cost": 60,
+      "hp": 30,
+      "countsForRooms": ["kitchen", "store"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "bench_saw",
+      "name": "Bench saw",
+      "cost": 900,
+      "hp": 110,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "needsPower": 500,
+      "jobSlots": 1,
+      "countsForRooms": ["workshop"]
+    },
+    {
+      "_tuning": true,
+      "id": "sheet_press",
+      "name": "Sheet press",
+      "cost": 1100,
+      "hp": 130,
+      "size": { "w": 2, "h": 2 },
+      "needsPower": 700,
+      "jobSlots": 1,
+      "countsForRooms": ["workshop"]
+    },
+    {
+      "_tuning": true,
+      "id": "workbench",
+      "name": "Workbench",
+      "cost": 260,
+      "hp": 70,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "jobSlots": 1,
+      "countsForRooms": ["workshop", "supply_closet"]
+    },
+    {
+      "_tuning": true,
+      "id": "timber_rack",
+      "name": "Timber rack",
+      "cost": 140,
+      "hp": 50,
+      "countsForRooms": ["workshop", "store", "grove"]
+    },
+    {
+      "_tuning": true,
+      "id": "tool_cabinet",
+      "name": "Tool cabinet",
+      "cost": 300,
+      "hp": 90,
+      "contrabandSourceFor": ["screwdriver", "hammer", "handsaw"],
+      "countsForRooms": ["workshop", "supply_closet"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "washing_machine",
+      "name": "Washing machine",
+      "cost": 620,
+      "hp": 80,
+      "needsPower": 350,
+      "needsWater": true,
+      "jobSlots": 1,
+      "countsForRooms": ["laundry"]
+    },
+    {
+      "_tuning": true,
+      "id": "ironing_board",
+      "name": "Ironing board",
+      "cost": 140,
+      "hp": 30,
+      "needsPower": 120,
+      "jobSlots": 1,
+      "countsForRooms": ["laundry"]
+    },
+    {
+      "_tuning": true,
+      "id": "laundry_basket",
+      "name": "Laundry basket",
+      "cost": 50,
+      "hp": 20,
+      "countsForRooms": ["laundry", "cell", "dormitory"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "door_control_desk",
+      "name": "Door control desk",
+      "cost": 1200,
+      "hp": 90,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "needsPower": 300,
+      "jobSlots": 1,
+      "unlockedBy": "automation",
+      "countsForRooms": ["control_room"]
+    },
+    {
+      "_tuning": true,
+      "id": "metal_detector",
+      "name": "Metal detector",
+      "cost": 800,
+      "hp": 70,
+      "needsPower": 450,
+      "countsForRooms": ["intake_hall", "visit_hall"]
+    },
+    {
+      "_tuning": true,
+      "id": "weapon_rack",
+      "name": "Weapon rack",
+      "cost": 900,
+      "hp": 100,
+      "unlockedBy": "armoury_programme",
+      "contrabandSourceFor": ["pistol", "shotgun", "baton"],
+      "countsForRooms": ["armoury"]
+    },
+    {
+      "_tuning": true,
+      "id": "staff_locker",
+      "name": "Staff locker",
+      "cost": 220,
+      "hp": 80,
+      "countsForRooms": ["armoury", "break_room"]
+    },
+    {
+      "_tuning": true,
+      "id": "vest_rack",
+      "name": "Vest rack",
+      "cost": 400,
+      "hp": 70,
+      "unlockedBy": "protective_vests",
+      "countsForRooms": ["armoury"]
+    },
+    {
+      "_tuning": true,
+      "id": "stun_charger",
+      "name": "Stun charger",
+      "cost": 500,
+      "hp": 50,
+      "needsPower": 200,
+      "unlockedBy": "stun_devices",
+      "countsForRooms": ["armoury"]
+    },
+    {
+      "_tuning": true,
+      "id": "dog_crate",
+      "name": "Dog crate",
+      "cost": 260,
+      "hp": 60,
+      "unlockedBy": "canine",
+      "countsForRooms": ["kennel"]
+    },
+    {
+      "_tuning": true,
+      "id": "watchtower_post",
+      "name": "Watchtower post",
+      "cost": 3200,
+      "hp": 400,
+      "size": { "w": 2, "h": 2 },
+      "needsPower": 150,
+      "jobSlots": 1,
+      "unlockedBy": "watchtowers",
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "alarm_siren",
+      "name": "Alarm siren",
+      "cost": 340,
+      "hp": 40,
+      "placement": "wall",
+      "needsPower": 100,
+      "countsForRooms": []
+    },
+
+    {
+      "_tuning": true,
+      "id": "camera",
+      "name": "Camera",
+      "cost": 380,
+      "hp": 30,
+      "placement": "wall",
+      "needsPower": 90,
+      "unlockedBy": "surveillance",
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "monitor_bank",
+      "name": "Monitor bank",
+      "cost": 900,
+      "hp": 60,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "needsPower": 420,
+      "jobSlots": 1,
+      "unlockedBy": "surveillance",
+      "countsForRooms": ["control_room"]
+    },
+    {
+      "_tuning": true,
+      "id": "phone_tap",
+      "name": "Phone tap",
+      "cost": 700,
+      "hp": 40,
+      "needsPower": 80,
+      "jobSlots": 1,
+      "unlockedBy": "surveillance",
+      "countsForRooms": ["control_room"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "clinic_bed",
+      "name": "Clinic bed",
+      "cost": 700,
+      "hp": 60,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "unlockedBy": "medical",
+      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.3, "concurrentUsers": 1 }],
+      "countsForRooms": ["clinic"]
+    },
+    {
+      "_tuning": true,
+      "id": "medicine_cabinet",
+      "name": "Medicine cabinet",
+      "cost": 450,
+      "hp": 70,
+      "placement": "wall",
+      "unlockedBy": "medical",
+      "contrabandSourceFor": ["prescription_pills", "syringe"],
+      "countsForRooms": ["clinic"]
+    },
+    {
+      "_tuning": true,
+      "id": "first_aid_station",
+      "name": "First aid station",
+      "cost": 200,
+      "hp": 40,
+      "placement": "wall",
+      "countsForRooms": ["workshop", "kitchen", "exercise_yard"]
+    },
+    {
+      "_tuning": true,
+      "id": "mortuary_slab",
+      "name": "Mortuary slab",
+      "cost": 600,
+      "hp": 120,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "needsPower": 200,
+      "unlockedBy": "medical",
+      "countsForRooms": ["mortuary"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "classroom_desk",
+      "name": "Classroom desk",
+      "cost": 160,
+      "hp": 40,
+      "unlockedBy": "education",
+      "servesNeeds": [{ "need": "literacy", "ratePerMinute": 1.2, "concurrentUsers": 1 }],
+      "countsForRooms": ["classroom"]
+    },
+    {
+      "_tuning": true,
+      "id": "whiteboard",
+      "name": "Whiteboard",
+      "cost": 220,
+      "hp": 30,
+      "placement": "wall",
+      "unlockedBy": "education",
+      "countsForRooms": ["classroom"]
+    },
+    {
+      "_tuning": true,
+      "id": "bookshelf",
+      "name": "Bookshelf",
+      "cost": 240,
+      "hp": 50,
+      "servesNeeds": [{ "need": "literacy", "ratePerMinute": 0.9, "concurrentUsers": 1 }],
+      "countsForRooms": ["library", "cell", "dayroom", "classroom"]
+    },
+    {
+      "_tuning": true,
+      "id": "library_counter",
+      "name": "Library counter",
+      "cost": 300,
+      "hp": 60,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "jobSlots": 1,
+      "countsForRooms": ["library"]
+    },
+    {
+      "_tuning": true,
+      "id": "computer_station",
+      "name": "Computer station",
+      "cost": 800,
+      "hp": 40,
+      "needsPower": 220,
+      "unlockedBy": "education",
+      "servesNeeds": [{ "need": "literacy", "ratePerMinute": 1.6, "concurrentUsers": 1 }],
+      "countsForRooms": ["classroom", "library"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "television",
+      "name": "Television",
+      "cost": 420,
+      "hp": 30,
+      "placement": "wall",
+      "needsPower": 180,
+      "servesNeeds": [{ "need": "recreation", "ratePerMinute": 2.2, "concurrentUsers": 6 }],
+      "countsForRooms": ["dayroom", "break_room", "cell"]
+    },
+    {
+      "_tuning": true,
+      "id": "radio",
+      "name": "Radio",
+      "cost": 140,
+      "hp": 20,
+      "needsPower": 40,
+      "servesNeeds": [{ "need": "recreation", "ratePerMinute": 1.1, "concurrentUsers": 4 }],
+      "countsForRooms": ["dayroom", "cell", "break_room", "workshop"]
+    },
+    {
+      "_tuning": true,
+      "id": "pool_table",
+      "name": "Pool table",
+      "cost": 560,
+      "hp": 70,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "servesNeeds": [{ "need": "recreation", "ratePerMinute": 3, "concurrentUsers": 2 }],
+      "countsForRooms": ["dayroom", "break_room"]
+    },
+    {
+      "_tuning": true,
+      "id": "arcade_cabinet",
+      "name": "Arcade cabinet",
+      "cost": 780,
+      "hp": 50,
+      "needsPower": 260,
+      "servesNeeds": [
+        { "need": "recreation", "ratePerMinute": 3.4, "concurrentUsers": 1 },
+        { "need": "luxury", "ratePerMinute": 1.2, "concurrentUsers": 1 }
+      ],
+      "countsForRooms": ["dayroom"]
+    },
+    {
+      "_tuning": true,
+      "id": "punch_bag",
+      "name": "Punch bag",
+      "cost": 300,
+      "hp": 60,
+      "servesNeeds": [{ "need": "exercise", "ratePerMinute": 2.6, "concurrentUsers": 1 }],
+      "countsForRooms": ["exercise_yard", "dayroom"]
+    },
+    {
+      "_tuning": true,
+      "id": "weight_bench",
+      "name": "Weight bench",
+      "cost": 380,
+      "hp": 90,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "servesNeeds": [{ "need": "exercise", "ratePerMinute": 3, "concurrentUsers": 1 }],
+      "countsForRooms": ["exercise_yard", "dayroom"]
+    },
+    {
+      "_tuning": true,
+      "id": "treadmill",
+      "name": "Treadmill",
+      "cost": 700,
+      "hp": 60,
+      "needsPower": 300,
+      "servesNeeds": [{ "need": "exercise", "ratePerMinute": 3.4, "concurrentUsers": 1 }],
+      "countsForRooms": ["exercise_yard", "dayroom", "break_room"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "potted_plant",
+      "name": "Potted plant",
+      "cost": 60,
+      "hp": 15,
+      "servesNeeds": [{ "need": "environment", "ratePerMinute": 0.4, "concurrentUsers": 4 }],
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "wall_art",
+      "name": "Wall art",
+      "cost": 110,
+      "hp": 10,
+      "placement": "wall",
+      "servesNeeds": [{ "need": "environment", "ratePerMinute": 0.3, "concurrentUsers": 4 }],
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "window",
+      "name": "Window",
+      "cost": 90,
+      "hp": 20,
+      "placement": "wall",
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "water_cooler",
+      "name": "Water cooler",
+      "cost": 190,
+      "hp": 30,
+      "needsWater": true,
+      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 1.2, "concurrentUsers": 1 }],
+      "countsForRooms": ["break_room", "mess_hall", "classroom", "dayroom"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "generator",
+      "name": "Generator",
+      "cost": 2400,
+      "hp": 250,
+      "size": { "w": 3, "h": 3 },
+      "producesHeat": 4,
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "capacitor",
+      "name": "Capacitor",
+      "cost": 900,
+      "hp": 90,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "power_switch",
+      "name": "Power switch",
+      "cost": 120,
+      "hp": 30,
+      "placement": "wall",
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "water_pump",
+      "name": "Water pump",
+      "cost": 1800,
+      "hp": 200,
+      "size": { "w": 2, "h": 2 },
+      "needsPower": 600,
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "pipe_valve",
+      "name": "Pipe valve",
+      "cost": 100,
+      "hp": 30,
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "radiator",
+      "name": "Radiator",
+      "cost": 260,
+      "hp": 50,
+      "placement": "wall",
+      "needsWater": true,
+      "producesHeat": 8,
+      "servesNeeds": [{ "need": "warmth", "ratePerMinute": 2, "concurrentUsers": 8 }],
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "boiler",
+      "name": "Boiler",
+      "cost": 1400,
+      "hp": 180,
+      "size": { "w": 2, "h": 2 },
+      "needsPower": 500,
+      "needsWater": true,
+      "producesHeat": 10,
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "sprinkler",
+      "name": "Sprinkler",
+      "cost": 200,
+      "hp": 20,
+      "placement": "ceiling",
+      "needsWater": true,
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "ceiling_light",
+      "name": "Ceiling light",
+      "cost": 70,
+      "hp": 15,
+      "placement": "ceiling",
+      "needsPower": 30,
+      "countsForRooms": []
+    },
+    {
+      "_tuning": true,
+      "id": "fire_extinguisher",
+      "name": "Fire extinguisher",
+      "cost": 90,
+      "hp": 25,
+      "placement": "wall",
+      "countsForRooms": []
+    },
+
+    {
+      "_tuning": true,
+      "id": "storage_rack",
+      "name": "Storage rack",
+      "cost": 160,
+      "hp": 60,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "countsForRooms": ["store", "supply_closet", "dispatch"]
+    },
+    {
+      "_tuning": true,
+      "id": "refuse_bin",
+      "name": "Refuse bin",
+      "cost": 70,
+      "hp": 40,
+      "countsForRooms": ["refuse", "kitchen", "mess_hall"]
+    },
+    {
+      "_tuning": true,
+      "id": "dock_marker",
+      "name": "Dock marker",
+      "cost": 40,
+      "hp": 30,
+      "destructible": false,
+      "countsForRooms": ["dock"]
+    },
+    {
+      "_tuning": true,
+      "id": "dispatch_marker",
+      "name": "Dispatch marker",
+      "cost": 40,
+      "hp": 30,
+      "destructible": false,
+      "countsForRooms": ["dispatch"]
+    },
+    {
+      "_tuning": true,
+      "id": "sapling_bed",
+      "name": "Sapling bed",
+      "cost": 130,
+      "hp": 30,
+      "size": { "w": 2, "h": 2 },
+      "jobSlots": 1,
+      "unlockedBy": "grounds",
+      "countsForRooms": ["grove"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "altar",
+      "name": "Altar",
+      "cost": 480,
+      "hp": 70,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "servesNeeds": [{ "need": "spirituality", "ratePerMinute": 2.4, "concurrentUsers": 1 }],
+      "countsForRooms": ["chapel"]
+    },
+    {
+      "_tuning": true,
+      "id": "prayer_mat",
+      "name": "Prayer mat",
+      "cost": 60,
+      "hp": 15,
+      "servesNeeds": [{ "need": "spirituality", "ratePerMinute": 1.8, "concurrentUsers": 1 }],
+      "countsForRooms": ["chapel", "cell"]
+    },
+    {
+      "_tuning": true,
+      "id": "pew",
+      "name": "Pew",
+      "cost": 150,
+      "hp": 50,
+      "size": { "w": 3, "h": 1 },
+      "rotatable": true,
+      "servesNeeds": [{ "need": "spirituality", "ratePerMinute": 1.4, "concurrentUsers": 3 }],
+      "countsForRooms": ["chapel"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "filing_cabinet",
+      "name": "Filing cabinet",
+      "cost": 180,
+      "hp": 60,
+      "countsForRooms": ["office", "control_room", "hearing_room", "mail_sort"]
+    },
+    {
+      "_tuning": true,
+      "id": "safe",
+      "name": "Safe",
+      "cost": 900,
+      "hp": 300,
+      "countsForRooms": ["office", "commissary"]
+    },
+    {
+      "_tuning": true,
+      "id": "visit_table",
+      "name": "Visit table",
+      "cost": 200,
+      "hp": 45,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "servesNeeds": [{ "need": "family", "ratePerMinute": 3, "concurrentUsers": 1 }],
+      "countsForRooms": ["visit_hall", "hearing_room"]
+    },
+    {
+      "_tuning": true,
+      "id": "visit_booth",
+      "name": "Visit booth",
+      "cost": 520,
+      "hp": 80,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "servesNeeds": [{ "need": "family", "ratePerMinute": 2.2, "concurrentUsers": 1 }],
+      "countsForRooms": ["visit_hall"]
+    },
+    {
+      "_tuning": true,
+      "id": "phone_booth",
+      "name": "Phone booth",
+      "cost": 340,
+      "hp": 50,
+      "needsPower": 60,
+      "servesNeeds": [{ "need": "family", "ratePerMinute": 2.6, "concurrentUsers": 1 }],
+      "countsForRooms": ["dayroom", "visit_hall", "holding_pen"]
+    },
+    {
+      "_tuning": true,
+      "id": "shop_counter",
+      "name": "Shop counter",
+      "cost": 420,
+      "hp": 70,
+      "size": { "w": 2, "h": 1 },
+      "rotatable": true,
+      "jobSlots": 1,
+      "servesNeeds": [{ "need": "luxury", "ratePerMinute": 3.2, "concurrentUsers": 1 }],
+      "countsForRooms": ["commissary"]
+    },
+    {
+      "_tuning": true,
+      "id": "shop_shelf",
+      "name": "Shop shelf",
+      "cost": 190,
+      "hp": 50,
+      "countsForRooms": ["commissary"]
+    },
+    {
+      "_tuning": true,
+      "id": "mail_rack",
+      "name": "Mail rack",
+      "cost": 170,
+      "hp": 50,
+      "jobSlots": 1,
+      "servesNeeds": [{ "need": "family", "ratePerMinute": 1.4, "concurrentUsers": 1 }],
+      "countsForRooms": ["mail_sort"]
+    }
+  ]
+}

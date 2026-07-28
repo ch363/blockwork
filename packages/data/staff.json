@@ -1,0 +1,285 @@
+{
+  "staff": [
+    {
+      "_tuning": true,
+      "id": "warden",
+      "name": "Warden",
+      "hourlyWage": 90,
+      "hireCost": 4000,
+      "isAdministrator": true,
+      "requiresOffice": true,
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate"]
+    },
+    {
+      "_tuning": true,
+      "id": "security_director",
+      "name": "Security Director",
+      "hourlyWage": 70,
+      "hireCost": 3000,
+      "isAdministrator": true,
+      "requiresOffice": true,
+      "unlockedBy": "security_office",
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate", "tutor"]
+    },
+    {
+      "_tuning": true,
+      "id": "finance_officer",
+      "name": "Finance Officer",
+      "hourlyWage": 60,
+      "hireCost": 2500,
+      "isAdministrator": true,
+      "requiresOffice": true,
+      "unlockedBy": "finance",
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate"]
+    },
+    {
+      "_tuning": true,
+      "id": "works_manager",
+      "name": "Works Manager",
+      "hourlyWage": 55,
+      "hireCost": 2500,
+      "isAdministrator": true,
+      "requiresOffice": true,
+      "unlockedBy": "works",
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate", "tutor", "repair"]
+    },
+    {
+      "_tuning": true,
+      "id": "counsellor",
+      "name": "Counsellor",
+      "hourlyWage": 50,
+      "hireCost": 2000,
+      "isAdministrator": true,
+      "requiresOffice": true,
+      "unlockedBy": "welfare",
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "recreation", "environment"],
+      "capabilities": ["administrate", "tutor"]
+    },
+    {
+      "_tuning": true,
+      "id": "legal_officer",
+      "name": "Legal Officer",
+      "hourlyWage": 80,
+      "hireCost": 3500,
+      "isAdministrator": true,
+      "requiresOffice": true,
+      "unlockedBy": "legal",
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate", "hearing"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "officer",
+      "name": "Officer",
+      "hourlyWage": 22,
+      "hireCost": 500,
+      "needs": [
+        "bladder",
+        "sleep",
+        "food",
+        "comfort",
+        "safety",
+        "recreation",
+        "environment",
+        "warmth"
+      ],
+      "capabilities": ["escort", "openDoors", "patrol", "search", "detectContraband"]
+    },
+    {
+      "_tuning": true,
+      "id": "armed_officer",
+      "name": "Armed Officer",
+      "hourlyWage": 38,
+      "hireCost": 1200,
+      "requiresRoom": "armoury",
+      "requiresObjectPerHead": "staff_locker",
+      "unlockedBy": "armoury_programme",
+      "needs": [
+        "bladder",
+        "sleep",
+        "food",
+        "comfort",
+        "safety",
+        "recreation",
+        "environment",
+        "warmth"
+      ],
+      "capabilities": ["armed", "escort", "openDoors", "patrol", "search", "riotControl"]
+    },
+    {
+      "_tuning": true,
+      "id": "k9_officer",
+      "name": "Dog Handler",
+      "hourlyWage": 30,
+      "hireCost": 900,
+      "requiresRoom": "kennel",
+      "unlockedBy": "canine",
+      "needs": [
+        "bladder",
+        "sleep",
+        "food",
+        "comfort",
+        "safety",
+        "recreation",
+        "environment",
+        "warmth"
+      ],
+      "capabilities": ["handleDog", "patrol", "search", "detectContraband", "openDoors"]
+    },
+    {
+      "_tuning": true,
+      "id": "dog",
+      "name": "Patrol Dog",
+      "hourlyWage": 4,
+      "hireCost": 400,
+      "requiresRoom": "kennel",
+      "unlockedBy": "canine",
+      "needs": ["sleep", "food", "comfort"],
+      "capabilities": ["detectContraband", "patrol"]
+    },
+    {
+      "_tuning": true,
+      "id": "tower_marksman",
+      "name": "Tower Marksman",
+      "hourlyWage": 45,
+      "hireCost": 1500,
+      "requiresObjectPerHead": "watchtower_post",
+      "unlockedBy": "watchtowers",
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "warmth"],
+      "capabilities": ["armed", "marksman"]
+    },
+    {
+      "_tuning": true,
+      "id": "riot_team",
+      "name": "Riot Team",
+      "hourlyWage": 150,
+      "hireCost": 0,
+      "callable": true,
+      "needs": [],
+      "capabilities": ["riotControl", "armed", "escort"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "maintenance",
+      "name": "Maintenance Worker",
+      "hourlyWage": 20,
+      "hireCost": 400,
+      "needs": [
+        "bladder",
+        "sleep",
+        "food",
+        "comfort",
+        "safety",
+        "recreation",
+        "environment",
+        "warmth"
+      ],
+      "capabilities": ["build", "repair", "driveTruck"]
+    },
+    {
+      "_tuning": true,
+      "id": "cleaner",
+      "name": "Cleaner",
+      "hourlyWage": 16,
+      "hireCost": 300,
+      "unlockedBy": "sanitation",
+      "needs": [
+        "bladder",
+        "sleep",
+        "food",
+        "comfort",
+        "safety",
+        "recreation",
+        "environment",
+        "warmth"
+      ],
+      "capabilities": ["clean"]
+    },
+    {
+      "_tuning": true,
+      "id": "groundskeeper",
+      "name": "Groundskeeper",
+      "hourlyWage": 16,
+      "hireCost": 300,
+      "unlockedBy": "grounds",
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "recreation", "warmth"],
+      "capabilities": ["cleanOutdoors"]
+    },
+    {
+      "_tuning": true,
+      "id": "cook",
+      "name": "Cook",
+      "hourlyWage": 18,
+      "hireCost": 400,
+      "needs": [
+        "bladder",
+        "sleep",
+        "food",
+        "comfort",
+        "safety",
+        "recreation",
+        "environment",
+        "warmth"
+      ],
+      "capabilities": ["cook", "serve", "tutor"]
+    },
+    {
+      "_tuning": true,
+      "id": "medic",
+      "name": "Medic",
+      "hourlyWage": 42,
+      "hireCost": 1400,
+      "unlockedBy": "medical",
+      "needs": [
+        "bladder",
+        "sleep",
+        "food",
+        "comfort",
+        "safety",
+        "recreation",
+        "environment",
+        "warmth"
+      ],
+      "capabilities": ["treat", "tutor"]
+    },
+
+    {
+      "_tuning": true,
+      "id": "instructor",
+      "name": "Instructor",
+      "hourlyWage": 0,
+      "hireCost": 0,
+      "perSession": true,
+      "unlockedBy": "education",
+      "needs": [],
+      "capabilities": ["tutor"]
+    },
+    {
+      "_tuning": true,
+      "id": "chaplain",
+      "name": "Chaplain",
+      "hourlyWage": 0,
+      "hireCost": 0,
+      "perSession": true,
+      "needs": [],
+      "capabilities": ["minister", "tutor"]
+    },
+    {
+      "_tuning": true,
+      "id": "hearing_panel",
+      "name": "Hearing Panel",
+      "hourlyWage": 0,
+      "hireCost": 0,
+      "perSession": true,
+      "requiresRoom": "hearing_room",
+      "needs": [],
+      "capabilities": ["hearing"]
+    }
+  ]
+}

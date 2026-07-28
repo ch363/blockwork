@@ -1,0 +1,9 @@
+packages:
+  - 'packages/*'
+  - 'tools/*'
+
+# Native binaries these tools need at runtime. Listed explicitly so CI and a
+# clean local checkout resolve identically under pnpm's default script blocking.
+onlyBuiltDependencies:
+  - esbuild
+  - unrs-resolver

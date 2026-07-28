@@ -1,0 +1,13 @@
+{
+  "name": "@blockwork/data",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*.json": "./*.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
