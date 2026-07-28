@@ -69,6 +69,7 @@ import { SupplyLogistics } from './logistics/supply'
 import { DeliverySchedule } from './logistics/deliveries'
 import { CleaningLogistics } from './logistics/cleaning'
 import { LaundryLogistics } from './logistics/laundry'
+import { ContrabandState, createContrabandState } from '../entities/contraband'
 
 /* -------------------------------------------------------------------------- */
 /* Policy                                                                      */
@@ -175,6 +176,8 @@ export class InmateWorld extends ObjectWorld {
   readonly contracts: ContractBook
   /** Prison-wide staff morale and strike state (T3.8). */
   readonly morale: MoraleState
+  /** Illicit economy: stashes, throw-ins, live prices (T4.2). */
+  readonly contraband: ContrabandState
   /** Sandbox / map mutators (staff needs default on). */
   readonly settings: MapRuntimeSettings
   /**
@@ -227,6 +230,7 @@ export class InmateWorld extends ObjectWorld {
     economy: EconomyLedger = createEconomyLedger(data),
     contracts: ContractBook = createContractBook(),
     morale: MoraleState = new MoraleState(),
+    contraband: ContrabandState = createContrabandState(),
     settings: MapRuntimeSettings = createMapRuntimeSettings(),
   ) {
     super(grid, materials, rooms, objects, data)
@@ -248,6 +252,7 @@ export class InmateWorld extends ObjectWorld {
     this.economy = economy
     this.contracts = contracts
     this.morale = morale
+    this.contraband = contraband
     this.settings = settings
     this.sectors = new SectorRegistry(grid.size)
     this.posts = new PostRegistry()
@@ -301,6 +306,7 @@ export class InmateWorld extends ObjectWorld {
     this.laundry.hashInto(hasher)
     this.fog.hashInto(hasher)
     this.morale.hashInto(hasher)
+    this.contraband.hashInto(hasher)
     this.sectors.hashInto(hasher)
     this.posts.hashInto(hasher)
     hasher.writeUint32(this.settings.staffNeeds ? 1 : 0)
@@ -489,6 +495,11 @@ export function arriveInmate(options: ArriveInmateOptions): InmateEntity | undef
       roomId: housing.roomId,
     },
   })
+
+  // Queued for ContrabandSystem so intake does not import the system module
+  // (avoids a circular dependency). Flushed on the next contraband tick and
+  // also available via flushPendingArrivals for tests / immediate callers.
+  world.contraband.queueArrival(entity.id)
 
   return entity
 }

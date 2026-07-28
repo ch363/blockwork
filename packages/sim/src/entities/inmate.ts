@@ -94,7 +94,8 @@ export interface InmateComponent {
   /** Mutable: needs / combat / programs append status effects. */
   status: StatusEffectId[]
   health: number
-  readonly inventory: readonly string[]
+  /** Mutable: contraband acquisition / trade / search mutate this list (T4.2). */
+  inventory: string[]
   money: number
   /** Program learning multiplier, rolled at spawn (PRD 5.9). */
   readonly aptitude: number
@@ -528,6 +529,8 @@ export class InmateRegistry {
       hasher.writeFloat64(entity.inmate.aptitude)
       hasher.writeFloat64(entity.inmate.reoffendChance)
       hasher.writeFloat64(entity.inmate.health)
+      hasher.writeUint32(entity.inmate.inventory.length)
+      for (const itemId of entity.inmate.inventory) hasher.writeString(itemId)
       hasher.writeUint32(entity.inmate.money)
       hasher.writeFloat64(entity.x)
       hasher.writeFloat64(entity.y)
