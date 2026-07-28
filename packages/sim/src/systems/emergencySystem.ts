@@ -31,7 +31,6 @@ import { isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 
 export { EmergencyState } from '../entities/securityState'
-export type { EmergencyState } from '../entities/securityState'
 
 /* -------------------------------------------------------------------------- */
 /* Events / commands                                                           */
