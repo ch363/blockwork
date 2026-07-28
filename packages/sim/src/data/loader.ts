@@ -555,6 +555,35 @@ function checkBalance(
     )
   }
 
+  const combat = balance.combat
+  const contrabandTarget: Target = { file: 'contraband', has: (id) => r.contraband.has(id) }
+  issues.ref(
+    'balance',
+    ['combat', 'defaultWeaponId'],
+    'combat.defaultWeaponId',
+    combat.defaultWeaponId,
+    contrabandTarget,
+    'contraband item',
+  )
+  issues.ref(
+    'balance',
+    ['combat', 'stun', 'weaponId'],
+    'combat.stun.weaponId',
+    combat.stun.weaponId,
+    contrabandTarget,
+    'contraband item',
+  )
+  for (const weaponId of Object.keys(combat.ranged.accuracyByWeapon)) {
+    issues.ref(
+      'balance',
+      ['combat', 'ranged', 'accuracyByWeapon', weaponId],
+      'combat.ranged.accuracyByWeapon',
+      weaponId,
+      contrabandTarget,
+      'contraband item',
+    )
+  }
+
   const kitchen = balance.kitchen
   if (kitchen.defaultMealVariety > kitchen.maxMealVariety) {
     issues.add(

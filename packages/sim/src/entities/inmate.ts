@@ -94,7 +94,8 @@ export interface InmateComponent {
   /** Mutable: needs / combat / programs append status effects. */
   status: StatusEffectId[]
   health: number
-  readonly inventory: readonly string[]
+  /** Mutable: contraband / combat (disarm) rewrite the list in place. */
+  inventory: string[]
   money: number
   /** Program learning multiplier, rolled at spawn (PRD 5.9). */
   readonly aptitude: number

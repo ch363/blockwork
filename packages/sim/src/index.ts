@@ -544,6 +544,66 @@ export type {
 } from './entities/needs'
 
 export {
+  HEALTH_EVENTS,
+  CombatRuntime,
+  CorpseRegistry,
+  applyDamage,
+  applyHeal,
+  attackMultiplier,
+  chebyshevDistance,
+  clampHealth,
+  clearStatus,
+  computeHitDamage,
+  defenseMultiplier,
+  disarmChance,
+  ensureStatus,
+  hasLineOfSight,
+  hasReputation,
+  instantKillChance,
+  isIncapacitated,
+  isRangedWeapon,
+  isStunWeapon,
+  rangedAccuracy,
+  rechargeTicks,
+  resolveWeapon,
+  rollDisarm,
+  rollInstantKill,
+  rollStunResist,
+} from './entities/health'
+export type {
+  ApplyDamageResult,
+  AttackReputation,
+  CombatantKind,
+  CombatantRef,
+  Corpse,
+  CorpseAgentKind,
+  CorpseState,
+  DamageInput,
+  DeadlyReputation,
+  DefenseReputation,
+  DisarmRoll,
+  Fight,
+  FightParticipant,
+  FightState,
+  FighterReputation,
+  HealthOutcome,
+  InstantKillRoll,
+  OverdoseTimer,
+  StunResistRoll,
+} from './entities/health'
+
+export {
+  COMBAT_EVENTS,
+  COMBAT_SYSTEM_NAME,
+  COMBAT_SYSTEM_PERIOD,
+  beginFight,
+  beginOverdose,
+  createCombatSystem,
+  queueClinicEscort,
+} from './systems/combatSystem'
+export type { BeginFightOptions, CombatSystemOptions } from './systems/combatSystem'
+
+export {
   NEEDS_SYSTEM_NAME,
   NEEDS_SYSTEM_PERIOD,
   createNeedsSystem,

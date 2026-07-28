@@ -650,6 +650,55 @@ export const balanceSchema = z.strictObject({
     dogRadiusTiles: positiveCount,
   }),
 
+  /** Combat / injury (T4.5). All trait and weapon maths read from here. */
+  combat: def({
+    maxHealth: z.number().min(1).max(1000),
+    incapHealthThreshold: z.number().min(0).max(100),
+    defaultWeaponId: id,
+    attackMultipliers: z.strictObject({
+      strong: rate,
+      very_strong: rate,
+    }),
+    defenseMultipliers: z.strictObject({
+      hardy: rate,
+      very_hardy: rate,
+    }),
+    vestDamageMultiplier: fraction,
+    instantKillChance: z.strictObject({
+      deadly: fraction,
+      very_deadly: fraction,
+    }),
+    disarmChance: z.strictObject({
+      trained_fighter: fraction,
+      expert_fighter: fraction,
+    }),
+    stun: z.strictObject({
+      weaponId: id,
+      durationMinutes: positiveCount,
+      charges: positiveCount,
+      rechargeMinutes: positiveCount,
+      veryHardyResistChance: fraction,
+    }),
+    ranged: z.strictObject({
+      defaultAccuracy: fraction,
+      accuracyByWeapon: z.record(id, fraction),
+    }),
+    medic: z.strictObject({
+      healPerMinute: rate,
+      rangeTiles: positiveCount,
+    }),
+    overdose: z.strictObject({
+      untreatedDeathMinutes: positiveCount,
+    }),
+    intervention: z.strictObject({
+      meleeRangeTiles: positiveCount,
+      officerMoveTilesPerMinute: positiveCount,
+    }),
+    mortuaryJobPriority: rate,
+    hearseDelayMinutes: positiveCount,
+    bloodOnDamagingHit: z.boolean(),
+  }),
+
   failure: def({
     uncontainedRiot: z.strictObject({ warningHours: positiveCount, thenHours: positiveCount }),
     insolvency: z.strictObject({ hours: positiveCount }),

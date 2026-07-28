@@ -73,6 +73,7 @@ import { createLaundrySystem } from '../systems/logistics/laundry'
 import { createNavigationSystem } from '../systems/navigationSystem'
 import { createPathingSystem } from '../systems/pathingSystem'
 import { createMovementSystem } from '../systems/movementSystem'
+import { createCombatSystem } from '../systems/combatSystem'
 import { createEconomySystem } from '../systems/economySystem'
 import { createContractSystem, contractCommandHandlers } from '../systems/contractSystem'
 import type { GameData } from '../data/loader'
@@ -208,11 +209,11 @@ export function createGame(options: GameOptions): Game {
   // PRD 4.4 order, restricted to the systems that exist. New systems go in
   // their slot, not on the end. Routine is slot 2; job assignment is slot 3
   // (staff escorts share the slot until escorts migrate onto the job pool);
-  // navigation feeds pathing/movement (slots 4–5); needs + staff needs are
-  // slot 6; activity is slot 7; logistics (meals, supply, deliveries, cleaning,
-  // laundry) is slot 8; construction is slot 9. Supply runs before deliveries
-  // so new orders land in the pending queue in time for the same-minute truck
-  // schedule check.
+  // navigation feeds pathing/movement (slots 4–5); combat shares the every-tick
+  // band with movement (slot 13); needs + staff needs are slot 6; activity is
+  // slot 7; logistics (meals, supply, deliveries, cleaning, laundry) is slot 8;
+  // construction is slot 9. Supply runs before deliveries so new orders land in
+  // the pending queue in time for the same-minute truck schedule check.
   const systems: readonly System[] = [
     createRoutineSystem({ data }),
     createJobSystem({ data }),
@@ -221,6 +222,7 @@ export function createGame(options: GameOptions): Game {
     createNavigationSystem({ data }),
     createPathingSystem({ data }),
     createMovementSystem({ data }),
+    createCombatSystem({ data }),
     createNeedsSystem({ data }),
     createStaffNeedsSystem({ data }),
     createActivitySystem({ data }),

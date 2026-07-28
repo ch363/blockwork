@@ -69,6 +69,7 @@ import { SupplyLogistics } from './logistics/supply'
 import { DeliverySchedule } from './logistics/deliveries'
 import { CleaningLogistics } from './logistics/cleaning'
 import { LaundryLogistics } from './logistics/laundry'
+import { CombatRuntime } from '../entities/health'
 
 /* -------------------------------------------------------------------------- */
 /* Policy                                                                      */
@@ -175,6 +176,8 @@ export class InmateWorld extends ObjectWorld {
   readonly contracts: ContractBook
   /** Prison-wide staff morale and strike state (T3.8). */
   readonly morale: MoraleState
+  /** Fights, injury, corpses (T4.5). */
+  readonly combat: CombatRuntime
   /** Sandbox / map mutators (staff needs default on). */
   readonly settings: MapRuntimeSettings
   /**
@@ -227,6 +230,7 @@ export class InmateWorld extends ObjectWorld {
     economy: EconomyLedger = createEconomyLedger(data),
     contracts: ContractBook = createContractBook(),
     morale: MoraleState = new MoraleState(),
+    combat: CombatRuntime = new CombatRuntime(),
     settings: MapRuntimeSettings = createMapRuntimeSettings(),
   ) {
     super(grid, materials, rooms, objects, data)
@@ -248,6 +252,7 @@ export class InmateWorld extends ObjectWorld {
     this.economy = economy
     this.contracts = contracts
     this.morale = morale
+    this.combat = combat
     this.settings = settings
     this.sectors = new SectorRegistry(grid.size)
     this.posts = new PostRegistry()
@@ -301,6 +306,7 @@ export class InmateWorld extends ObjectWorld {
     this.laundry.hashInto(hasher)
     this.fog.hashInto(hasher)
     this.morale.hashInto(hasher)
+    this.combat.hashInto(hasher)
     this.sectors.hashInto(hasher)
     this.posts.hashInto(hasher)
     hasher.writeUint32(this.settings.staffNeeds ? 1 : 0)
