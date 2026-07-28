@@ -5,16 +5,23 @@
     "hoursPerDay": 24,
     "hoursPerSentenceYear": 120
   },
-
   "map": {
-    "sizes": { "small": 100, "medium": 160, "large": 220, "huge": 300 },
+    "sizes": {
+      "small": 100,
+      "medium": 160,
+      "large": 220,
+      "huge": 300
+    },
     "parcelSize": 20,
     "tileWorldUnits": 32
   },
-
   "needs": {
     "_tuning": true,
-    "defaultThresholds": { "medium": 40, "high": 65, "critical": 88 },
+    "defaultThresholds": {
+      "medium": 40,
+      "high": 65,
+      "critical": 88
+    },
     "violenceWeightMultiplier": 1.5,
     "freedomLockedUpMultiplier": 3,
     "warmthColdThresholdC": 12,
@@ -24,7 +31,6 @@
     "starveDamagePerMinute": 0.05,
     "exposureDamagePerMinute": 0.1
   },
-
   "misconduct": {
     "_tuning": true,
     "evaluationMinutes": 10,
@@ -42,9 +48,12 @@
     "guardProximityMultiplier": 0.35,
     "guardProximityTiles": 4,
     "violentTraitMultiplier": 1.6,
-    "cellGrade": { "perPoint": 0.08, "min": 0.5, "max": 2.0 }
+    "cellGrade": {
+      "perPoint": 0.08,
+      "min": 0.5,
+      "max": 2.0
+    }
   },
-
   "entitlement": {
     "_tuning": true,
     "start": 2,
@@ -53,7 +62,6 @@
     "minorPenalty": 2,
     "reassignmentPeriodHours": 1
   },
-
   "suppression": {
     "_tuning": true,
     "lockdownMinutesPerPoint": 30,
@@ -66,7 +74,6 @@
     "voluntaryRefusalThreshold": 60,
     "psychReferralThreshold": 85
   },
-
   "danger": {
     "_tuning": true,
     "recomputeMinutes": 6,
@@ -82,7 +89,6 @@
     "misconductScale": 400,
     "armedScale": 300
   },
-
   "riot": {
     "_tuning": true,
     "checkMinutes": 10,
@@ -94,7 +100,6 @@
     "spreadTiles": 5,
     "containedMinutes": 10
   },
-
   "tunnels": {
     "_tuning": true,
     "tilesPerHourBase": 0.4,
@@ -103,17 +108,29 @@
     "dogDetectionTiles": 2,
     "cellSearchDetectionChance": 1
   },
-
   "morale": {
     "_tuning": true,
-    "weights": { "needSatisfaction": 0.6, "wage": 0.2, "danger": 0.2 },
+    "weights": {
+      "needSatisfaction": 0.6,
+      "wage": 0.2,
+      "danger": 0.2
+    },
     "marketHourlyWage": 22,
     "staffDeathPenalty": 8,
     "staffDeathWindowDays": 7,
     "injuryPenalty": 2,
-    "searchEffectiveness": { "base": 0.4, "scale": 0.6 },
-    "movementSpeed": { "base": 0.7, "scale": 0.3 },
-    "bribeChance": { "pivot": 35, "divisor": 100 },
+    "searchEffectiveness": {
+      "base": 0.4,
+      "scale": 0.6
+    },
+    "movementSpeed": {
+      "base": 0.7,
+      "scale": 0.3
+    },
+    "bribeChance": {
+      "pivot": 35,
+      "divisor": 100
+    },
     "strikeThreshold": 10,
     "strikeHours": 24,
     "payDemandRaise": 0.25,
@@ -121,7 +138,6 @@
     "repeatStrikeBaseChance": 0.15,
     "refuseStrikeChanceBonus": 0.35
   },
-
   "staffNeeds": {
     "_tuning": true,
     "breakThreshold": 55,
@@ -137,23 +153,27 @@
       "kennel",
       "office"
     ],
-    "staffOnlyCanteenDefIds": ["mess_hall"]
+    "staffOnlyCanteenDefIds": [
+      "mess_hall"
+    ]
   },
-
   "economy": {
     "_tuning": true,
     "startingFunds": 30000,
     "taxRate": 0.12,
     "utilityCostPerWattHour": 0.004,
     "utilityCostPerWaterUnit": 0.06,
-    "loan": { "startingCap": 2500, "maxCap": 250000, "hourlyInterestRate": 0.0015 },
+    "loan": {
+      "startingCap": 2500,
+      "maxCap": 250000,
+      "hourlyInterestRate": 0.0015
+    },
     "contractCancellationPenalty": 0.1,
     "maxConcurrentContracts": 2,
     "maxConcurrentContractsWithAdditional": 3,
     "demolishRefund": 0.5,
     "insolvencyCountdownHours": 24
   },
-
   "kitchen": {
     "mealsPerCookerPerHour": 12,
     "cookAssistBonus": 0.25,
@@ -176,7 +196,6 @@
     "ingredientsPerMeal": 1,
     "mealsPerServingCounter": 80
   },
-
   "logistics": {
     "_tuning": true,
     "truckIntervalHours": 2,
@@ -204,7 +223,6 @@
       "basketCapacity": 20
     }
   },
-
   "pathfinding": {
     "_tuning": true,
     "astarSearchesPerTick": 8,
@@ -216,7 +234,6 @@
       "staff": 10
     }
   },
-
   "staff": {
     "_tuning": true,
     "fogRadiusTiles": 5,
@@ -225,12 +242,10 @@
     "wanderPeriodTicks": 60,
     "wanderRadiusTiles": 8
   },
-
   "sectors": {
     "_tuning": true,
     "defaultAccess": "shared"
   },
-
   "posts": {
     "_tuning": true,
     "assignmentPeriodHours": 1,
@@ -239,18 +254,19 @@
     "unfilledReportPeriodHours": 1,
     "maxWaypoints": 24
   },
-
   "jobs": {
     "_tuning": true,
     "agingPerTick": 0.01,
     "minTravelTime": 1
   },
-
   "intake": {
     "_tuning": true,
     "busIntervalHours": 24,
     "maxPerBus": 8,
-    "convictionCount": { "min": 1, "max": 3 },
+    "convictionCount": {
+      "min": 1,
+      "max": 3
+    },
     "addiction": {
       "chanceWhenDependent": 0.7,
       "strengthMin": 0.3,
@@ -262,7 +278,6 @@
       "maximum": 2
     }
   },
-
   "construction": {
     "_tuning": true,
     "undoDepth": 50,
@@ -271,21 +286,25 @@
     "demolishMinutesFraction": 0.5,
     "stubMaterialDelivery": false
   },
-
   "rooms": {
     "_tuning": true,
     "enclosureFillLimit": 4096
   },
-
   "programs": {
     "_tuning": true,
-    "difficultyBase": { "easy": 0.85, "intermediate": 0.65, "advanced": 0.45 },
+    "difficultyBase": {
+      "easy": 0.85,
+      "intermediate": 0.65,
+      "advanced": 0.45
+    },
     "concentrationBase": 0.5,
     "concentrationScale": 0.5,
     "suppressionFactor": 0.5,
-    "aptitude": { "min": 0.7, "max": 1.3 }
+    "aptitude": {
+      "min": 0.7,
+      "max": 1.3
+    }
   },
-
   "reoffend": {
     "base": 0.55,
     "basicLiteracy": 0.1,
@@ -298,7 +317,6 @@
     "min": 0.02,
     "max": 0.95
   },
-
   "parole": {
     "_tuning": true,
     "eligibilityFraction": 0.5,
@@ -306,38 +324,68 @@
     "deniedAngryHours": 24,
     "reoffendDelayDays": 30
   },
-
   "utilities": {
     "_tuning": true,
     "utilitiesEnabled": false,
-    "sheddingPriority": ["comfort", "production", "security", "lifeSafety"],
+    "sheddingPriority": [
+      "comfort",
+      "production",
+      "security",
+      "lifeSafety"
+    ],
     "temperatureDiffusionTicks": 60,
-    "outdoorTemperatureC": { "min": 2, "max": 24 },
+    "outdoorTemperatureC": {
+      "min": 2,
+      "max": 24
+    },
     "waterUnitsPerFixture": 1
   },
-
   "contraband": {
     "_tuning": true,
     "theftCheckMinutes": 6,
     "theftBaseChance": 0.02,
     "guardSuppressionFactor": 0.65,
     "tradeCheckMinutes": 60,
-    "priceDemandClamp": { "min": 0.25, "max": 4 },
+    "priceDemandClamp": {
+      "min": 0.25,
+      "max": 4
+    },
     "throwInRangeTiles": 10,
-    "metalDetector": { "base": 0.55, "moraleScale": 0.35 },
+    "metalDetector": {
+      "base": 0.55,
+      "moraleScale": 0.35
+    },
     "dogRadiusTiles": 3
   },
-
   "failure": {
-    "uncontainedRiot": { "warningHours": 6, "thenHours": 6 },
-    "insolvency": { "hours": 24 },
-    "deaths": { "warningPerDay": 20, "thenNextDay": 5 },
-    "escapes": { "warningPerDay": 20, "thenNextDay": 5 },
-    "wardenDeaths": { "warning": 3, "thenAdditional": 1 },
-    "paroleRecidivism": { "count": 10, "windowDays": 30 },
-    "wrongfulExecutions": { "warning": 2, "thenAdditional": 1 }
+    "uncontainedRiot": {
+      "warningHours": 6,
+      "thenHours": 6
+    },
+    "insolvency": {
+      "hours": 24
+    },
+    "deaths": {
+      "warningPerDay": 20,
+      "thenNextDay": 5
+    },
+    "escapes": {
+      "warningPerDay": 20,
+      "thenNextDay": 5
+    },
+    "wardenDeaths": {
+      "warning": 3,
+      "thenAdditional": 1
+    },
+    "paroleRecidivism": {
+      "count": 10,
+      "windowDays": 30
+    },
+    "wrongfulExecutions": {
+      "warning": 2,
+      "thenAdditional": 1
+    }
   },
-
   "routine": {
     "_tuning": true,
     "sleepForbiddenFromHour": 8,
@@ -347,35 +395,48 @@
     "minSessionMinutes": 1,
     "blocks": {
       "lockup": {
-        "permittedRooms": ["cell", "dormitory", "isolation"],
+        "permittedRooms": [
+          "cell",
+          "dormitory",
+          "isolation"
+        ],
         "preferredNeed": null,
         "lockedUp": true,
         "goalSet": null,
         "ownCell": true
       },
       "sleep": {
-        "permittedRooms": ["cell", "dormitory"],
+        "permittedRooms": [
+          "cell",
+          "dormitory"
+        ],
         "preferredNeed": "sleep",
         "lockedUp": true,
         "goalSet": null,
         "ownCell": true
       },
       "meal": {
-        "permittedRooms": ["mess_hall"],
+        "permittedRooms": [
+          "mess_hall"
+        ],
         "preferredNeed": "food",
         "lockedUp": false,
         "goalSet": "serving_counter",
         "ownCell": false
       },
       "yard": {
-        "permittedRooms": ["exercise_yard"],
+        "permittedRooms": [
+          "exercise_yard"
+        ],
         "preferredNeed": "exercise",
         "lockedUp": false,
         "goalSet": "yard",
         "ownCell": false
       },
       "wash": {
-        "permittedRooms": ["washroom"],
+        "permittedRooms": [
+          "washroom"
+        ],
         "preferredNeed": "hygiene",
         "lockedUp": false,
         "goalSet": "shower_head",
@@ -425,7 +486,16 @@
         "ownCell": false
       },
       "work_lockup": {
-        "permittedRooms": ["cell", "dormitory", "isolation", "kitchen", "workshop", "laundry", "mail_sort", "grove"],
+        "permittedRooms": [
+          "cell",
+          "dormitory",
+          "isolation",
+          "kitchen",
+          "workshop",
+          "laundry",
+          "mail_sort",
+          "grove"
+        ],
         "preferredNeed": null,
         "lockedUp": true,
         "goalSet": null,
@@ -434,44 +504,163 @@
     },
     "defaults": {
       "minimum": [
-        "sleep", "sleep", "sleep", "sleep", "sleep", "sleep",
-        "lockup", "wash", "meal", "free", "free", "free",
-        "meal", "yard", "yard", "free", "free", "meal",
-        "free", "wash", "free", "free", "sleep", "sleep"
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "lockup",
+        "wash",
+        "meal",
+        "free",
+        "free",
+        "free",
+        "meal",
+        "yard",
+        "yard",
+        "free",
+        "free",
+        "meal",
+        "free",
+        "wash",
+        "free",
+        "free",
+        "sleep",
+        "sleep"
       ],
       "medium": [
-        "sleep", "sleep", "sleep", "sleep", "sleep", "sleep",
-        "lockup", "wash", "meal", "work_free", "work_free", "work_free",
-        "meal", "yard", "yard", "free", "free", "meal",
-        "free", "wash", "free", "free", "sleep", "sleep"
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "lockup",
+        "wash",
+        "meal",
+        "work_free",
+        "work_free",
+        "work_free",
+        "meal",
+        "yard",
+        "yard",
+        "free",
+        "free",
+        "meal",
+        "free",
+        "wash",
+        "free",
+        "free",
+        "sleep",
+        "sleep"
       ],
       "maximum": [
-        "sleep", "sleep", "sleep", "sleep", "sleep", "sleep",
-        "lockup", "wash", "meal", "work_lockup", "work_lockup", "work_lockup",
-        "meal", "yard", "lockup", "lockup", "work_lockup", "meal",
-        "lockup", "wash", "lockup", "lockup", "sleep", "sleep"
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "lockup",
+        "wash",
+        "meal",
+        "work_lockup",
+        "work_lockup",
+        "work_lockup",
+        "meal",
+        "yard",
+        "lockup",
+        "lockup",
+        "work_lockup",
+        "meal",
+        "lockup",
+        "wash",
+        "lockup",
+        "lockup",
+        "sleep",
+        "sleep"
       ],
       "supermax": [
-        "sleep", "sleep", "sleep", "sleep", "sleep", "sleep",
-        "lockup", "lockup", "meal", "lockup", "lockup", "lockup",
-        "meal", "lockup", "lockup", "lockup", "lockup", "meal",
-        "lockup", "wash", "lockup", "lockup", "sleep", "sleep"
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "lockup",
+        "lockup",
+        "meal",
+        "lockup",
+        "lockup",
+        "lockup",
+        "meal",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "meal",
+        "lockup",
+        "wash",
+        "lockup",
+        "lockup",
+        "sleep",
+        "sleep"
       ],
       "protective": [
-        "sleep", "sleep", "sleep", "sleep", "sleep", "sleep",
-        "lockup", "wash", "meal", "free", "free", "free",
-        "meal", "yard", "yard", "free", "free", "meal",
-        "free", "wash", "free", "free", "sleep", "sleep"
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "sleep",
+        "lockup",
+        "wash",
+        "meal",
+        "free",
+        "free",
+        "free",
+        "meal",
+        "yard",
+        "yard",
+        "free",
+        "free",
+        "meal",
+        "free",
+        "wash",
+        "free",
+        "free",
+        "sleep",
+        "sleep"
       ],
       "condemned": [
-        "lockup", "lockup", "lockup", "lockup", "lockup", "lockup",
-        "lockup", "lockup", "lockup", "lockup", "lockup", "lockup",
-        "lockup", "lockup", "lockup", "lockup", "lockup", "lockup",
-        "lockup", "lockup", "lockup", "lockup", "lockup", "lockup"
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup",
+        "lockup"
       ]
     }
   },
-
   "features": [
     "sector_view",
     "danger_meter",
@@ -509,5 +698,33 @@
     "credit_line",
     "additional_contract",
     "land_purchase"
-  ]
+  ],
+  "fire": {
+    "_tuning": true,
+    "maxIntensity": 255,
+    "intensityGrowthPerTick": 4,
+    "spreadChancePerTick": 0.12,
+    "burnoutDecayPerTick": 8,
+    "agentDamagePerSecond": 4,
+    "objectDamagePerSecondAtFullIntensity": 12,
+    "sprinklerRadiusTiles": 3,
+    "sprinklerSuppressionPerSecond": 50,
+    "firefighterHoseRadiusTiles": 2,
+    "firefighterSuppressionPerSecond": 70,
+    "firefighterStepTilesPerTick": 1,
+    "smokeEmitPerIntensityPerTick": 0.35,
+    "smokeDecayPerTick": 1.5,
+    "smokeMax": 255,
+    "smokeVisibilityThreshold": 0.35,
+    "smokeMovementPenalty": 0.45,
+    "ignition": {
+      "lighterChancePerMinute": 0.02,
+      "lighterIntensity": 90,
+      "workshopAccidentChancePerMinute": 0.015,
+      "workshopAccidentIntensity": 110,
+      "electricalFaultChancePerMinute": 0.04,
+      "electricalFaultIntensity": 130
+    },
+    "burntFloorMaterialId": "concrete_floor"
+  }
 }
