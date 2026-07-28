@@ -101,7 +101,19 @@
     "tilesPerHourVariance": 0.1,
     "dogDetectionChance": 0.25,
     "dogDetectionTiles": 2,
-    "cellSearchDetectionChance": 1
+    "cellSearchDetectionChance": 1,
+    "maintenanceSweepDetectionChance": 1,
+    "escapeInmatesPerNight": 1,
+    "discoverySuppression": 40,
+    "cleverTraitId": "clever",
+    "veryStrongTraitId": "very_strong",
+    "driverTraitId": "driver",
+    "toiletObjectId": "toilet",
+    "dogStaffRoleId": "dog",
+    "maintenanceCapability": "repair",
+    "diggingRegimeBlocks": ["sleep", "lockup"],
+    "fenceMaterialIds": ["chain_fence", "razor_fence"],
+    "rngStream": "tunnels"
   },
 
   "morale": {
@@ -316,6 +328,35 @@
     "waterUnitsPerFixture": 1
   },
 
+  "fire": {
+    "_tuning": true,
+    "maxIntensity": 255,
+    "intensityGrowthPerTick": 4,
+    "spreadChancePerTick": 0.12,
+    "burnoutDecayPerTick": 8,
+    "agentDamagePerSecond": 4,
+    "objectDamagePerSecondAtFullIntensity": 12,
+    "sprinklerRadiusTiles": 3,
+    "sprinklerSuppressionPerSecond": 50,
+    "firefighterHoseRadiusTiles": 2,
+    "firefighterSuppressionPerSecond": 70,
+    "firefighterStepTilesPerTick": 1,
+    "smokeEmitPerIntensityPerTick": 0.35,
+    "smokeDecayPerTick": 1.5,
+    "smokeMax": 255,
+    "smokeVisibilityThreshold": 0.35,
+    "smokeMovementPenalty": 0.45,
+    "ignition": {
+      "lighterChancePerMinute": 0.02,
+      "lighterIntensity": 90,
+      "workshopAccidentChancePerMinute": 0.015,
+      "workshopAccidentIntensity": 110,
+      "electricalFaultChancePerMinute": 0.04,
+      "electricalFaultIntensity": 130
+    },
+    "burntFloorMaterialId": "concrete_floor"
+  },
+
   "contraband": {
     "_tuning": true,
     "theftCheckMinutes": 6,
@@ -325,7 +366,37 @@
     "priceDemandClamp": { "min": 0.25, "max": 4 },
     "throwInRangeTiles": 10,
     "metalDetector": { "base": 0.55, "moraleScale": 0.35 },
-    "dogRadiusTiles": 3
+    "dogRadiusTiles": 3,
+    "dog": { "base": 0.4, "moraleScale": 0.4 },
+    "search": {
+      "manual": { "base": 0.55, "moraleScale": 0.45 },
+      "intake": { "base": 0.72, "moraleScale": 0.28 },
+      "shakedown": { "base": 0.78, "moraleScale": 0.18 },
+      "moodCost": {
+        "individual": 4,
+        "cell": 6,
+        "block": 10,
+        "shakedown": 22,
+        "intake": 0
+      },
+      "shakedownDangerSpike": 18,
+      "intakeDelayMinutesPerInmate": 8,
+      "intakeNearPerfectOfficerCount": 4
+    },
+    "standingOrders": {
+      "defaultReassignmentStrictness": "lenient",
+      "defaults": {
+        "complaint": { "punishment": "ignore", "durationHours": 0, "search": false },
+        "contraband": { "punishment": "lockdown", "durationHours": 6, "search": true },
+        "intoxication": { "punishment": "lockdown", "durationHours": 4, "search": true },
+        "destruction": { "punishment": "lockdown", "durationHours": 8, "search": false },
+        "attackInmate": { "punishment": "isolation", "durationHours": 12, "search": true },
+        "attackStaff": { "punishment": "isolation", "durationHours": 24, "search": true },
+        "seriousInjury": { "punishment": "isolation", "durationHours": 36, "search": true },
+        "homicide": { "punishment": "isolation", "durationHours": -1, "search": true },
+        "escapeAttempt": { "punishment": "isolation", "durationHours": 24, "search": true }
+      }
+    }
   },
 
   "failure": {

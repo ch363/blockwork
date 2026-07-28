@@ -39,6 +39,14 @@ import { Trace } from './panels/Trace'
 import type { TraceFixModel, TraceModel, TraceNodeModel } from './panels/Trace'
 import { Posts } from './panels/Posts'
 import type { PostsModel, PostsTab } from './panels/Posts'
+import { StandingOrders } from './panels/StandingOrders'
+import type {
+  StandingOrdersModel,
+  StandingOrdersTab,
+  StandingMealQuantity,
+  StandingPunishment,
+  StandingStrictness,
+} from './panels/StandingOrders'
 import { Tray } from './panels/Tray'
 import type { TrayGroup } from './panels/Tray'
 
@@ -102,6 +110,21 @@ export interface GameShellProps {
   readonly onPostsSelectSector?: (id: number) => void
   readonly onPostsHireSuggested?: () => void
   readonly onPostsConfigureSector?: (id: number) => void
+
+  /** Null closes the Standing Orders panel. */
+  readonly standingOrders?: StandingOrdersModel | null
+  readonly standingOrdersTab?: StandingOrdersTab
+  readonly onStandingOrdersTab?: (tab: StandingOrdersTab) => void
+  readonly onStandingOrdersClose?: () => void
+  readonly onStandingOrdersPunishment?: (
+    misconduct: string,
+    punishment: StandingPunishment,
+  ) => void
+  readonly onStandingOrdersDuration?: (misconduct: string, durationHours: number) => void
+  readonly onStandingOrdersSearchTrigger?: (misconduct: string, search: boolean) => void
+  readonly onStandingOrdersStrictness?: (strictness: StandingStrictness) => void
+  readonly onStandingOrdersMealQuantity?: (quantity: StandingMealQuantity) => void
+  readonly onStandingOrdersMealVariety?: (variety: number) => void
 
   readonly onUndo: () => void
   readonly onRedo: () => void
@@ -220,6 +243,31 @@ export function GameShell(props: GameShellProps): JSX.Element {
           {...(props.onPostsConfigureSector === undefined
             ? {}
             : { onConfigureSector: props.onPostsConfigureSector })}
+        />
+
+        <StandingOrders
+          model={props.standingOrders ?? null}
+          tab={props.standingOrdersTab ?? 'punishment'}
+          onTab={props.onStandingOrdersTab ?? (() => undefined)}
+          onClose={props.onStandingOrdersClose ?? (() => undefined)}
+          {...(props.onStandingOrdersPunishment === undefined
+            ? {}
+            : { onPunishment: props.onStandingOrdersPunishment })}
+          {...(props.onStandingOrdersDuration === undefined
+            ? {}
+            : { onDuration: props.onStandingOrdersDuration })}
+          {...(props.onStandingOrdersSearchTrigger === undefined
+            ? {}
+            : { onSearchTrigger: props.onStandingOrdersSearchTrigger })}
+          {...(props.onStandingOrdersStrictness === undefined
+            ? {}
+            : { onStrictness: props.onStandingOrdersStrictness })}
+          {...(props.onStandingOrdersMealQuantity === undefined
+            ? {}
+            : { onMealQuantity: props.onStandingOrdersMealQuantity })}
+          {...(props.onStandingOrdersMealVariety === undefined
+            ? {}
+            : { onMealVariety: props.onStandingOrdersMealVariety })}
         />
 
         <Toasts toasts={props.toasts} onTrace={props.onTrace} onDismiss={props.onDismissToast} />

@@ -7,16 +7,22 @@
  * staff BFS can move them without fighting the pathing stack.
  */
 
+import type { GameData } from '../data/loader'
 import type { InmateEntity, InmateRegistry } from '../entities/inmate'
 import type { EscortJobQueue } from '../entities/staff'
 import { ACCESS } from '../pathfinding/regionGraph'
 import type { AgentStore, MobileAgent } from './pathingSystem'
+import type { FireGrid } from '../world/fireGrid'
+import { smokeMovementMultiplier } from '../world/fireGrid'
 
 export interface InmateAgentStoreOptions {
   readonly inmates: InmateRegistry
   readonly escorts: EscortJobQueue
   readonly tileWorldUnits: number
   readonly inmateSpeed: number
+  /** When present, smoke on the agent's tile scales movement speed (T4.8). */
+  readonly fire?: FireGrid
+  readonly data?: GameData
 }
 
 /**
@@ -28,6 +34,8 @@ export class InmateAgentStore implements AgentStore {
   readonly #escorts: EscortJobQueue
   readonly #tileWorldUnits: number
   readonly #inmateSpeed: number
+  readonly #fire: FireGrid | undefined
+  readonly #data: GameData | undefined
   /** Scratch list rebuilt each `all()` — pathing iterates once per tick. */
   readonly #scratch: MobileAgent[] = []
 
@@ -36,6 +44,8 @@ export class InmateAgentStore implements AgentStore {
     this.#escorts = options.escorts
     this.#tileWorldUnits = options.tileWorldUnits
     this.#inmateSpeed = options.inmateSpeed
+    this.#fire = options.fire
+    this.#data = options.data
   }
 
   get size(): number {
@@ -46,7 +56,7 @@ export class InmateAgentStore implements AgentStore {
     this.#scratch.length = 0
     for (const entity of this.#inmates.all()) {
       if (isInmateEscorted(this.#escorts, entity.id)) continue
-      syncInmateMotion(entity, this.#inmateSpeed)
+      syncInmateMotion(entity, this.motionSpeed(entity))
       this.#scratch.push(entity)
     }
     return this.#scratch
@@ -56,18 +66,24 @@ export class InmateAgentStore implements AgentStore {
     const entity = this.#inmates.get(id)
     if (entity === undefined) return undefined
     if (isInmateEscorted(this.#escorts, id)) return undefined
-    syncInmateMotion(entity, this.#inmateSpeed)
+    syncInmateMotion(entity, this.motionSpeed(entity))
     return entity
   }
 
   setGoal(agentId: number, goalTile: number): void {
     const entity = this.#inmates.get(agentId)
     if (entity === undefined) return
-    syncInmateMotion(entity, this.#inmateSpeed)
+    syncInmateMotion(entity, this.motionSpeed(entity))
     entity.goalTile = goalTile
     entity.path = null
     entity.pathIndex = 0
     entity.awaitingPath = false
+  }
+
+  motionSpeed(entity: InmateEntity): number {
+    if (this.#fire === undefined || this.#data === undefined) return this.#inmateSpeed
+    const tileIndex = entity.ty * this.#fire.size + entity.tx
+    return this.#inmateSpeed * smokeMovementMultiplier(this.#fire, tileIndex, this.#data)
   }
 
   tileWorldUnits(): number {

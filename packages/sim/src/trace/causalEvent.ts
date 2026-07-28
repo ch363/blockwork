@@ -63,6 +63,10 @@ export const TRACE_KINDS = {
   staffBribeTaken: 'morale.bribeTaken',
   staffStrikeStarted: 'morale.strikeStarted',
   staffPayDemand: 'morale.payDemand',
+  escapeTunnelDiscovered: 'escape.tunnelDiscovered',
+  escapeInmateEscaped: 'escape.inmateEscaped',
+  escapeFailureWarning: 'escape.failureWarning',
+  escapeFailure: 'escape.failure',
 } as const
 
 export type TraceKind = (typeof TRACE_KINDS)[keyof typeof TRACE_KINDS]
@@ -85,6 +89,10 @@ export const REGISTERED_TRACE_KINDS: readonly TraceKind[] = [
   TRACE_KINDS.staffBribeTaken,
   TRACE_KINDS.staffStrikeStarted,
   TRACE_KINDS.staffPayDemand,
+  TRACE_KINDS.escapeTunnelDiscovered,
+  TRACE_KINDS.escapeInmateEscaped,
+  TRACE_KINDS.escapeFailureWarning,
+  TRACE_KINDS.escapeFailure,
 ]
 
 export interface CausalEventLogOptions {

@@ -79,6 +79,56 @@
       "title": "Staff demand a {demandedRaise} wage rise",
       "detail": "Accept to raise wages immediately and end the strike. Refuse and the next walkout becomes more likely.",
       "meta": "Current wage multiplier {currentWageMultiplier}"
+    },
+    "search.performed": {
+      "title": "{kind} search completed",
+      "detail": "Touched {inmatesTouched} inmates and {stashesTouched} stashes. Found {found} items. Mood cost {moodCost}. Staff morale was {morale}.",
+      "meta": "Day {day} · {time}"
+    },
+    "search.found": {
+      "title": "Search recovered {count} contraband item{countPlural}",
+      "detail": "Items: {items}.",
+      "meta": "Day {day} · search kind {kind}"
+    },
+    "search.intakeDelayed": {
+      "title": "Intake search delayed inmate {inmateId} by {delayMinutes} minutes",
+      "detail": "{officers} officers searched at chance {chance}.",
+      "meta": "Day {day} · intake hall"
+    },
+    "search.metalDetect": {
+      "title": "Metal detector flagged inmate {inmateId}",
+      "detail": "Recovered {items} at chance {chance} (morale {morale}).",
+      "meta": "Day {day} · {time}"
+    },
+    "search.dogDetect": {
+      "title": "Dog team flagged inmate {inmateId}",
+      "detail": "Recovered odorous items {items} at chance {chance} (morale {morale}).",
+      "meta": "Day {day} · {time}"
+    },
+    "search.standingOrderApplied": {
+      "title": "Standing Orders applied for {misconduct}",
+      "detail": "Punishment {punishment} for {durationHours} hours. Search trigger {search}.",
+      "meta": "Inmate {inmateId}"
+    },
+    "escape.tunnelDiscovered": {
+      "title": "Tunnel from cell entrance {originTile} collapsed",
+      "detail": "Found by {method}. Diggers {diggerIds} were punished. Suppression +{suppression}.",
+      "meta": "Day {day} · tunnel {tunnelId}"
+    },
+    "escape.inmateEscaped": {
+      "title": "Inmate {inmateId} escaped via {route}",
+      "detail": "{escapesToday} escapes today ({totalEscapes} total). Investigate perimeter, tunnels and zoning.",
+      "meta": "Day {day} · {time}"
+    },
+    "escape.failureWarning": {
+      "title": "Escape crisis — {escapesToday} escapes today",
+      "detail": "Warning threshold is {warningPerDay}. {thenNextDay} more tomorrow will fail the facility.",
+      "meta": "Day {day}"
+    },
+    "escape.failure": {
+      "title": "Facility failed — escapes out of control",
+      "detail": "{escapesYesterday} escapes yesterday and {escapesToday} more today crossed the failure line.",
+      "meta": "Day {day}"
     }
   }
 }

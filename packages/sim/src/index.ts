@@ -465,6 +465,77 @@ export {
 } from './systems/objectSystem'
 export type { ObjectSystemOptions } from './systems/objectSystem'
 
+export {
+  FIRE_EVENTS,
+  FIRE_SYSTEM_NAME,
+  FIRE_SYSTEM_PERIOD,
+  FireGrid,
+  createFireSystem,
+  igniteTile,
+  isFireWorld,
+  perTickFromPerSecond,
+  secondsPerTick,
+  smokeBlocksVisibility,
+  smokeMovementMultiplier,
+  summonFirefighters,
+  tileFlammability,
+} from './systems/fireSystem'
+export type {
+  FireIgnitionSource,
+  FireSystemOptions,
+  IgniteOptions,
+  SummonFirefightersOptions,
+  SummonFirefightersRejection,
+  SummonFirefightersResult,
+} from './systems/fireSystem'
+
+export {
+  ESCAPE_EVENTS,
+  ESCAPE_SYSTEM_NAME,
+  ESCAPE_SYSTEM_PERIOD,
+  NO_TUNNEL,
+  EscapeState,
+  addInmateInventoryItem,
+  advanceTunnelDig,
+  canInmateDig,
+  cellHasToilet,
+  checkEscapeFailure,
+  createEscapeState,
+  createEscapeSystem,
+  digProgressThisHour,
+  diggingToolInInventory,
+  discoverTunnel,
+  inmateHasTrait,
+  isDiggingRegime,
+  isEscapeExitTile,
+  isMapEdgeTile,
+  maintenanceSweep,
+  markRiotDoorBreached,
+  mergeTunnels,
+  nearestEdgeStep,
+  networkDiggerIds,
+  queueNetworkEscape,
+  resolveInmateEscape,
+  resolvePendingNetworkEscapes,
+  rollEscapeDayCounters,
+  searchCellForTunnels,
+  setInmateInventory,
+  tileDistance,
+  tryDogDetection,
+  tryFenceClimb,
+  tryRiotDoorEscape,
+  tryVehicleTheft,
+  tryWalkOut,
+} from './systems/escapeSystem'
+export type {
+  DiscoverTunnelOptions,
+  EscapeRoute,
+  EscapeSystemOptions,
+  PendingNetworkEscape,
+  ResolveEscapeOptions,
+  Tunnel,
+} from './systems/escapeSystem'
+
 export { ROOM_SYSTEM_NAME, ROOM_SYSTEM_PERIOD, createRoomSystem } from './systems/roomSystem'
 export type { RoomSystemOptions } from './systems/roomSystem'
 
@@ -665,6 +736,51 @@ export type {
   PostSystemOptions,
   UnfilledReason,
 } from './systems/postSystem'
+
+export { ContrabandStub } from './systems/contrabandStub'
+export type { ContrabandStash } from './systems/contrabandStub'
+
+export {
+  MISCONDUCT_KINDS,
+  PUNISHMENT_KINDS,
+  REASSIGNMENT_STRICTNESS,
+  SEARCH_COMMANDS,
+  SEARCH_EVENTS,
+  SEARCH_KINDS,
+  SEARCH_SYSTEM_NAME,
+  SEARCH_SYSTEM_PERIOD,
+  applyStandingOrder,
+  applyStandingOrderForMisconduct,
+  compoundDetectionChance,
+  countOfficersInRoom,
+  createSearchSystem,
+  createStandingOrdersPolicy,
+  detectionChance,
+  hashStandingOrders,
+  intakeDelayTicks,
+  isMisconductKind,
+  isPunishmentKind,
+  isReassignmentStrictness,
+  isSearchKind,
+  performSearch,
+  rollDogDetection,
+  rollMetalDetectorPass,
+  searchCommandHandlers,
+  searchMoodCost,
+} from './systems/searchSystem'
+export type {
+  DetectionCurve,
+  MisconductKind,
+  MisconductStandingOrder,
+  PassiveDetectOptions,
+  PerformSearchOptions,
+  PunishmentKind,
+  ReassignmentStrictness,
+  SearchKind,
+  SearchResult,
+  SearchSystemOptions,
+  StandingOrdersPolicy,
+} from './systems/searchSystem'
 
 export {
   MoraleState,

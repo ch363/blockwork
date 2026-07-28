@@ -6,8 +6,18 @@
       "name": "Bed",
       "cost": 200,
       "hp": 60,
-      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.35, "concurrentUsers": 1 }],
-      "countsForRooms": ["cell", "dormitory"]
+      "servesNeeds": [
+        {
+          "need": "sleep",
+          "ratePerMinute": 0.35,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "cell",
+        "dormitory"
+      ],
+      "flammability": 0.75
     },
     {
       "_tuning": true,
@@ -15,8 +25,17 @@
       "name": "Bunk bed",
       "cost": 350,
       "hp": 80,
-      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.35, "concurrentUsers": 2 }],
-      "countsForRooms": ["dormitory"]
+      "servesNeeds": [
+        {
+          "need": "sleep",
+          "ratePerMinute": 0.35,
+          "concurrentUsers": 2
+        }
+      ],
+      "countsForRooms": [
+        "dormitory"
+      ],
+      "flammability": 0.8
     },
     {
       "_tuning": true,
@@ -25,10 +44,22 @@
       "cost": 600,
       "hp": 60,
       "servesNeeds": [
-        { "need": "sleep", "ratePerMinute": 0.5, "concurrentUsers": 1 },
-        { "need": "comfort", "ratePerMinute": 1.5, "concurrentUsers": 1 }
+        {
+          "need": "sleep",
+          "ratePerMinute": 0.5,
+          "concurrentUsers": 1
+        },
+        {
+          "need": "comfort",
+          "ratePerMinute": 1.5,
+          "concurrentUsers": 1
+        }
       ],
-      "countsForRooms": ["cell", "dormitory"]
+      "countsForRooms": [
+        "cell",
+        "dormitory"
+      ],
+      "flammability": 0.7
     },
     {
       "_tuning": true,
@@ -36,8 +67,19 @@
       "name": "Foam mattress",
       "cost": 60,
       "hp": 25,
-      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.22, "concurrentUsers": 1 }],
-      "countsForRooms": ["cell", "dormitory", "holding_pen"]
+      "servesNeeds": [
+        {
+          "need": "sleep",
+          "ratePerMinute": 0.22,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "cell",
+        "dormitory",
+        "holding_pen"
+      ],
+      "flammability": 0.85
     },
     {
       "_tuning": true,
@@ -45,8 +87,17 @@
       "name": "Isolation pallet",
       "cost": 90,
       "hp": 120,
-      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.18, "concurrentUsers": 1 }],
-      "countsForRooms": ["isolation"]
+      "servesNeeds": [
+        {
+          "need": "sleep",
+          "ratePerMinute": 0.18,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "isolation"
+      ],
+      "flammability": 0.5
     },
     {
       "_tuning": true,
@@ -54,10 +105,19 @@
       "name": "Bedside cabinet",
       "cost": 120,
       "hp": 40,
-      "servesNeeds": [{ "need": "privacy", "ratePerMinute": 0.6, "concurrentUsers": 1 }],
-      "countsForRooms": ["cell", "dormitory"]
+      "servesNeeds": [
+        {
+          "need": "privacy",
+          "ratePerMinute": 0.6,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "cell",
+        "dormitory"
+      ],
+      "flammability": 0.6
     },
-
     {
       "_tuning": true,
       "id": "toilet",
@@ -65,8 +125,21 @@
       "cost": 150,
       "hp": 50,
       "needsWater": true,
-      "servesNeeds": [{ "need": "bladder", "ratePerMinute": 22, "concurrentUsers": 1 }],
-      "countsForRooms": ["cell", "dormitory", "holding_pen", "isolation", "washroom", "break_room"]
+      "servesNeeds": [
+        {
+          "need": "bladder",
+          "ratePerMinute": 22,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "cell",
+        "dormitory",
+        "holding_pen",
+        "isolation",
+        "washroom",
+        "break_room"
+      ]
     },
     {
       "_tuning": true,
@@ -75,8 +148,19 @@
       "cost": 110,
       "hp": 40,
       "needsWater": true,
-      "servesNeeds": [{ "need": "hygiene", "ratePerMinute": 2.5, "concurrentUsers": 1 }],
-      "countsForRooms": ["cell", "washroom", "break_room", "clinic"]
+      "servesNeeds": [
+        {
+          "need": "hygiene",
+          "ratePerMinute": 2.5,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "cell",
+        "washroom",
+        "break_room",
+        "clinic"
+      ]
     },
     {
       "_tuning": true,
@@ -86,8 +170,17 @@
       "hp": 35,
       "placement": "wall",
       "needsWater": true,
-      "servesNeeds": [{ "need": "hygiene", "ratePerMinute": 9, "concurrentUsers": 1 }],
-      "countsForRooms": ["washroom", "cell"]
+      "servesNeeds": [
+        {
+          "need": "hygiene",
+          "ratePerMinute": 9,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "washroom",
+        "cell"
+      ]
     },
     {
       "_tuning": true,
@@ -96,7 +189,11 @@
       "cost": 40,
       "hp": 60,
       "needsWater": true,
-      "countsForRooms": ["washroom", "kitchen", "laundry"]
+      "countsForRooms": [
+        "washroom",
+        "kitchen",
+        "laundry"
+      ]
     },
     {
       "_tuning": true,
@@ -105,18 +202,38 @@
       "cost": 70,
       "hp": 15,
       "placement": "wall",
-      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 0.8, "concurrentUsers": 1 }],
-      "countsForRooms": ["cell", "washroom"]
+      "servesNeeds": [
+        {
+          "need": "comfort",
+          "ratePerMinute": 0.8,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "cell",
+        "washroom"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "stool",
       "name": "Stool",
       "cost": 45,
       "hp": 20,
-      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 1, "concurrentUsers": 1 }],
-      "countsForRooms": ["cell", "mess_hall", "dayroom", "workshop", "visit_hall"]
+      "servesNeeds": [
+        {
+          "need": "comfort",
+          "ratePerMinute": 1,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "cell",
+        "mess_hall",
+        "dayroom",
+        "workshop",
+        "visit_hall"
+      ]
     },
     {
       "_tuning": true,
@@ -124,8 +241,21 @@
       "name": "Chair",
       "cost": 90,
       "hp": 25,
-      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 1.4, "concurrentUsers": 1 }],
-      "countsForRooms": ["office", "control_room", "classroom", "library", "hearing_room", "clinic"]
+      "servesNeeds": [
+        {
+          "need": "comfort",
+          "ratePerMinute": 1.4,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "office",
+        "control_room",
+        "classroom",
+        "library",
+        "hearing_room",
+        "clinic"
+      ]
     },
     {
       "_tuning": true,
@@ -133,8 +263,19 @@
       "name": "Padded chair",
       "cost": 240,
       "hp": 30,
-      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 2.4, "concurrentUsers": 1 }],
-      "countsForRooms": ["office", "break_room", "dayroom", "hearing_room"]
+      "servesNeeds": [
+        {
+          "need": "comfort",
+          "ratePerMinute": 2.4,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "office",
+        "break_room",
+        "dayroom",
+        "hearing_room"
+      ]
     },
     {
       "_tuning": true,
@@ -142,9 +283,18 @@
       "name": "Bench",
       "cost": 80,
       "hp": 45,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
-      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 0.9, "concurrentUsers": 2 }],
+      "servesNeeds": [
+        {
+          "need": "comfort",
+          "ratePerMinute": 0.9,
+          "concurrentUsers": 2
+        }
+      ],
       "countsForRooms": [
         "mess_hall",
         "holding_pen",
@@ -160,13 +310,27 @@
       "name": "Couch",
       "cost": 320,
       "hp": 40,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "servesNeeds": [
-        { "need": "comfort", "ratePerMinute": 2.8, "concurrentUsers": 2 },
-        { "need": "recreation", "ratePerMinute": 0.8, "concurrentUsers": 2 }
+        {
+          "need": "comfort",
+          "ratePerMinute": 2.8,
+          "concurrentUsers": 2
+        },
+        {
+          "need": "recreation",
+          "ratePerMinute": 0.8,
+          "concurrentUsers": 2
+        }
       ],
-      "countsForRooms": ["break_room", "dayroom"]
+      "countsForRooms": [
+        "break_room",
+        "dayroom"
+      ]
     },
     {
       "_tuning": true,
@@ -174,19 +338,32 @@
       "name": "Bleacher",
       "cost": 260,
       "hp": 70,
-      "size": { "w": 3, "h": 1 },
+      "size": {
+        "w": 3,
+        "h": 1
+      },
       "rotatable": true,
-      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 0.8, "concurrentUsers": 4 }],
-      "countsForRooms": ["exercise_yard"]
+      "servesNeeds": [
+        {
+          "need": "comfort",
+          "ratePerMinute": 0.8,
+          "concurrentUsers": 4
+        }
+      ],
+      "countsForRooms": [
+        "exercise_yard"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "table",
       "name": "Table",
       "cost": 130,
       "hp": 45,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "countsForRooms": [
         "mess_hall",
@@ -204,9 +381,16 @@
       "name": "Long table",
       "cost": 220,
       "hp": 60,
-      "size": { "w": 4, "h": 1 },
+      "size": {
+        "w": 4,
+        "h": 1
+      },
       "rotatable": true,
-      "countsForRooms": ["mess_hall", "library", "classroom"]
+      "countsForRooms": [
+        "mess_hall",
+        "library",
+        "classroom"
+      ]
     },
     {
       "_tuning": true,
@@ -214,9 +398,18 @@
       "name": "Office desk",
       "cost": 260,
       "hp": 50,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
-      "countsForRooms": ["office", "control_room", "classroom", "intake_hall", "hearing_room"]
+      "countsForRooms": [
+        "office",
+        "control_room",
+        "classroom",
+        "intake_hall",
+        "hearing_room"
+      ]
     },
     {
       "_tuning": true,
@@ -224,24 +417,34 @@
       "name": "Sorting desk",
       "cost": 180,
       "hp": 45,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "jobSlots": 1,
-      "countsForRooms": ["library", "mail_sort"]
+      "countsForRooms": [
+        "library",
+        "mail_sort"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "cooker",
       "name": "Cooker",
       "cost": 700,
       "hp": 90,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "needsPower": 400,
       "jobSlots": 1,
       "producesHeat": 6,
-      "countsForRooms": ["kitchen"]
+      "countsForRooms": [
+        "kitchen"
+      ]
     },
     {
       "_tuning": true,
@@ -250,7 +453,9 @@
       "cost": 550,
       "hp": 70,
       "needsPower": 250,
-      "countsForRooms": ["kitchen"]
+      "countsForRooms": [
+        "kitchen"
+      ]
     },
     {
       "_tuning": true,
@@ -260,7 +465,9 @@
       "hp": 50,
       "needsWater": true,
       "jobSlots": 1,
-      "countsForRooms": ["kitchen"]
+      "countsForRooms": [
+        "kitchen"
+      ]
     },
     {
       "_tuning": true,
@@ -268,11 +475,22 @@
       "name": "Serving counter",
       "cost": 480,
       "hp": 80,
-      "size": { "w": 3, "h": 1 },
+      "size": {
+        "w": 3,
+        "h": 1
+      },
       "rotatable": true,
       "jobSlots": 2,
-      "servesNeeds": [{ "need": "food", "ratePerMinute": 12, "concurrentUsers": 2 }],
-      "countsForRooms": ["mess_hall"]
+      "servesNeeds": [
+        {
+          "need": "food",
+          "ratePerMinute": 12,
+          "concurrentUsers": 2
+        }
+      ],
+      "countsForRooms": [
+        "mess_hall"
+      ]
     },
     {
       "_tuning": true,
@@ -280,7 +498,10 @@
       "name": "Tray rack",
       "cost": 120,
       "hp": 40,
-      "countsForRooms": ["mess_hall", "kitchen"]
+      "countsForRooms": [
+        "mess_hall",
+        "kitchen"
+      ]
     },
     {
       "_tuning": true,
@@ -288,20 +509,28 @@
       "name": "Food crate",
       "cost": 60,
       "hp": 30,
-      "countsForRooms": ["kitchen", "store"]
+      "countsForRooms": [
+        "kitchen",
+        "store"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "bench_saw",
       "name": "Bench saw",
       "cost": 900,
       "hp": 110,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "needsPower": 500,
       "jobSlots": 1,
-      "countsForRooms": ["workshop"]
+      "countsForRooms": [
+        "workshop"
+      ],
+      "flammability": 0.35
     },
     {
       "_tuning": true,
@@ -309,10 +538,16 @@
       "name": "Sheet press",
       "cost": 1100,
       "hp": 130,
-      "size": { "w": 2, "h": 2 },
+      "size": {
+        "w": 2,
+        "h": 2
+      },
       "needsPower": 700,
       "jobSlots": 1,
-      "countsForRooms": ["workshop"]
+      "countsForRooms": [
+        "workshop"
+      ],
+      "flammability": 0.2
     },
     {
       "_tuning": true,
@@ -320,10 +555,17 @@
       "name": "Workbench",
       "cost": 260,
       "hp": 70,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "jobSlots": 1,
-      "countsForRooms": ["workshop", "supply_closet"]
+      "countsForRooms": [
+        "workshop",
+        "supply_closet"
+      ],
+      "flammability": 0.7
     },
     {
       "_tuning": true,
@@ -331,7 +573,11 @@
       "name": "Timber rack",
       "cost": 140,
       "hp": 50,
-      "countsForRooms": ["workshop", "store", "grove"]
+      "countsForRooms": [
+        "workshop",
+        "store",
+        "grove"
+      ]
     },
     {
       "_tuning": true,
@@ -339,10 +585,16 @@
       "name": "Tool cabinet",
       "cost": 300,
       "hp": 90,
-      "contrabandSourceFor": ["screwdriver", "hammer", "handsaw"],
-      "countsForRooms": ["workshop", "supply_closet"]
+      "contrabandSourceFor": [
+        "screwdriver",
+        "hammer",
+        "handsaw"
+      ],
+      "countsForRooms": [
+        "workshop",
+        "supply_closet"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "washing_machine",
@@ -352,7 +604,9 @@
       "needsPower": 350,
       "needsWater": true,
       "jobSlots": 1,
-      "countsForRooms": ["laundry"]
+      "countsForRooms": [
+        "laundry"
+      ]
     },
     {
       "_tuning": true,
@@ -362,7 +616,9 @@
       "hp": 30,
       "needsPower": 120,
       "jobSlots": 1,
-      "countsForRooms": ["laundry"]
+      "countsForRooms": [
+        "laundry"
+      ]
     },
     {
       "_tuning": true,
@@ -370,21 +626,30 @@
       "name": "Laundry basket",
       "cost": 50,
       "hp": 20,
-      "countsForRooms": ["laundry", "cell", "dormitory"]
+      "countsForRooms": [
+        "laundry",
+        "cell",
+        "dormitory"
+      ],
+      "flammability": 0.5
     },
-
     {
       "_tuning": true,
       "id": "door_control_desk",
       "name": "Door control desk",
       "cost": 1200,
       "hp": 90,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "needsPower": 300,
       "jobSlots": 1,
       "unlockedBy": "automation",
-      "countsForRooms": ["control_room"]
+      "countsForRooms": [
+        "control_room"
+      ]
     },
     {
       "_tuning": true,
@@ -393,7 +658,10 @@
       "cost": 800,
       "hp": 70,
       "needsPower": 450,
-      "countsForRooms": ["intake_hall", "visit_hall"]
+      "countsForRooms": [
+        "intake_hall",
+        "visit_hall"
+      ]
     },
     {
       "_tuning": true,
@@ -402,8 +670,14 @@
       "cost": 900,
       "hp": 100,
       "unlockedBy": "armoury_programme",
-      "contrabandSourceFor": ["pistol", "shotgun", "baton"],
-      "countsForRooms": ["armoury"]
+      "contrabandSourceFor": [
+        "pistol",
+        "shotgun",
+        "baton"
+      ],
+      "countsForRooms": [
+        "armoury"
+      ]
     },
     {
       "_tuning": true,
@@ -411,7 +685,10 @@
       "name": "Staff locker",
       "cost": 220,
       "hp": 80,
-      "countsForRooms": ["armoury", "break_room"]
+      "countsForRooms": [
+        "armoury",
+        "break_room"
+      ]
     },
     {
       "_tuning": true,
@@ -420,7 +697,9 @@
       "cost": 400,
       "hp": 70,
       "unlockedBy": "protective_vests",
-      "countsForRooms": ["armoury"]
+      "countsForRooms": [
+        "armoury"
+      ]
     },
     {
       "_tuning": true,
@@ -430,7 +709,9 @@
       "hp": 50,
       "needsPower": 200,
       "unlockedBy": "stun_devices",
-      "countsForRooms": ["armoury"]
+      "countsForRooms": [
+        "armoury"
+      ]
     },
     {
       "_tuning": true,
@@ -439,7 +720,9 @@
       "cost": 260,
       "hp": 60,
       "unlockedBy": "canine",
-      "countsForRooms": ["kennel"]
+      "countsForRooms": [
+        "kennel"
+      ]
     },
     {
       "_tuning": true,
@@ -447,7 +730,10 @@
       "name": "Watchtower post",
       "cost": 3200,
       "hp": 400,
-      "size": { "w": 2, "h": 2 },
+      "size": {
+        "w": 2,
+        "h": 2
+      },
       "needsPower": 150,
       "jobSlots": 1,
       "unlockedBy": "watchtowers",
@@ -463,7 +749,6 @@
       "needsPower": 100,
       "countsForRooms": []
     },
-
     {
       "_tuning": true,
       "id": "camera",
@@ -481,12 +766,17 @@
       "name": "Monitor bank",
       "cost": 900,
       "hp": 60,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "needsPower": 420,
       "jobSlots": 1,
       "unlockedBy": "surveillance",
-      "countsForRooms": ["control_room"]
+      "countsForRooms": [
+        "control_room"
+      ]
     },
     {
       "_tuning": true,
@@ -497,20 +787,33 @@
       "needsPower": 80,
       "jobSlots": 1,
       "unlockedBy": "surveillance",
-      "countsForRooms": ["control_room"]
+      "countsForRooms": [
+        "control_room"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "clinic_bed",
       "name": "Clinic bed",
       "cost": 700,
       "hp": 60,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "unlockedBy": "medical",
-      "servesNeeds": [{ "need": "sleep", "ratePerMinute": 0.3, "concurrentUsers": 1 }],
-      "countsForRooms": ["clinic"]
+      "servesNeeds": [
+        {
+          "need": "sleep",
+          "ratePerMinute": 0.3,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "clinic"
+      ],
+      "flammability": 0.45
     },
     {
       "_tuning": true,
@@ -520,8 +823,13 @@
       "hp": 70,
       "placement": "wall",
       "unlockedBy": "medical",
-      "contrabandSourceFor": ["prescription_pills", "syringe"],
-      "countsForRooms": ["clinic"]
+      "contrabandSourceFor": [
+        "prescription_pills",
+        "syringe"
+      ],
+      "countsForRooms": [
+        "clinic"
+      ]
     },
     {
       "_tuning": true,
@@ -530,7 +838,11 @@
       "cost": 200,
       "hp": 40,
       "placement": "wall",
-      "countsForRooms": ["workshop", "kitchen", "exercise_yard"]
+      "countsForRooms": [
+        "workshop",
+        "kitchen",
+        "exercise_yard"
+      ]
     },
     {
       "_tuning": true,
@@ -538,13 +850,17 @@
       "name": "Mortuary slab",
       "cost": 600,
       "hp": 120,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "needsPower": 200,
       "unlockedBy": "medical",
-      "countsForRooms": ["mortuary"]
+      "countsForRooms": [
+        "mortuary"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "classroom_desk",
@@ -552,8 +868,16 @@
       "cost": 160,
       "hp": 40,
       "unlockedBy": "education",
-      "servesNeeds": [{ "need": "literacy", "ratePerMinute": 1.2, "concurrentUsers": 1 }],
-      "countsForRooms": ["classroom"]
+      "servesNeeds": [
+        {
+          "need": "literacy",
+          "ratePerMinute": 1.2,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "classroom"
+      ]
     },
     {
       "_tuning": true,
@@ -563,7 +887,9 @@
       "hp": 30,
       "placement": "wall",
       "unlockedBy": "education",
-      "countsForRooms": ["classroom"]
+      "countsForRooms": [
+        "classroom"
+      ]
     },
     {
       "_tuning": true,
@@ -571,8 +897,19 @@
       "name": "Bookshelf",
       "cost": 240,
       "hp": 50,
-      "servesNeeds": [{ "need": "literacy", "ratePerMinute": 0.9, "concurrentUsers": 1 }],
-      "countsForRooms": ["library", "cell", "dayroom", "classroom"]
+      "servesNeeds": [
+        {
+          "need": "literacy",
+          "ratePerMinute": 0.9,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "library",
+        "cell",
+        "dayroom",
+        "classroom"
+      ]
     },
     {
       "_tuning": true,
@@ -580,10 +917,15 @@
       "name": "Library counter",
       "cost": 300,
       "hp": 60,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "jobSlots": 1,
-      "countsForRooms": ["library"]
+      "countsForRooms": [
+        "library"
+      ]
     },
     {
       "_tuning": true,
@@ -593,10 +935,18 @@
       "hp": 40,
       "needsPower": 220,
       "unlockedBy": "education",
-      "servesNeeds": [{ "need": "literacy", "ratePerMinute": 1.6, "concurrentUsers": 1 }],
-      "countsForRooms": ["classroom", "library"]
+      "servesNeeds": [
+        {
+          "need": "literacy",
+          "ratePerMinute": 1.6,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "classroom",
+        "library"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "television",
@@ -605,8 +955,18 @@
       "hp": 30,
       "placement": "wall",
       "needsPower": 180,
-      "servesNeeds": [{ "need": "recreation", "ratePerMinute": 2.2, "concurrentUsers": 6 }],
-      "countsForRooms": ["dayroom", "break_room", "cell"]
+      "servesNeeds": [
+        {
+          "need": "recreation",
+          "ratePerMinute": 2.2,
+          "concurrentUsers": 6
+        }
+      ],
+      "countsForRooms": [
+        "dayroom",
+        "break_room",
+        "cell"
+      ]
     },
     {
       "_tuning": true,
@@ -615,8 +975,19 @@
       "cost": 140,
       "hp": 20,
       "needsPower": 40,
-      "servesNeeds": [{ "need": "recreation", "ratePerMinute": 1.1, "concurrentUsers": 4 }],
-      "countsForRooms": ["dayroom", "cell", "break_room", "workshop"]
+      "servesNeeds": [
+        {
+          "need": "recreation",
+          "ratePerMinute": 1.1,
+          "concurrentUsers": 4
+        }
+      ],
+      "countsForRooms": [
+        "dayroom",
+        "cell",
+        "break_room",
+        "workshop"
+      ]
     },
     {
       "_tuning": true,
@@ -624,10 +995,22 @@
       "name": "Pool table",
       "cost": 560,
       "hp": 70,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
-      "servesNeeds": [{ "need": "recreation", "ratePerMinute": 3, "concurrentUsers": 2 }],
-      "countsForRooms": ["dayroom", "break_room"]
+      "servesNeeds": [
+        {
+          "need": "recreation",
+          "ratePerMinute": 3,
+          "concurrentUsers": 2
+        }
+      ],
+      "countsForRooms": [
+        "dayroom",
+        "break_room"
+      ]
     },
     {
       "_tuning": true,
@@ -637,10 +1020,20 @@
       "hp": 50,
       "needsPower": 260,
       "servesNeeds": [
-        { "need": "recreation", "ratePerMinute": 3.4, "concurrentUsers": 1 },
-        { "need": "luxury", "ratePerMinute": 1.2, "concurrentUsers": 1 }
+        {
+          "need": "recreation",
+          "ratePerMinute": 3.4,
+          "concurrentUsers": 1
+        },
+        {
+          "need": "luxury",
+          "ratePerMinute": 1.2,
+          "concurrentUsers": 1
+        }
       ],
-      "countsForRooms": ["dayroom"]
+      "countsForRooms": [
+        "dayroom"
+      ]
     },
     {
       "_tuning": true,
@@ -648,8 +1041,17 @@
       "name": "Punch bag",
       "cost": 300,
       "hp": 60,
-      "servesNeeds": [{ "need": "exercise", "ratePerMinute": 2.6, "concurrentUsers": 1 }],
-      "countsForRooms": ["exercise_yard", "dayroom"]
+      "servesNeeds": [
+        {
+          "need": "exercise",
+          "ratePerMinute": 2.6,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "exercise_yard",
+        "dayroom"
+      ]
     },
     {
       "_tuning": true,
@@ -657,10 +1059,22 @@
       "name": "Weight bench",
       "cost": 380,
       "hp": 90,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
-      "servesNeeds": [{ "need": "exercise", "ratePerMinute": 3, "concurrentUsers": 1 }],
-      "countsForRooms": ["exercise_yard", "dayroom"]
+      "servesNeeds": [
+        {
+          "need": "exercise",
+          "ratePerMinute": 3,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "exercise_yard",
+        "dayroom"
+      ]
     },
     {
       "_tuning": true,
@@ -669,17 +1083,32 @@
       "cost": 700,
       "hp": 60,
       "needsPower": 300,
-      "servesNeeds": [{ "need": "exercise", "ratePerMinute": 3.4, "concurrentUsers": 1 }],
-      "countsForRooms": ["exercise_yard", "dayroom", "break_room"]
+      "servesNeeds": [
+        {
+          "need": "exercise",
+          "ratePerMinute": 3.4,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "exercise_yard",
+        "dayroom",
+        "break_room"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "potted_plant",
       "name": "Potted plant",
       "cost": 60,
       "hp": 15,
-      "servesNeeds": [{ "need": "environment", "ratePerMinute": 0.4, "concurrentUsers": 4 }],
+      "servesNeeds": [
+        {
+          "need": "environment",
+          "ratePerMinute": 0.4,
+          "concurrentUsers": 4
+        }
+      ],
       "countsForRooms": []
     },
     {
@@ -689,7 +1118,13 @@
       "cost": 110,
       "hp": 10,
       "placement": "wall",
-      "servesNeeds": [{ "need": "environment", "ratePerMinute": 0.3, "concurrentUsers": 4 }],
+      "servesNeeds": [
+        {
+          "need": "environment",
+          "ratePerMinute": 0.3,
+          "concurrentUsers": 4
+        }
+      ],
       "countsForRooms": []
     },
     {
@@ -708,17 +1143,30 @@
       "cost": 190,
       "hp": 30,
       "needsWater": true,
-      "servesNeeds": [{ "need": "comfort", "ratePerMinute": 1.2, "concurrentUsers": 1 }],
-      "countsForRooms": ["break_room", "mess_hall", "classroom", "dayroom"]
+      "servesNeeds": [
+        {
+          "need": "comfort",
+          "ratePerMinute": 1.2,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "break_room",
+        "mess_hall",
+        "classroom",
+        "dayroom"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "generator",
       "name": "Generator",
       "cost": 2400,
       "hp": 250,
-      "size": { "w": 3, "h": 3 },
+      "size": {
+        "w": 3,
+        "h": 3
+      },
       "producesHeat": 4,
       "countsForRooms": []
     },
@@ -728,7 +1176,10 @@
       "name": "Capacitor",
       "cost": 900,
       "hp": 90,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "countsForRooms": []
     },
@@ -747,7 +1198,10 @@
       "name": "Water pump",
       "cost": 1800,
       "hp": 200,
-      "size": { "w": 2, "h": 2 },
+      "size": {
+        "w": 2,
+        "h": 2
+      },
       "needsPower": 600,
       "countsForRooms": []
     },
@@ -768,7 +1222,13 @@
       "placement": "wall",
       "needsWater": true,
       "producesHeat": 8,
-      "servesNeeds": [{ "need": "warmth", "ratePerMinute": 2, "concurrentUsers": 8 }],
+      "servesNeeds": [
+        {
+          "need": "warmth",
+          "ratePerMinute": 2,
+          "concurrentUsers": 8
+        }
+      ],
       "countsForRooms": []
     },
     {
@@ -777,7 +1237,10 @@
       "name": "Boiler",
       "cost": 1400,
       "hp": 180,
-      "size": { "w": 2, "h": 2 },
+      "size": {
+        "w": 2,
+        "h": 2
+      },
       "needsPower": 500,
       "needsWater": true,
       "producesHeat": 10,
@@ -812,16 +1275,23 @@
       "placement": "wall",
       "countsForRooms": []
     },
-
     {
       "_tuning": true,
       "id": "storage_rack",
       "name": "Storage rack",
       "cost": 160,
       "hp": 60,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
-      "countsForRooms": ["store", "supply_closet", "dispatch"]
+      "countsForRooms": [
+        "store",
+        "supply_closet",
+        "dispatch"
+      ],
+      "flammability": 0.4
     },
     {
       "_tuning": true,
@@ -829,7 +1299,12 @@
       "name": "Refuse bin",
       "cost": 70,
       "hp": 40,
-      "countsForRooms": ["refuse", "kitchen", "mess_hall"]
+      "countsForRooms": [
+        "refuse",
+        "kitchen",
+        "mess_hall"
+      ],
+      "flammability": 0.3
     },
     {
       "_tuning": true,
@@ -838,7 +1313,9 @@
       "cost": 40,
       "hp": 30,
       "destructible": false,
-      "countsForRooms": ["dock"]
+      "countsForRooms": [
+        "dock"
+      ]
     },
     {
       "_tuning": true,
@@ -847,7 +1324,9 @@
       "cost": 40,
       "hp": 30,
       "destructible": false,
-      "countsForRooms": ["dispatch"]
+      "countsForRooms": [
+        "dispatch"
+      ]
     },
     {
       "_tuning": true,
@@ -855,22 +1334,38 @@
       "name": "Sapling bed",
       "cost": 130,
       "hp": 30,
-      "size": { "w": 2, "h": 2 },
+      "size": {
+        "w": 2,
+        "h": 2
+      },
       "jobSlots": 1,
       "unlockedBy": "grounds",
-      "countsForRooms": ["grove"]
+      "countsForRooms": [
+        "grove"
+      ],
+      "flammability": 0.4
     },
-
     {
       "_tuning": true,
       "id": "altar",
       "name": "Altar",
       "cost": 480,
       "hp": 70,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
-      "servesNeeds": [{ "need": "spirituality", "ratePerMinute": 2.4, "concurrentUsers": 1 }],
-      "countsForRooms": ["chapel"]
+      "servesNeeds": [
+        {
+          "need": "spirituality",
+          "ratePerMinute": 2.4,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "chapel"
+      ]
     },
     {
       "_tuning": true,
@@ -878,8 +1373,17 @@
       "name": "Prayer mat",
       "cost": 60,
       "hp": 15,
-      "servesNeeds": [{ "need": "spirituality", "ratePerMinute": 1.8, "concurrentUsers": 1 }],
-      "countsForRooms": ["chapel", "cell"]
+      "servesNeeds": [
+        {
+          "need": "spirituality",
+          "ratePerMinute": 1.8,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "chapel",
+        "cell"
+      ]
     },
     {
       "_tuning": true,
@@ -887,19 +1391,34 @@
       "name": "Pew",
       "cost": 150,
       "hp": 50,
-      "size": { "w": 3, "h": 1 },
+      "size": {
+        "w": 3,
+        "h": 1
+      },
       "rotatable": true,
-      "servesNeeds": [{ "need": "spirituality", "ratePerMinute": 1.4, "concurrentUsers": 3 }],
-      "countsForRooms": ["chapel"]
+      "servesNeeds": [
+        {
+          "need": "spirituality",
+          "ratePerMinute": 1.4,
+          "concurrentUsers": 3
+        }
+      ],
+      "countsForRooms": [
+        "chapel"
+      ]
     },
-
     {
       "_tuning": true,
       "id": "filing_cabinet",
       "name": "Filing cabinet",
       "cost": 180,
       "hp": 60,
-      "countsForRooms": ["office", "control_room", "hearing_room", "mail_sort"]
+      "countsForRooms": [
+        "office",
+        "control_room",
+        "hearing_room",
+        "mail_sort"
+      ]
     },
     {
       "_tuning": true,
@@ -907,7 +1426,10 @@
       "name": "Safe",
       "cost": 900,
       "hp": 300,
-      "countsForRooms": ["office", "commissary"]
+      "countsForRooms": [
+        "office",
+        "commissary"
+      ]
     },
     {
       "_tuning": true,
@@ -915,10 +1437,22 @@
       "name": "Visit table",
       "cost": 200,
       "hp": 45,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
-      "servesNeeds": [{ "need": "family", "ratePerMinute": 3, "concurrentUsers": 1 }],
-      "countsForRooms": ["visit_hall", "hearing_room"]
+      "servesNeeds": [
+        {
+          "need": "family",
+          "ratePerMinute": 3,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "visit_hall",
+        "hearing_room"
+      ]
     },
     {
       "_tuning": true,
@@ -926,10 +1460,21 @@
       "name": "Visit booth",
       "cost": 520,
       "hp": 80,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
-      "servesNeeds": [{ "need": "family", "ratePerMinute": 2.2, "concurrentUsers": 1 }],
-      "countsForRooms": ["visit_hall"]
+      "servesNeeds": [
+        {
+          "need": "family",
+          "ratePerMinute": 2.2,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "visit_hall"
+      ]
     },
     {
       "_tuning": true,
@@ -938,8 +1483,18 @@
       "cost": 340,
       "hp": 50,
       "needsPower": 60,
-      "servesNeeds": [{ "need": "family", "ratePerMinute": 2.6, "concurrentUsers": 1 }],
-      "countsForRooms": ["dayroom", "visit_hall", "holding_pen"]
+      "servesNeeds": [
+        {
+          "need": "family",
+          "ratePerMinute": 2.6,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "dayroom",
+        "visit_hall",
+        "holding_pen"
+      ]
     },
     {
       "_tuning": true,
@@ -947,11 +1502,22 @@
       "name": "Shop counter",
       "cost": 420,
       "hp": 70,
-      "size": { "w": 2, "h": 1 },
+      "size": {
+        "w": 2,
+        "h": 1
+      },
       "rotatable": true,
       "jobSlots": 1,
-      "servesNeeds": [{ "need": "luxury", "ratePerMinute": 3.2, "concurrentUsers": 1 }],
-      "countsForRooms": ["commissary"]
+      "servesNeeds": [
+        {
+          "need": "luxury",
+          "ratePerMinute": 3.2,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "commissary"
+      ]
     },
     {
       "_tuning": true,
@@ -959,7 +1525,9 @@
       "name": "Shop shelf",
       "cost": 190,
       "hp": 50,
-      "countsForRooms": ["commissary"]
+      "countsForRooms": [
+        "commissary"
+      ]
     },
     {
       "_tuning": true,
@@ -968,8 +1536,16 @@
       "cost": 170,
       "hp": 50,
       "jobSlots": 1,
-      "servesNeeds": [{ "need": "family", "ratePerMinute": 1.4, "concurrentUsers": 1 }],
-      "countsForRooms": ["mail_sort"]
+      "servesNeeds": [
+        {
+          "need": "family",
+          "ratePerMinute": 1.4,
+          "concurrentUsers": 1
+        }
+      ],
+      "countsForRooms": [
+        "mail_sort"
+      ]
     }
   ]
 }

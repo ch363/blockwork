@@ -144,6 +144,7 @@ export const STAFF_CAPABILITIES = [
   'patrol',
   'repair',
   'riotControl',
+  'fightFire',
   'search',
   'serve',
   'treat',
@@ -203,6 +204,14 @@ export const POWER_PRIORITIES = ['lifeSafety', 'security', 'production', 'comfor
 
 /** Events a contract can require a clean streak of. */
 export const INCIDENT_KINDS = ['death', 'escape', 'riot', 'misconduct'] as const
+
+/** One Standing Orders matrix cell (T4.3). */
+const misconductOrderSchema = z.strictObject({
+  punishment: z.enum(['ignore', 'lockdown', 'isolation']),
+  /** Hours; `-1` means indefinite. `0` means n/a (ignore). */
+  durationHours: z.number().int(),
+  search: z.boolean(),
+})
 
 /* -------------------------------------------------------------------------- */
 /* balance.json                                                                */
@@ -333,6 +342,20 @@ export const balanceSchema = z.strictObject({
     dogDetectionChance: fraction,
     dogDetectionTiles: positiveCount,
     cellSearchDetectionChance: fraction,
+    maintenanceSweepDetectionChance: fraction,
+    /** Connected diggers who leave per sleep/lockup night once a tunnel reaches the edge. */
+    escapeInmatesPerNight: positiveCount,
+    /** Suppression applied to every digger when a tunnel is discovered. */
+    discoverySuppression: rate,
+    cleverTraitId: id,
+    veryStrongTraitId: id,
+    driverTraitId: id,
+    toiletObjectId: id,
+    dogStaffRoleId: id,
+    maintenanceCapability: z.enum(STAFF_CAPABILITIES),
+    diggingRegimeBlocks: z.array(z.enum(ROUTINE_BLOCKS)).min(1),
+    fenceMaterialIds: z.array(id).min(1),
+    rngStream: id,
   }),
 
   morale: def({
@@ -639,6 +662,44 @@ export const balanceSchema = z.strictObject({
     waterUnitsPerFixture: rate,
   }),
 
+  /**
+   * Per-tile fire, smoke and suppression (T4.8). Rates named per second are
+   * converted to per-tick with `60 / time.ticksPerMinute`.
+   */
+  fire: def({
+    maxIntensity: positiveCount,
+    /** Intensity added each tick on a burning tile, scaled by local flammability. */
+    intensityGrowthPerTick: rate,
+    /** Base chance a burning tile ignites an adjacent flammable neighbour. */
+    spreadChancePerTick: fraction,
+    /** Intensity removed per tick once fuel (local flammability) is exhausted. */
+    burnoutDecayPerTick: rate,
+    agentDamagePerSecond: rate,
+    objectDamagePerSecondAtFullIntensity: rate,
+    sprinklerRadiusTiles: positiveCount,
+    sprinklerSuppressionPerSecond: rate,
+    firefighterHoseRadiusTiles: positiveCount,
+    firefighterSuppressionPerSecond: rate,
+    firefighterStepTilesPerTick: positiveCount,
+    smokeEmitPerIntensityPerTick: rate,
+    smokeDecayPerTick: rate,
+    smokeMax: positiveCount,
+    /** Smoke fraction at which vision is considered blocked. */
+    smokeVisibilityThreshold: fraction,
+    /** At full smoke, movement speed is multiplied by `1 - smokeMovementPenalty`. */
+    smokeMovementPenalty: fraction,
+    ignition: z.strictObject({
+      lighterChancePerMinute: fraction,
+      lighterIntensity: positiveCount,
+      workshopAccidentChancePerMinute: fraction,
+      workshopAccidentIntensity: positiveCount,
+      electricalFaultChancePerMinute: fraction,
+      electricalFaultIntensity: positiveCount,
+    }),
+    /** Floor material written when a tile burns out (fuel consumed). */
+    burntFloorMaterialId: id,
+  }),
+
   contraband: def({
     theftCheckMinutes: positiveCount,
     theftBaseChance: fraction,
@@ -648,6 +709,36 @@ export const balanceSchema = z.strictObject({
     throwInRangeTiles: positiveCount,
     metalDetector: z.strictObject({ base: fraction, moraleScale: fraction }),
     dogRadiusTiles: positiveCount,
+    dog: z.strictObject({ base: fraction, moraleScale: fraction }),
+    search: z.strictObject({
+      manual: z.strictObject({ base: fraction, moraleScale: fraction }),
+      intake: z.strictObject({ base: fraction, moraleScale: fraction }),
+      shakedown: z.strictObject({ base: fraction, moraleScale: fraction }),
+      moodCost: z.strictObject({
+        individual: rate,
+        cell: rate,
+        block: rate,
+        shakedown: rate,
+        intake: rate,
+      }),
+      shakedownDangerSpike: rate,
+      intakeDelayMinutesPerInmate: positiveCount,
+      intakeNearPerfectOfficerCount: positiveCount,
+    }),
+    standingOrders: z.strictObject({
+      defaultReassignmentStrictness: z.enum(['off', 'lenient', 'strict']),
+      defaults: z.strictObject({
+        complaint: misconductOrderSchema,
+        contraband: misconductOrderSchema,
+        intoxication: misconductOrderSchema,
+        destruction: misconductOrderSchema,
+        attackInmate: misconductOrderSchema,
+        attackStaff: misconductOrderSchema,
+        seriousInjury: misconductOrderSchema,
+        homicide: misconductOrderSchema,
+        escapeAttempt: misconductOrderSchema,
+      }),
+    }),
   }),
 
   failure: def({
@@ -847,6 +938,11 @@ export const objectDefSchema = def({
   producesHeat: rate.optional(),
   destructible: z.boolean().default(true),
   hp: positiveCount,
+  /**
+   * 0 never feeds a fire, 1 catches immediately (T4.8). Combined with floor /
+   * wall material flammability when computing tile fuel.
+   */
+  flammability: fraction.default(0),
   unlockedBy: id.optional(),
 })
 

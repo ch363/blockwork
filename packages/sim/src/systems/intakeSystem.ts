@@ -48,6 +48,7 @@ import {
 import { FlowFieldCache } from '../pathfinding/flowField'
 import { RegionGraph } from '../pathfinding/regionGraph'
 import { refreshPassabilityRect } from '../world/construction'
+import { FireGrid } from '../world/fireGrid'
 import { MaterialTable } from '../world/materials'
 import { SectorRegistry } from '../world/sectors'
 import { detectAllRooms } from '../world/roomDetection'
@@ -64,11 +65,19 @@ import type { ContractBook } from '../entities/contracts'
 import { MoraleState } from '../entities/morale'
 import { InmateAgentStore } from './inmateAgents'
 import { PostRegistry } from './postSystem'
+import { ContrabandStub } from './contrabandStub'
+import {
+  createStandingOrdersPolicy,
+  hashStandingOrders,
+} from './searchSystem'
+import type { StandingOrdersPolicy } from './searchSystem'
 import { MealLogistics } from './logistics/mealChain'
 import { SupplyLogistics } from './logistics/supply'
 import { DeliverySchedule } from './logistics/deliveries'
 import { CleaningLogistics } from './logistics/cleaning'
 import { LaundryLogistics } from './logistics/laundry'
+import { createEscapeState } from './escapeSystem'
+import type { EscapeState } from './escapeSystem'
 
 /* -------------------------------------------------------------------------- */
 /* Policy                                                                      */
@@ -169,12 +178,22 @@ export class InmateWorld extends ObjectWorld {
   readonly flowFields: FlowFieldCache
   /** Pathing facade over inmate shells (T2.3). */
   readonly agents: InmateAgentStore
+  /** Per-tile fire intensity and smoke (T4.8). */
+  readonly fire: FireGrid
   /** Prison ledger (T3.6). */
   readonly economy: EconomyLedger
   /** Contracts / grants (T3.7). */
   readonly contracts: ContractBook
   /** Prison-wide staff morale and strike state (T3.8). */
   readonly morale: MoraleState
+  /** Carried / stashed contraband (T4.2 stub surface for T4.3 search). */
+  readonly contraband: ContrabandStub
+  /** Misconduct / search / meal policy (T4.3). */
+  readonly standingOrders: StandingOrdersPolicy
+  /** Inmates already intake-searched this stay in the hall. */
+  readonly intakeSearchedInmateIds = new Set<number>()
+  /** Escapes, tunnels and failure accounting (T4.7). */
+  readonly escapes: EscapeState
   /** Sandbox / map mutators (staff needs default on). */
   readonly settings: MapRuntimeSettings
   /**
@@ -227,6 +246,9 @@ export class InmateWorld extends ObjectWorld {
     economy: EconomyLedger = createEconomyLedger(data),
     contracts: ContractBook = createContractBook(),
     morale: MoraleState = new MoraleState(),
+    contraband: ContrabandStub = new ContrabandStub(),
+    standingOrders: StandingOrdersPolicy | undefined = undefined,
+    escapes: EscapeState = createEscapeState(),
     settings: MapRuntimeSettings = createMapRuntimeSettings(),
   ) {
     super(grid, materials, rooms, objects, data)
@@ -248,9 +270,13 @@ export class InmateWorld extends ObjectWorld {
     this.economy = economy
     this.contracts = contracts
     this.morale = morale
+    this.contraband = contraband
+    this.standingOrders = standingOrders ?? createStandingOrdersPolicy(data)
+    this.escapes = escapes
     this.settings = settings
     this.sectors = new SectorRegistry(grid.size)
     this.posts = new PostRegistry()
+    this.fire = new FireGrid(grid.size)
     this.regions = new RegionGraph(grid.size, {
       doorTraverseTicks: data.balance.pathfinding.doorTraverseTicks,
     })
@@ -262,6 +288,8 @@ export class InmateWorld extends ObjectWorld {
       escorts,
       tileWorldUnits: data.balance.map.tileWorldUnits,
       inmateSpeed: data.balance.pathfinding.speedsWorldUnitsPerTick.inmate,
+      fire: this.fire,
+      data,
     })
     this.#inmateContents = inmateRoomContents(objects, inmates)
   }
@@ -301,8 +329,11 @@ export class InmateWorld extends ObjectWorld {
     this.laundry.hashInto(hasher)
     this.fog.hashInto(hasher)
     this.morale.hashInto(hasher)
+    this.contraband.hashInto(hasher)
+    hashStandingOrders(this.standingOrders, hasher)
     this.sectors.hashInto(hasher)
     this.posts.hashInto(hasher)
+    this.fire.hashInto(hasher)
     hasher.writeUint32(this.settings.staffNeeds ? 1 : 0)
     hasher.writeUint32(this.staffOnlyRoomIds.size)
     for (const roomId of [...this.staffOnlyRoomIds].sort((a, b) => a - b)) {
@@ -311,6 +342,7 @@ export class InmateWorld extends ObjectWorld {
     hasher.writeFloat64(this.dangerLevel)
     hasher.writeUint32(this.lockdownActive ? 1 : 0)
     hasher.writeUint32(this.riotActive ? 1 : 0)
+    this.escapes.hashInto(hasher)
     hasher.writeUint32(this.#income)
     this.economy.hashInto(hasher)
     this.contracts.hashInto(hasher)
@@ -323,6 +355,10 @@ export class InmateWorld extends ObjectWorld {
     for (const [category, count] of requests) {
       hasher.writeString(category)
       hasher.writeUint32(count)
+    }
+    hasher.writeUint32(this.intakeSearchedInmateIds.size)
+    for (const id of [...this.intakeSearchedInmateIds].sort((a, b) => a - b)) {
+      hasher.writeUint32(id)
     }
   }
 }

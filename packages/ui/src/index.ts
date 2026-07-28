@@ -104,5 +104,21 @@ export type {
   UnfilledReasonLabel,
 } from './panels/Posts'
 
+export {
+  StandingOrders,
+  MISCONDUCT_LABELS,
+  formatDuration,
+} from './panels/StandingOrders'
+export type {
+  StandingOrdersModel,
+  StandingOrdersProjection,
+  StandingOrdersProps,
+  StandingOrdersRowModel,
+  StandingOrdersTab,
+  StandingMealQuantity,
+  StandingPunishment,
+  StandingStrictness,
+} from './panels/StandingOrders'
+
 export { BlueprintBar, formatCost, issueSentence, plural } from './panels/BlueprintBar'
 export type { BlueprintBarProps } from './panels/BlueprintBar'
