@@ -185,7 +185,25 @@
     "tilesPerHourVariance": 0.1,
     "dogDetectionChance": 0.25,
     "dogDetectionTiles": 2,
-    "cellSearchDetectionChance": 1
+    "cellSearchDetectionChance": 1,
+    "maintenanceSweepDetectionChance": 1,
+    "escapeInmatesPerNight": 1,
+    "discoverySuppression": 40,
+    "cleverTraitId": "clever",
+    "veryStrongTraitId": "very_strong",
+    "driverTraitId": "driver",
+    "toiletObjectId": "toilet",
+    "dogStaffRoleId": "dog",
+    "maintenanceCapability": "repair",
+    "diggingRegimeBlocks": [
+      "sleep",
+      "lockup"
+    ],
+    "fenceMaterialIds": [
+      "chain_fence",
+      "razor_fence"
+    ],
+    "rngStream": "tunnels"
   },
   "morale": {
     "_tuning": true,
@@ -993,5 +1011,33 @@
     "nationalGuardCost": 75000,
     "nationalGuardFireProbability": 0.9,
     "inmatesPerGuardForCoverage": 8
+  },
+  "fire": {
+    "_tuning": true,
+    "maxIntensity": 255,
+    "intensityGrowthPerTick": 4,
+    "spreadChancePerTick": 0.12,
+    "burnoutDecayPerTick": 8,
+    "agentDamagePerSecond": 4,
+    "objectDamagePerSecondAtFullIntensity": 12,
+    "sprinklerRadiusTiles": 3,
+    "sprinklerSuppressionPerSecond": 50,
+    "firefighterHoseRadiusTiles": 2,
+    "firefighterSuppressionPerSecond": 70,
+    "firefighterStepTilesPerTick": 1,
+    "smokeEmitPerIntensityPerTick": 0.35,
+    "smokeDecayPerTick": 1.5,
+    "smokeMax": 255,
+    "smokeVisibilityThreshold": 0.35,
+    "smokeMovementPenalty": 0.45,
+    "ignition": {
+      "lighterChancePerMinute": 0.02,
+      "lighterIntensity": 90,
+      "workshopAccidentChancePerMinute": 0.015,
+      "workshopAccidentIntensity": 110,
+      "electricalFaultChancePerMinute": 0.04,
+      "electricalFaultIntensity": 130
+    },
+    "burntFloorMaterialId": "concrete_floor"
   }
 }

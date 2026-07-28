@@ -4,7 +4,9 @@
       "_tuning": true,
       "id": "concrete_floor",
       "name": "Concrete",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 6,
       "buildMinutes": 2,
       "flammability": 0,
@@ -15,7 +17,9 @@
       "_tuning": true,
       "id": "ceramic_tile",
       "name": "Ceramic tile",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 14,
       "buildMinutes": 3,
       "flammability": 0,
@@ -26,7 +30,9 @@
       "_tuning": true,
       "id": "polished_stone",
       "name": "Polished stone",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 40,
       "buildMinutes": 5,
       "flammability": 0,
@@ -37,7 +43,9 @@
       "_tuning": true,
       "id": "timber_board",
       "name": "Timber board",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 18,
       "buildMinutes": 3,
       "flammability": 0.8,
@@ -48,7 +56,9 @@
       "_tuning": true,
       "id": "linoleum",
       "name": "Linoleum",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 9,
       "buildMinutes": 2,
       "flammability": 0.35,
@@ -59,7 +69,9 @@
       "_tuning": true,
       "id": "grass",
       "name": "Grass",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 3,
       "buildMinutes": 1,
       "flammability": 0.5,
@@ -70,7 +82,9 @@
       "_tuning": true,
       "id": "gravel",
       "name": "Gravel",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 4,
       "buildMinutes": 1,
       "flammability": 0,
@@ -81,7 +95,9 @@
       "_tuning": true,
       "id": "asphalt",
       "name": "Asphalt",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 8,
       "buildMinutes": 2,
       "flammability": 0.1,
@@ -92,7 +108,9 @@
       "_tuning": true,
       "id": "paving_slab",
       "name": "Paving slab",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 11,
       "buildMinutes": 2,
       "flammability": 0,
@@ -103,7 +121,9 @@
       "_tuning": true,
       "id": "sprint_track",
       "name": "Sprint track",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 22,
       "buildMinutes": 3,
       "flammability": 0.2,
@@ -114,7 +134,9 @@
       "_tuning": true,
       "id": "churned_mud",
       "name": "Churned mud",
-      "surfaces": ["floor"],
+      "surfaces": [
+        "floor"
+      ],
       "costPerTile": 0,
       "buildMinutes": 1,
       "flammability": 0,
@@ -125,7 +147,9 @@
       "_tuning": true,
       "id": "brick_wall",
       "name": "Brick",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 24,
       "buildMinutes": 6,
       "flammability": 0,
@@ -136,7 +160,9 @@
       "_tuning": true,
       "id": "concrete_wall",
       "name": "Poured concrete",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 30,
       "buildMinutes": 7,
       "flammability": 0,
@@ -147,7 +173,9 @@
       "_tuning": true,
       "id": "perimeter_wall",
       "name": "Perimeter wall",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 60,
       "buildMinutes": 12,
       "flammability": 0,
@@ -158,7 +186,9 @@
       "_tuning": true,
       "id": "chain_fence",
       "name": "Chain fence",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 12,
       "buildMinutes": 3,
       "flammability": 0,
@@ -169,7 +199,9 @@
       "_tuning": true,
       "id": "razor_fence",
       "name": "Razor fence",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 26,
       "buildMinutes": 5,
       "flammability": 0,
@@ -180,7 +212,9 @@
       "_tuning": true,
       "id": "glass_partition",
       "name": "Glass partition",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 45,
       "buildMinutes": 4,
       "flammability": 0,
@@ -191,7 +225,9 @@
       "_tuning": true,
       "id": "timber_partition",
       "name": "Timber partition",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 16,
       "buildMinutes": 4,
       "flammability": 0.9,
@@ -202,7 +238,9 @@
       "_tuning": true,
       "id": "cracked_plaster",
       "name": "Cracked plaster",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 4,
       "buildMinutes": 3,
       "flammability": 0.2,
@@ -213,7 +251,9 @@
       "_tuning": true,
       "id": "rusted_panel",
       "name": "Rusted panel",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 5,
       "buildMinutes": 3,
       "flammability": 0,
@@ -224,7 +264,9 @@
       "_tuning": true,
       "id": "mildewed_brick",
       "name": "Mildewed brick",
-      "surfaces": ["wall"],
+      "surfaces": [
+        "wall"
+      ],
       "costPerTile": 6,
       "buildMinutes": 4,
       "flammability": 0,
@@ -232,7 +274,6 @@
       "depressing": true
     }
   ],
-
   "doors": [
     {
       "_tuning": true,
@@ -240,7 +281,12 @@
       "name": "Standard door",
       "cost": 100,
       "buildMinutes": 4,
-      "materials": [{ "itemId": "timber", "units": 1 }],
+      "materials": [
+        {
+          "itemId": "timber",
+          "units": 1
+        }
+      ],
       "staffOnly": false,
       "secure": false,
       "lockable": false,
@@ -253,7 +299,12 @@
       "name": "Secure door",
       "cost": 300,
       "buildMinutes": 8,
-      "materials": [{ "itemId": "sheet_metal", "units": 1 }],
+      "materials": [
+        {
+          "itemId": "sheet_metal",
+          "units": 1
+        }
+      ],
       "staffOnly": false,
       "secure": true,
       "lockable": true,
@@ -266,7 +317,12 @@
       "name": "Barred door",
       "cost": 250,
       "buildMinutes": 6,
-      "materials": [{ "itemId": "sheet_metal", "units": 1 }],
+      "materials": [
+        {
+          "itemId": "sheet_metal",
+          "units": 1
+        }
+      ],
       "staffOnly": false,
       "secure": true,
       "lockable": true,
@@ -279,7 +335,12 @@
       "name": "Staff door",
       "cost": 200,
       "buildMinutes": 5,
-      "materials": [{ "itemId": "timber", "units": 1 }],
+      "materials": [
+        {
+          "itemId": "timber",
+          "units": 1
+        }
+      ],
       "staffOnly": true,
       "secure": false,
       "lockable": true,
@@ -292,7 +353,12 @@
       "name": "Isolation door",
       "cost": 400,
       "buildMinutes": 9,
-      "materials": [{ "itemId": "sheet_metal", "units": 2 }],
+      "materials": [
+        {
+          "itemId": "sheet_metal",
+          "units": 2
+        }
+      ],
       "staffOnly": true,
       "secure": true,
       "lockable": true,
@@ -305,7 +371,12 @@
       "name": "Remote door",
       "cost": 500,
       "buildMinutes": 10,
-      "materials": [{ "itemId": "sheet_metal", "units": 2 }],
+      "materials": [
+        {
+          "itemId": "sheet_metal",
+          "units": 2
+        }
+      ],
       "staffOnly": false,
       "secure": true,
       "lockable": true,
@@ -313,22 +384,96 @@
       "remoteControlled": true
     }
   ],
-
   "supplies": [
-    { "_tuning": true, "id": "cleaning_kit", "name": "Cleaning kit", "unitCost": 20 },
-    { "_tuning": true, "id": "sapling", "name": "Sapling", "unitCost": 35 },
-    { "_tuning": true, "id": "uniform", "name": "Uniform", "unitCost": 25 },
-    { "_tuning": true, "id": "bedding", "name": "Bedding", "unitCost": 30 },
-    { "_tuning": true, "id": "ingredient_starch", "name": "Starch", "unitCost": 8 },
-    { "_tuning": true, "id": "ingredient_protein", "name": "Protein", "unitCost": 18 },
-    { "_tuning": true, "id": "ingredient_veg", "name": "Vegetables", "unitCost": 10 },
-    { "_tuning": true, "id": "ingredient_dairy", "name": "Dairy", "unitCost": 14 },
-    { "_tuning": true, "id": "ingredient_fruit", "name": "Fruit", "unitCost": 12 },
-    { "_tuning": true, "id": "tray", "name": "Tray", "unitCost": 5 },
-    { "_tuning": true, "id": "timber", "name": "Timber", "unitCost": 40 },
-    { "_tuning": true, "id": "sheet_metal", "name": "Sheet metal", "unitCost": 55 },
-    { "_tuning": true, "id": "medical_supplies", "name": "Medical supplies", "unitCost": 80 },
-    { "_tuning": true, "id": "stationery", "name": "Stationery", "unitCost": 15 },
-    { "_tuning": true, "id": "commissary_goods", "name": "Commissary goods", "unitCost": 45 }
+    {
+      "_tuning": true,
+      "id": "cleaning_kit",
+      "name": "Cleaning kit",
+      "unitCost": 20
+    },
+    {
+      "_tuning": true,
+      "id": "sapling",
+      "name": "Sapling",
+      "unitCost": 35
+    },
+    {
+      "_tuning": true,
+      "id": "uniform",
+      "name": "Uniform",
+      "unitCost": 25
+    },
+    {
+      "_tuning": true,
+      "id": "bedding",
+      "name": "Bedding",
+      "unitCost": 30
+    },
+    {
+      "_tuning": true,
+      "id": "ingredient_starch",
+      "name": "Starch",
+      "unitCost": 8
+    },
+    {
+      "_tuning": true,
+      "id": "ingredient_protein",
+      "name": "Protein",
+      "unitCost": 18
+    },
+    {
+      "_tuning": true,
+      "id": "ingredient_veg",
+      "name": "Vegetables",
+      "unitCost": 10
+    },
+    {
+      "_tuning": true,
+      "id": "ingredient_dairy",
+      "name": "Dairy",
+      "unitCost": 14
+    },
+    {
+      "_tuning": true,
+      "id": "ingredient_fruit",
+      "name": "Fruit",
+      "unitCost": 12
+    },
+    {
+      "_tuning": true,
+      "id": "tray",
+      "name": "Tray",
+      "unitCost": 5
+    },
+    {
+      "_tuning": true,
+      "id": "timber",
+      "name": "Timber",
+      "unitCost": 40
+    },
+    {
+      "_tuning": true,
+      "id": "sheet_metal",
+      "name": "Sheet metal",
+      "unitCost": 55
+    },
+    {
+      "_tuning": true,
+      "id": "medical_supplies",
+      "name": "Medical supplies",
+      "unitCost": 80
+    },
+    {
+      "_tuning": true,
+      "id": "stationery",
+      "name": "Stationery",
+      "unitCost": 15
+    },
+    {
+      "_tuning": true,
+      "id": "commissary_goods",
+      "name": "Commissary goods",
+      "unitCost": 45
+    }
   ]
 }

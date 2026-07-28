@@ -78,6 +78,9 @@ import type { StandingOrdersState } from '../entities/standingOrders'
 import { createPunishmentRuntime } from '../entities/punishment'
 import type { PunishmentRuntime } from '../entities/punishment'
 import { CombatRuntime } from '../entities/health'
+import { FireGrid } from '../world/fireGrid'
+import { createEscapeState } from './escapeSystem'
+import type { EscapeState } from './escapeSystem'
 import {
   EmergencyState,
   MisconductWindow,
@@ -236,6 +239,10 @@ export class InmateWorld extends ObjectWorld {
   readonly riot = new RiotState()
   /** Emergency ladder and riot-failure countdown (T4.6). */
   readonly emergency = new EmergencyState()
+  /** Per-tile fire intensity and smoke (T4.8). */
+  readonly fire: FireGrid
+  /** Escapes, tunnels and failure accounting (T4.7). */
+  readonly escapes: EscapeState
 
   readonly #inmateContents: RoomContents
   #income = 0
@@ -291,6 +298,8 @@ export class InmateWorld extends ObjectWorld {
     this.standingOrders = createDefaultStandingOrders()
     this.punishments = createPunishmentRuntime()
     this.combat = combat
+    this.escapes = createEscapeState()
+    this.fire = new FireGrid(grid.size)
     this.settings = settings
     this.sectors = new SectorRegistry(grid.size)
     this.posts = new PostRegistry()
@@ -305,6 +314,8 @@ export class InmateWorld extends ObjectWorld {
       escorts,
       tileWorldUnits: data.balance.map.tileWorldUnits,
       inmateSpeed: data.balance.pathfinding.speedsWorldUnitsPerTick.inmate,
+      fire: this.fire,
+      data,
     })
     this.#inmateContents = inmateRoomContents(objects, inmates)
   }
@@ -372,6 +383,8 @@ export class InmateWorld extends ObjectWorld {
     this.misconductWindow.hashInto(hasher)
     this.riot.hashInto(hasher)
     this.emergency.hashInto(hasher)
+    this.fire.hashInto(hasher)
+    this.escapes.hashInto(hasher)
     hasher.writeUint32(this.#income)
     this.economy.hashInto(hasher)
     this.contracts.hashInto(hasher)

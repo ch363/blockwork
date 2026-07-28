@@ -139,6 +139,71 @@
       "title": "You have been dismissed",
       "detail": "Reason: {reason}.",
       "meta": "Day {day} \u00b7 {time}"
+    },
+    "escape.tunnelDiscovered": {
+      "title": "Tunnel from cell entrance {originTile} collapsed",
+      "detail": "Found by {method}. Diggers {diggerIds} were punished. Suppression +{suppression}.",
+      "meta": "Day {day} \u00b7 tunnel {tunnelId}"
+    },
+    "escape.inmateEscaped": {
+      "title": "Inmate {inmateId} escaped via {route}",
+      "detail": "{escapesToday} escapes today ({totalEscapes} total). Investigate perimeter, tunnels and zoning.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "escape.failureWarning": {
+      "title": "Escape crisis \u2014 {escapesToday} escapes today",
+      "detail": "Warning threshold is {warningPerDay}. {thenNextDay} more tomorrow will fail the facility.",
+      "meta": "Day {day}"
+    },
+    "escape.failure": {
+      "title": "Facility failed \u2014 escapes out of control",
+      "detail": "{escapesYesterday} escapes yesterday and {escapesToday} more today crossed the failure line.",
+      "meta": "Day {day}"
+    },
+    "fire.ignited": {
+      "title": "Fire ignited",
+      "detail": "A fire started ({source}).",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "fire.spread": {
+      "title": "Fire spread",
+      "detail": "Fire spread to another tile.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "fire.extinguished": {
+      "title": "Fire extinguished",
+      "detail": "A fire was put out.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "fire.objectDestroyed": {
+      "title": "Object burned",
+      "detail": "Fire destroyed an object.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "fire.agentDamaged": {
+      "title": "Burn injury",
+      "detail": "Fire damaged an agent.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "fire.sprinklerActive": {
+      "title": "Sprinkler active",
+      "detail": "Sprinklers are suppressing a fire.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "fire.firefighterSummoned": {
+      "title": "Firefighters called",
+      "detail": "Firefighters were summoned.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "fire.firefighterRejected": {
+      "title": "Firefighters unavailable",
+      "detail": "Could not summon firefighters.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "fire.overloadMarked": {
+      "title": "Electrical overload",
+      "detail": "A power branch was marked overloaded.",
+      "meta": "Day {day} \u00b7 {time}"
     }
   }
 }

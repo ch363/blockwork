@@ -1336,3 +1336,26 @@ export {
 export type { EmergencySystemOptions } from './systems/emergencySystem'
 export { requestMeleeAttack, STUB_MELEE_DAMAGE } from './entities/combat'
 export type { CombatActorRef, MeleeAttackResult, CombatActorKind } from './entities/combat'
+
+export {
+  ESCAPE_SYSTEM_NAME,
+  ESCAPE_SYSTEM_PERIOD,
+  ESCAPE_EVENTS,
+  NO_TUNNEL,
+  createEscapeSystem,
+  createEscapeState,
+  markRiotDoorBreached,
+} from './systems/escapeSystem'
+export type { EscapeState, EscapeRoute, Tunnel, EscapeSystemOptions } from './systems/escapeSystem'
+export {
+  FIRE_SYSTEM_NAME,
+  FIRE_SYSTEM_PERIOD,
+  FIRE_EVENTS,
+  createFireSystem,
+} from './systems/fireSystem'
+export type { FireSystemOptions } from './systems/fireSystem'
+export {
+  FireGrid,
+  smokeMovementMultiplier,
+  smokeBlocksVisibility,
+} from './world/fireGrid'

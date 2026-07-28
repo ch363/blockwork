@@ -136,6 +136,7 @@ export const STAFF_CAPABILITIES = [
   'detectContraband',
   'driveTruck',
   'escort',
+  'fightFire',
   'handleDog',
   'hearing',
   'marksman',
@@ -392,6 +393,20 @@ export const balanceSchema = z.strictObject({
     dogDetectionChance: fraction,
     dogDetectionTiles: positiveCount,
     cellSearchDetectionChance: fraction,
+    maintenanceSweepDetectionChance: fraction,
+    /** Connected diggers who leave per sleep/lockup night once a tunnel reaches the edge. */
+    escapeInmatesPerNight: positiveCount,
+    /** Suppression applied to every digger when a tunnel is discovered. */
+    discoverySuppression: rate,
+    cleverTraitId: id,
+    veryStrongTraitId: id,
+    driverTraitId: id,
+    toiletObjectId: id,
+    dogStaffRoleId: id,
+    maintenanceCapability: z.enum(STAFF_CAPABILITIES),
+    diggingRegimeBlocks: z.array(z.enum(ROUTINE_BLOCKS)).min(1),
+    fenceMaterialIds: z.array(id).min(1),
+    rngStream: id,
   }),
 
   morale: def({
@@ -821,6 +836,40 @@ export const balanceSchema = z.strictObject({
     inmatesPerGuardForCoverage: positiveCount,
   }),
 
+  fire: def({
+    maxIntensity: positiveCount,
+    /** Intensity added each tick on a burning tile, scaled by local flammability. */
+    intensityGrowthPerTick: rate,
+    /** Base chance a burning tile ignites an adjacent flammable neighbour. */
+    spreadChancePerTick: fraction,
+    /** Intensity removed per tick once fuel (local flammability) is exhausted. */
+    burnoutDecayPerTick: rate,
+    agentDamagePerSecond: rate,
+    objectDamagePerSecondAtFullIntensity: rate,
+    sprinklerRadiusTiles: positiveCount,
+    sprinklerSuppressionPerSecond: rate,
+    firefighterHoseRadiusTiles: positiveCount,
+    firefighterSuppressionPerSecond: rate,
+    firefighterStepTilesPerTick: positiveCount,
+    smokeEmitPerIntensityPerTick: rate,
+    smokeDecayPerTick: rate,
+    smokeMax: positiveCount,
+    /** Smoke fraction at which vision is considered blocked. */
+    smokeVisibilityThreshold: fraction,
+    /** At full smoke, movement speed is multiplied by `1 - smokeMovementPenalty`. */
+    smokeMovementPenalty: fraction,
+    ignition: z.strictObject({
+      lighterChancePerMinute: fraction,
+      lighterIntensity: positiveCount,
+      workshopAccidentChancePerMinute: fraction,
+      workshopAccidentIntensity: positiveCount,
+      electricalFaultChancePerMinute: fraction,
+      electricalFaultIntensity: positiveCount,
+    }),
+    /** Floor material written when a tile burns out (fuel consumed). */
+    burntFloorMaterialId: id,
+  }),
+
   failure: def({
     uncontainedRiot: z.strictObject({ warningHours: positiveCount, thenHours: positiveCount }),
     insolvency: z.strictObject({ hours: positiveCount }),
@@ -1012,6 +1061,8 @@ export const objectDefSchema = def({
     )
     .default([]),
   countsForRooms: z.array(id).default([]),
+  /** 0 never burns; FireSystem (T4.8) multiplies material fuel by this. */
+  flammability: fraction.default(0),
   /** PRD 5.10: the room is the contraband source; this marks which room. */
   contrabandSourceFor: z.array(id).optional(),
   jobSlots: positiveCount.optional(),

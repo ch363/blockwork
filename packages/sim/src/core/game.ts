@@ -82,6 +82,8 @@ import { createSearchSystem, searchCommandHandlers } from '../systems/searchSyst
 import { createDangerSystem } from '../systems/dangerSystem'
 import { createRiotSystem } from '../systems/riotSystem'
 import { createEmergencySystem, emergencyCommandHandlers } from '../systems/emergencySystem'
+import { createFireSystem } from '../systems/fireSystem'
+import { createEscapeSystem } from '../systems/escapeSystem'
 import { createMisconductSystem } from '../systems/misconductSystem'
 import { createPunishmentSystem } from '../systems/punishmentSystem'
 import type { GameData } from '../data/loader'
@@ -257,6 +259,9 @@ export function createGame(options: GameOptions): Game {
     createDangerSystem({ data }),
     createRiotSystem({ data }),
     createEmergencySystem({ data }),
+    // PRD 4.4 slot 14 — fires and escapes.
+    createFireSystem({ data }),
+    createEscapeSystem({ data }),
     createEconomySystem({ data }),
     createContractSystem({ data }),
   ]

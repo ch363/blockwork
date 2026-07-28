@@ -24,7 +24,7 @@ describe('loadGameData, happy path against the real files', () => {
     expect(data.securityCategories.size).toBe(6)
     expect(data.traits.size).toBe(14)
     expect(data.convictions.size).toBe(40)
-    expect(data.staff.size).toBe(21)
+    expect(data.staff.size).toBe(22)
     expect(data.directorate.size).toBe(34)
     expect(data.programs.size).toBe(11)
 

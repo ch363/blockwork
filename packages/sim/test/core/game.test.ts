@@ -146,6 +146,8 @@ describe('createGame', () => {
       'danger',
       'riot',
       'emergency',
+      'fire',
+      'escape',
       'economy',
       'contracts',
     ])

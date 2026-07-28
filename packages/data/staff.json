@@ -426,6 +426,19 @@
         "armed",
         "escort"
       ]
+    },
+    {
+      "_tuning": true,
+      "id": "firefighter",
+      "name": "Firefighter",
+      "hourlyWage": 0,
+      "hireCost": 0,
+      "callable": true,
+      "needs": [],
+      "capabilities": [
+        "fightFire",
+        "openDoors"
+      ]
     }
   ]
 }
