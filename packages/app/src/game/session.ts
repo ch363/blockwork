@@ -549,7 +549,7 @@ export class Session {
     if (this.state.tool.value === 'emergency') this.state.tool.value = null
   }
 
-  #emergencyEmergency(type: string, payload: Record<string, number | boolean | string> = {}): void {
+  #dispatchEmergency(type: string, payload: Record<string, number | boolean | string> = {}): void {
     this.bridge.sendCommand({
       type,
       issuedAtTick: this.#tick(),

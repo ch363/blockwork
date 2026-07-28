@@ -80,6 +80,17 @@ export function Emergency({
   onCallNationalGuard,
 }: EmergencyProps): JSX.Element {
   const open = model !== null
+  const handlers = {
+    ...(onSectorLockdown === undefined ? {} : { onSectorLockdown }),
+    ...(onLiftSectorLockdown === undefined ? {} : { onLiftSectorLockdown }),
+    ...(onFullLockdown === undefined ? {} : { onFullLockdown }),
+    ...(onLiftFullLockdown === undefined ? {} : { onLiftFullLockdown }),
+    ...(onCallRiotSquad === undefined ? {} : { onCallRiotSquad }),
+    ...(onDismissRiotSquad === undefined ? {} : { onDismissRiotSquad }),
+    ...(onAuthoriseFreeFire === undefined ? {} : { onAuthoriseFreeFire }),
+    ...(onRevokeFreeFire === undefined ? {} : { onRevokeFreeFire }),
+    ...(onCallNationalGuard === undefined ? {} : { onCallNationalGuard }),
+  }
 
   return (
     <div
@@ -148,17 +159,7 @@ export function Emergency({
                     <span class="cost">{level.costLabel}</span>
                   </div>
                   <div class="rung-actions">
-                    {levelAction(level, {
-                      onSectorLockdown,
-                      onLiftSectorLockdown,
-                      onFullLockdown,
-                      onLiftFullLockdown,
-                      onCallRiotSquad,
-                      onDismissRiotSquad,
-                      onAuthoriseFreeFire,
-                      onRevokeFreeFire,
-                      onCallNationalGuard,
-                    })}
+                    {levelAction(level, handlers)}
                   </div>
                   {level.disabled && level.disabledReason !== null && (
                     <div class="rung-hint">{level.disabledReason}</div>
