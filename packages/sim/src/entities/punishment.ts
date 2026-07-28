@@ -157,6 +157,64 @@ export class PunishmentRuntime {
       hasher.writeUint32(until)
     }
   }
+
+  serialise(): {
+    readonly active: readonly ActivePunishment[]
+    readonly agitatorBoostUntil: readonly {
+      readonly inmateId: number
+      readonly untilTick: number
+    }[]
+  } {
+    return {
+      active: this.all().map((punishment) => ({ ...punishment })),
+      agitatorBoostUntil: [...this.#agitatorBoostUntil.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([inmateId, untilTick]) => ({ inmateId, untilTick })),
+    }
+  }
+
+  restore(snapshot: {
+    readonly active: readonly {
+      readonly inmateId: number
+      readonly kind: string
+      readonly sourceMisconduct: string
+      readonly phase: string
+      readonly remainingMinutes: number
+      readonly homeCellId: number
+      readonly holdRoomId: number
+      readonly destinationTile: number
+      readonly escortJobId: number
+      readonly lastMealHourKey: number
+      readonly isolationSuppressionAccrued: number
+    }[]
+    readonly agitatorBoostUntil: readonly {
+      readonly inmateId: number
+      readonly untilTick: number
+    }[]
+  }): void {
+    this.#byInmate.clear()
+    this.#agitatorBoostUntil.clear()
+    this.#confinementMinutes.clear()
+    this.#suppressionHourFrac.clear()
+    for (const entry of snapshot.active) {
+      this.#byInmate.set(entry.inmateId, {
+        inmateId: entry.inmateId,
+        kind: entry.kind as ActivePunishmentKind,
+        sourceMisconduct: entry.sourceMisconduct as MisconductKind,
+        phase: entry.phase as PunishmentPhase,
+        remainingMinutes: entry.remainingMinutes,
+        homeCellId: entry.homeCellId,
+        holdRoomId: entry.holdRoomId,
+        destinationTile: entry.destinationTile,
+        escortJobId: entry.escortJobId,
+        lastMealHourKey: entry.lastMealHourKey,
+        isolationSuppressionAccrued: entry.isolationSuppressionAccrued,
+      })
+    }
+    for (const entry of snapshot.agitatorBoostUntil) {
+      this.#agitatorBoostUntil.set(entry.inmateId, entry.untilTick)
+    }
+  }
 }
 
 export function createPunishmentRuntime(): PunishmentRuntime {

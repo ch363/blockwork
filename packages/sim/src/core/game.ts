@@ -16,14 +16,14 @@
  * order below is that list restricted to the systems that exist: routine
  * (slot 2), job assignment then staff escorts (slot 3), navigation + pathing +
  * movement (slots 4–5), needs (slot 6), activity (slot 7), logistics — meals,
- * supply, deliveries (slot 8) — construction (slot 9), then rooms, objects,
- * and intake. Economy is PRD slot 16 (hourly); Contracts settle immediately
- * after so insolvency reveals land on the same hour tick. Contraband is PRD
- * slot 11 (Utilities slot 10 is not yet present). Rooms sit immediately
- * after construction because construction is what invalidates them — a wall
- * finished in slot 9 has to be reflected before anything grades the room it
- * just closed. Adding a system in the wrong place changes what the game does
- * from the same seed, so new entries go in their PRD slot, not at the end.
+ * supply, deliveries (slot 8) — construction (slot 9), utilities then objects
+ * (slot 10), intake, then Contraband (slot 11). Economy is PRD slot 16
+ * (hourly); Contracts settle immediately after so insolvency reveals land on
+ * the same hour tick. Rooms sit immediately after construction because
+ * construction is what invalidates them — a wall finished in slot 9 has to be
+ * reflected before anything grades the room it just closed. Adding a system
+ * in the wrong place changes what the game does from the same seed, so new
+ * entries go in their PRD slot, not at the end.
  *
  * **The grid may live in shared memory.** `TileGrid` is structure-of-arrays
  * over raw buffers, and `fromBuffers` takes an `ArrayBufferLike`, so when the
@@ -51,6 +51,7 @@ import { createNeedsSystem } from '../systems/needsSystem'
 import { createActivitySystem } from '../systems/activitySystem'
 import { createRoutineSystem, routineCommandHandlers } from '../systems/routineSystem'
 import { createObjectSystem } from '../systems/objectSystem'
+import { createUtilitiesSystem } from '../systems/utilitiesSystem'
 import { createRoomSystem } from '../systems/roomSystem'
 import {
   createIntakePolicy,
@@ -59,8 +60,8 @@ import {
   intakeCommandHandlers,
 } from '../systems/intakeSystem'
 import { createStaffSystem, staffCommandHandlers } from '../systems/staffSystem'
-import { createPostSystem, postCommandHandlers } from '../systems/postSystem'
-import { sectorCommandHandlers } from '../world/sectorCommands'
+import { POST_COMMANDS, createPostSystem, postCommandHandlers } from '../systems/postSystem'
+import { SECTOR_COMMANDS, sectorCommandHandlers } from '../world/sectorCommands'
 import {
   createStaffNeedsSystem,
   staffNeedsCommandHandlers,
@@ -71,14 +72,28 @@ import { createSupplySystem } from '../systems/logistics/supply'
 import { createDeliveriesSystem } from '../systems/logistics/deliveries'
 import { createCleaningSystem } from '../systems/logistics/cleaning'
 import { createLaundrySystem } from '../systems/logistics/laundry'
+import { createLabourSystem, labourCommandHandlers } from '../systems/labourSystem'
 import { createNavigationSystem } from '../systems/navigationSystem'
 import { createPathingSystem } from '../systems/pathingSystem'
 import { createMovementSystem } from '../systems/movementSystem'
 import { createCombatSystem } from '../systems/combatSystem'
+import {
+  createDirectorateSystem,
+  directorateCommandHandlers,
+} from '../systems/directorateSystem'
 import { createEconomySystem } from '../systems/economySystem'
+import { createGradingSystem } from '../systems/gradingSystem'
+import { createGradesSystem } from '../systems/gradesSystem'
+import { createParoleSystem } from '../systems/paroleSystem'
+import { createReleaseSystem } from '../systems/releaseSystem'
+import { createProgramSystem, programCommandHandlers } from '../systems/programSystem'
 import { createContractSystem, contractCommandHandlers } from '../systems/contractSystem'
 import { createContrabandSystem } from '../systems/contrabandSystem'
-import { createSearchSystem, searchCommandHandlers } from '../systems/searchSystem'
+import { SEARCH_COMMANDS, createSearchSystem, searchCommandHandlers } from '../systems/searchSystem'
+import {
+  createIntelligenceSystem,
+  intelligenceCommandHandlers,
+} from '../systems/intelligenceSystem'
 import { createDangerSystem } from '../systems/dangerSystem'
 import { createRiotSystem } from '../systems/riotSystem'
 import { createEmergencySystem, emergencyCommandHandlers } from '../systems/emergencySystem'
@@ -86,6 +101,7 @@ import { createFireSystem } from '../systems/fireSystem'
 import { createEscapeSystem } from '../systems/escapeSystem'
 import { createMisconductSystem } from '../systems/misconductSystem'
 import { createPunishmentSystem } from '../systems/punishmentSystem'
+import { featureGatedHandlers } from '../entities/directorate'
 import type { GameData } from '../data/loader'
 
 import { blueprintCommandHandlers } from './undo'
@@ -222,9 +238,10 @@ export function createGame(options: GameOptions): Game {
   // navigation feeds pathing/movement (slots 4–5); combat shares the every-tick
   // band with movement (slot 13); needs + staff needs are slot 6; activity is
   // slot 7; logistics (meals, supply, deliveries, cleaning, laundry) is slot 8;
-  // construction is slot 9; Utilities (slot 10) not yet present; Contraband is
-  // slot 11 after intake; search / misconduct / punishment / danger / riot /
-  // emergency are security (slot 12).
+  // construction is slot 9; Utilities is slot 10 (before Contraband slot 11);
+  // ObjectSystem shares slot 10 as the consumer half and must run after the
+  // grids are rebuilt; intake then Contraband; search / misconduct /
+  // punishment / danger / riot / emergency are security (slot 12).
   // Supply runs before deliveries so new orders land in
   // the pending queue in time for the same-minute truck schedule check.
   const systems: readonly System[] = [
@@ -244,11 +261,13 @@ export function createGame(options: GameOptions): Game {
     createDeliveriesSystem({ data }),
     createCleaningSystem({ data }),
     createLaundrySystem({ data }),
+    createLabourSystem({ data }),
     createConstructionSystem({
       data,
       ...(options.workforce === undefined ? {} : { workforce: options.workforce }),
     }),
     createRoomSystem({ data }),
+    createUtilitiesSystem({ data }),
     createObjectSystem({ data }),
     createIntakeSystem({ data }),
     createContrabandSystem({ data }),
@@ -256,14 +275,29 @@ export function createGame(options: GameOptions): Game {
     createSearchSystem({ data }),
     createMisconductSystem({ data }),
     createPunishmentSystem({ data }),
+    createIntelligenceSystem({ data }),
     createDangerSystem({ data }),
     createRiotSystem({ data }),
     createEmergencySystem({ data }),
     // PRD 4.4 slot 14 — fires and escapes.
     createFireSystem({ data }),
     createEscapeSystem({ data }),
+    // PRD 4.4 slot 15 — programmes run before the money is counted, so a
+    // session's fee lands in the same hour it was taught.
+    createProgramSystem({ data }),
+    // PRD 4.4 slot 16 — the administrative band. Directorate runs first so a
+    // node that completes this minute has unlocked whatever the hour bills for.
+    createDirectorateSystem({ data }),
     createEconomySystem({ data }),
     createContractSystem({ data }),
+    // PRD 4.4 slot 17 — grading is the last thing in the hour, so the grades
+    // the next hour's misconduct rolls read are this hour's furniture.
+    createGradingSystem({ data }),
+    // Still slot 17: grades read the hour that grading just published, parole
+    // reads the grades, and release acts on what parole decided.
+    createGradesSystem({ data }),
+    createParoleSystem({ data }),
+    createReleaseSystem({ data }),
   ]
 
   const simulation = new Simulation({
@@ -280,10 +314,36 @@ export function createGame(options: GameOptions): Game {
       ...staffCommandHandlers(data),
       ...staffNeedsCommandHandlers(data),
       ...contractCommandHandlers(data),
-      ...sectorCommandHandlers(data),
-      ...postCommandHandlers(data),
-      ...searchCommandHandlers(data),
+      // PRD 5.8 gates whole panels, not only content. Sector painting, the
+      // post scheduler, patrol routes and the Standing Orders policies each
+      // wait on their node, and the gate sits on the command rather than in
+      // the panel so a stale UI cannot smuggle one through.
+      ...featureGatedHandlers(data, sectorCommandHandlers(data), {
+        [SECTOR_COMMANDS.create]: 'sector_view',
+        [SECTOR_COMMANDS.configure]: 'sector_view',
+        [SECTOR_COMMANDS.remove]: 'sector_view',
+        [SECTOR_COMMANDS.paintTiles]: 'sector_view',
+        [SECTOR_COMMANDS.paintRegion]: 'sector_view',
+      }),
+      ...featureGatedHandlers(data, postCommandHandlers(data), {
+        [POST_COMMANDS.create]: 'posts',
+        [POST_COMMANDS.remove]: 'posts',
+        [POST_COMMANDS.update]: 'post_scheduler',
+        [POST_COMMANDS.createPatrol]: 'patrol_routes',
+        [POST_COMMANDS.removePatrol]: 'patrol_routes',
+        [POST_COMMANDS.pinStaff]: 'posts',
+        [POST_COMMANDS.unpinStaff]: 'posts',
+      }),
+      ...featureGatedHandlers(data, searchCommandHandlers(data), {
+        [SEARCH_COMMANDS.setPunishment]: 'punishment_policy',
+        [SEARCH_COMMANDS.setSearchTrigger]: 'punishment_policy',
+        [SEARCH_COMMANDS.setMeals]: 'meal_policy',
+      }),
       ...emergencyCommandHandlers(data),
+      ...directorateCommandHandlers(data),
+      ...programCommandHandlers(data),
+      ...intelligenceCommandHandlers(data),
+      ...labourCommandHandlers(data),
     },
     ...(options.events === undefined ? {} : { events: options.events }),
   })

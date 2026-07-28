@@ -102,7 +102,12 @@ function interiorOf(rect: Rect): Rect {
 
 describe('dirt accrual rates', () => {
   it('applies ticket rates and caps at dirt.max', () => {
-    const world = createInmateWorld({ size: 16, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 16,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     putFloor(world, 4, 4)
     const tile = world.grid.idx(4, 4)
 
@@ -121,13 +126,18 @@ describe('dirt accrual rates', () => {
   })
 
   it('scales agent-pass dirt by floor dirtMultiplier', () => {
-    const world = createInmateWorld({ size: 16, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 16,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const tile = world.grid.idx(5, 5)
     world.grid.setAt('floorMaterial', tile, world.materials.indexOf('ceramic_tile'))
     world.grid.setAt('outdoors', tile, 0)
     const added = accrueAgentPassDirt(world, DATA, tile)
     const expected = Math.round(
-      DIRT.perAgentPass * (DATA.materials.get('ceramic_tile').dirtMultiplier),
+      DIRT.perAgentPass * DATA.materials.get('ceramic_tile').dirtMultiplier,
     )
     expect(added).toBe(expected)
     expect(world.grid.dirt[tile]).toBe(expected)
@@ -144,15 +154,16 @@ describe('cleaning throughput', () => {
 
   it('indoor cleaners remove dirt each minute; no cleaners emit Trace', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 32, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 32,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const shell = { x: 2, y: 2, width: 10, height: 8 }
     putRoomShell(world, shell)
     const interior = interiorOf(shell)
-    designateRoom(
-      { world, data: DATA, events, tick: 0 },
-      interior,
-      'office',
-    )
+    designateRoom({ world, data: DATA, events, tick: 0 }, interior, 'office')
 
     const tiles: number[] = []
     for (let y = interior.y; y < interior.y + interior.height; y += 1) {
@@ -188,7 +199,12 @@ describe('cleaning throughput', () => {
 
   it('groundskeepers clean outdoor dirt only', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const indoor = world.grid.idx(3, 3)
     const outdoor = world.grid.idx(10, 10)
     putFloor(world, 3, 3)
@@ -211,7 +227,12 @@ describe('cleaning throughput', () => {
   })
 
   it('without cleaners, sustained footfall drives environment critical within 5 days', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const shell = { x: 2, y: 2, width: 8, height: 8 }
     putRoomShell(world, shell)
     const interior = interiorOf(shell)

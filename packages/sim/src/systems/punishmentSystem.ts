@@ -9,7 +9,7 @@
 import { TICKS_PER_MINUTE } from '../core/clock'
 import type { EventSink, System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
-import type { MisconductKind, PunishmentKind } from '../data/schemas'
+import type { MisconductKind, PunishmentKind, StatusEffectId } from '../data/schemas'
 import { MISCONDUCT_EVENTS, chebyshevTiles, relieveFoodNeed } from '../entities/misconduct'
 import {
   clampSuppression,
@@ -411,7 +411,7 @@ function updateSuppression(world: InmateWorld, data: GameData, _tick: number): v
 }
 
 function syncSuppressedStatus(
-  status: import('../data/schemas').StatusEffectId[],
+  status: StatusEffectId[],
   suppression: number,
   threshold: number,
 ): void {

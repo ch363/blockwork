@@ -84,6 +84,62 @@ export class FireGrid {
       hasher.writeUint32(id)
     }
   }
+
+  serialise(): {
+    readonly size: number
+    readonly burning: readonly {
+      readonly tileIndex: number
+      readonly intensity: number
+      readonly fuel: number
+    }[]
+    readonly smoke: readonly { readonly tileIndex: number; readonly smoke: number }[]
+    readonly overloadedBranches: readonly number[]
+  } {
+    const burning: { tileIndex: number; intensity: number; fuel: number }[] = []
+    const smoke: { tileIndex: number; smoke: number }[] = []
+    for (let i = 0; i < this.intensity.length; i += 1) {
+      const intensity = this.intensity[i] ?? 0
+      const smokeValue = this.smoke[i] ?? 0
+      if (intensity > 0) {
+        burning.push({ tileIndex: i, intensity, fuel: this.fuel[i] ?? 0 })
+      }
+      if (smokeValue > 0) {
+        smoke.push({ tileIndex: i, smoke: smokeValue })
+      }
+    }
+    return {
+      size: this.size,
+      burning,
+      smoke,
+      overloadedBranches: [...this.overloadedBranches].sort((a, b) => a - b),
+    }
+  }
+
+  restore(snapshot: {
+    readonly size: number
+    readonly burning: readonly {
+      readonly tileIndex: number
+      readonly intensity: number
+      readonly fuel: number
+    }[]
+    readonly smoke: readonly { readonly tileIndex: number; readonly smoke: number }[]
+    readonly overloadedBranches: readonly number[]
+  }): void {
+    this.intensity.fill(0)
+    this.smoke.fill(0)
+    this.fuel.fill(0)
+    this.overloadedBranches.clear()
+    for (const entry of snapshot.burning) {
+      if (entry.tileIndex < 0 || entry.tileIndex >= this.intensity.length) continue
+      this.intensity[entry.tileIndex] = entry.intensity & 0xff
+      this.fuel[entry.tileIndex] = entry.fuel & 0xff
+    }
+    for (const entry of snapshot.smoke) {
+      if (entry.tileIndex < 0 || entry.tileIndex >= this.smoke.length) continue
+      this.smoke[entry.tileIndex] = entry.smoke & 0xff
+    }
+    for (const id of snapshot.overloadedBranches) this.overloadedBranches.add(id)
+  }
 }
 
 /** Seconds represented by one sim tick (10 ticks / in-game minute). */

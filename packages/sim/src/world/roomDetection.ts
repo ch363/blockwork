@@ -51,6 +51,7 @@ import { isJsonArray } from '../core/commands'
 import type { Command, JsonValue } from '../core/commands'
 import type { CommandHandler, EventSink, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
+import { gatingNode, isUnlocked } from '../entities/directorate'
 
 import { clipRect, isValidRect, rectTiles } from './construction'
 import type { Rect } from './construction'
@@ -82,7 +83,13 @@ export interface RoomDeps {
 
 /** Why a designation command, or part of one, produced nothing. */
 export type RoomRejection =
-  'invalid-payload' | 'invalid-rect' | 'off-grid' | 'unknown-room' | 'wrong-world'
+  | 'invalid-payload'
+  | 'invalid-rect'
+  | 'off-grid'
+  | 'unknown-room'
+  /** The room's Directorate node has not completed (T5.1). */
+  | 'locked'
+  | 'wrong-world'
 
 function reject(
   deps: RoomDeps,
@@ -497,6 +504,13 @@ export function designateRoom(deps: RoomDeps, rect: Rect, roomDefId: string): nu
   const def = deps.data.rooms.find(roomDefId)
   if (def === undefined) {
     reject(deps, command, 'unknown-room', { roomDefId })
+    return 0
+  }
+  if (!isUnlocked(deps.data, world.directorate, 'rooms', roomDefId)) {
+    reject(deps, command, 'locked', {
+      roomDefId,
+      nodeId: gatingNode(deps.data, 'rooms', roomDefId) ?? '',
+    })
     return 0
   }
 

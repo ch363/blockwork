@@ -37,16 +37,20 @@ import {
   NOTIFICATION_SEVERITY,
   SnapshotWriter,
   actionFromJson,
+  autoRouteUtility,
   buildTrace,
+  captureInmateWorld,
   createGame,
   encodeSnapshotToTransferable,
   encodeTilePatch,
+  isInmateWorld,
   isTraceKind,
   isTruncated,
   loadGameData,
   nextSequence,
   notificationKindId,
   parseTraceStrings,
+  saveToBytes,
   ticksToDay,
   ticksToTimeString,
   uniformWorkforce,
@@ -75,9 +79,13 @@ import type {
   InmateEntity,
   StaffEntity,
   GameData,
+  UtilityRouteKind,
+  UtilityRouteResult,
 } from '@blockwork/sim'
 
 import { buildGameDigest, collectGameEntities } from './collectAgents'
+import { buildControlHud } from './controlHud'
+import { describeRoomGrade } from './roomGrade'
 
 /**
  * Trace copy, validated once at module load.
@@ -214,6 +222,31 @@ export interface SimUntraceMessage {
   readonly notificationId: number
 }
 
+/**
+ * Shortest utility run from a tile to the nearest live cable/pipe (PRD 3.4).
+ *
+ * Pure preview: the world is not mutated. The session stages the path as
+ * blueprint cable/pipe strokes when placing a powered or plumbed object.
+ */
+export interface SimAutoRouteMessage {
+  readonly type: 'sim:autoRoute'
+  readonly requestId: number
+  readonly tile: Tile
+  readonly kind: UtilityRouteKind
+}
+
+/**
+ * Captures the live InmateWorld into `.blockwork` bytes for autosave / export.
+ *
+ * `createdAt` is owned by the host because the simulation may not read the
+ * wall clock (CLAUDE.md rule 3).
+ */
+export interface SimSaveMessage {
+  readonly type: 'sim:save'
+  readonly requestId: number
+  readonly createdAt: string
+}
+
 export type SimWorkerInbound =
   | SimInitMessage
   | SimCommandMessage
@@ -223,6 +256,8 @@ export type SimWorkerInbound =
   | SimInspectMessage
   | SimTraceMessage
   | SimUntraceMessage
+  | SimAutoRouteMessage
+  | SimSaveMessage
 
 export interface SimReadyMessage {
   readonly type: 'sim:ready'
@@ -342,7 +377,13 @@ export type InspectResult =
       readonly requirements: readonly RoomRequirement[]
       readonly properties: readonly string[]
       readonly occupants: number
-      readonly gradeLines: readonly { readonly label: string; readonly points: number }[]
+      readonly gradeLines: readonly {
+        readonly label: string
+        readonly points: number
+        readonly detail: string | null
+      }[]
+      readonly grade: number | null
+      readonly gradeMax: number
       readonly throughputLabel: string | null
       readonly centre: Tile
     }
@@ -412,9 +453,55 @@ export interface SimTraceResultMessage {
   readonly result: TraceResult | null
 }
 
+export interface SimControlMessage {
+  readonly type: 'sim:control'
+  readonly control: ControlHudPayload
+}
+
+/**
+ * Fire tiles and discovered tunnels for the interim overlay layer (Phase 4).
+ *
+ * Published beside `sim:control` so the main thread can paint emergencies and
+ * dug routes without holding FireGrid / EscapeState.
+ */
+export interface SimEffectsMessage {
+  readonly type: 'sim:effects'
+  readonly fire: readonly { readonly index: number; readonly intensity: number; readonly smoke: number }[]
+  readonly tunnels: readonly {
+    readonly id: number
+    readonly originTile: number
+    readonly tiles: readonly number[]
+  }[]
+}
+
+/** Panel summaries transferred with each snapshot (T4.1 / T4.3 / T4.6 / T5.x). */
+export interface ControlHudPayload {
+  readonly posts: import('@blockwork/ui').PostsModel
+  readonly emergency: import('@blockwork/ui').EmergencyModel
+  readonly standingOrders: import('@blockwork/ui').StandingOrdersModel
+  readonly directorate: import('@blockwork/ui').DirectorateModel
+  readonly programs: import('@blockwork/ui').ProgramsModel
+  readonly intelligence: import('@blockwork/ui').IntelligenceModel
+  readonly unlocks: import('../game/palette').UnlockSnapshot
+}
+
 export interface SimErrorMessage {
   readonly type: 'sim:error'
   readonly message: string
+}
+
+export interface SimAutoRoutedMessage {
+  readonly type: 'sim:autoRouted'
+  readonly requestId: number
+  readonly route: UtilityRouteResult | null
+}
+
+export interface SimSavedMessage {
+  readonly type: 'sim:saved'
+  readonly requestId: number
+  /** Transferred ArrayBuffer of a `.blockwork` container. */
+  readonly buffer: ArrayBuffer
+  readonly playedTicks: number
 }
 
 export type SimWorkerOutbound =
@@ -424,6 +511,10 @@ export type SimWorkerOutbound =
   | SimReportMessage
   | SimInspectResultMessage
   | SimTraceResultMessage
+  | SimControlMessage
+  | SimEffectsMessage
+  | SimAutoRoutedMessage
+  | SimSavedMessage
   | SimErrorMessage
 
 export type PostToMain = (message: SimWorkerOutbound, transfer: Transferable[]) => void
@@ -536,6 +627,8 @@ class NotificationRelay implements EventSink {
  */
 function severityForKind(kind: string): NotificationSeverity {
   if (!isTraceKind(kind)) return NOTIFICATION_SEVERITY.INFO
+  // Periodic recomputes belong on the top-bar meter, not in the toast rail.
+  if (kind === 'danger.recomputed') return NOTIFICATION_SEVERITY.INFO
   if (kind === 'inmate.starved') return NOTIFICATION_SEVERITY.CRITICAL
   return NOTIFICATION_SEVERITY.WARN
 }
@@ -816,6 +909,37 @@ export class SimWorkerLoop {
   }
 
   /**
+   * Shortest cable/pipe run from a tile to the nearest live utility node.
+   * Null when the world cannot route or no live node is reachable.
+   */
+  autoRoute(tile: Tile, kind: UtilityRouteKind): UtilityRouteResult | null {
+    if (!isInmateWorld(this.world)) return null
+    if (!this.world.grid.inBounds(tile.x, tile.y)) return null
+    const from = this.world.grid.idx(tile.x, tile.y)
+    return autoRouteUtility(this.world, from, kind) ?? null
+  }
+
+  /**
+   * Captures the live world into `.blockwork` container bytes (save v3).
+   *
+   * Used by the host for autosave-on-background and manual export. Does not
+   * pause or mutate the simulation.
+   */
+  async exportSave(createdAt: string): Promise<{ bytes: Uint8Array; playedTicks: number }> {
+    if (!isInmateWorld(this.world)) {
+      throw new Error('exportSave requires an InmateWorld')
+    }
+    const playedTicks = this.simulation.tick
+    const state = captureInmateWorld(this.world, {
+      seed: this.simulation.rng.serialise().seed,
+      playedTicks,
+      rngState: this.simulation.rng.serialise(),
+    })
+    const bytes = await saveToBytes(state, { createdAt, events: this.#relay })
+    return { bytes, playedTicks }
+  }
+
+  /**
    * What is on a tile, resolved to display names.
    *
    * Priority is agent (inmate / staff), then object, then room, then the bare
@@ -919,7 +1043,7 @@ export class SimWorkerLoop {
         requirements: status?.requirements ?? [],
         properties,
         occupants: this.world.contents().occupants(room.id),
-        gradeLines: [],
+        ...describeRoomGrade(this.world, data, room, def),
         throughputLabel: null,
         centre: {
           x: room.bounds.x + Math.floor(room.bounds.width / 2),
@@ -941,6 +1065,8 @@ export class SimWorkerLoop {
 
     if (this.#writer !== null) {
       this.#writer.write(contents)
+      this.#publishControl()
+      this.#publishEffects()
       return
     }
 
@@ -958,6 +1084,8 @@ export class SimWorkerLoop {
       this.limits,
     )
     this.#post({ type: 'sim:snapshot', buffer }, [buffer])
+    this.#publishControl()
+    this.#publishEffects()
 
     if (isTruncated(truncation)) {
       // The shared writer raises this itself; the fallback path has to.
@@ -974,6 +1102,40 @@ export class SimWorkerLoop {
         },
       })
     }
+  }
+
+  /** Posts / Emergency / Standing Orders summaries for open panels. */
+  #publishControl(): void {
+    const control = buildControlHud(
+      this.world,
+      this.game.data,
+      this.simulation.clock,
+      null,
+    )
+    this.#post({ type: 'sim:control', control }, [])
+  }
+
+  /** Fire and discovered tunnels for the world overlay. */
+  #publishEffects(): void {
+    const { fire, escapes } = this.world
+    const fireTiles: { index: number; intensity: number; smoke: number }[] = []
+    for (let i = 0; i < fire.intensity.length; i += 1) {
+      const intensity = fire.intensity[i] ?? 0
+      const smoke = fire.smoke[i] ?? 0
+      if (intensity === 0 && smoke === 0) continue
+      fireTiles.push({ index: i, intensity, smoke })
+    }
+
+    const tunnels = escapes
+      .all()
+      .filter((tunnel) => tunnel.discovered)
+      .map((tunnel) => ({
+        id: tunnel.id,
+        originTile: tunnel.originTile,
+        tiles: [...tunnel.tiles],
+      }))
+
+    this.#post({ type: 'sim:effects', fire: fireTiles, tunnels }, [])
   }
 
   #collect(): SnapshotContents {
@@ -1339,6 +1501,37 @@ export function startSimWorker(
         case 'sim:untrace':
           loop?.untrace(message.notificationId)
           break
+
+        case 'sim:autoRoute': {
+          const route = loop === null ? null : loop.autoRoute(message.tile, message.kind)
+          scope.postMessage(
+            { type: 'sim:autoRouted', requestId: message.requestId, route },
+            [],
+          )
+          break
+        }
+
+        case 'sim:save': {
+          if (loop === null) break
+          void loop
+            .exportSave(message.createdAt)
+            .then(({ bytes, playedTicks }) => {
+              const copy = bytes.slice()
+              scope.postMessage(
+                {
+                  type: 'sim:saved',
+                  requestId: message.requestId,
+                  buffer: copy.buffer,
+                  playedTicks,
+                },
+                [copy.buffer],
+              )
+            })
+            .catch((error: unknown) => {
+              fail(error)
+            })
+          break
+        }
 
         case 'sim:stop':
           running = false

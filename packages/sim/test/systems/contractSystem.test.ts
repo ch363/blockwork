@@ -248,7 +248,7 @@ describe('contract predicates (T3.7)', () => {
   it('directorateComplete checks completed Directorate nodes', () => {
     const w = world()
     expect(pred({ type: 'directorateComplete', nodeId: 'finance' }, w)).toBe(false)
-    w.contracts.progress.completeDirectorateNode('finance')
+    w.directorate.grant('finance')
     expect(pred({ type: 'directorateComplete', nodeId: 'finance' }, w)).toBe(true)
   })
 
@@ -329,7 +329,7 @@ describe('contract completion (T3.7)', () => {
 
     addFunctionalRoom(w, 'office')
     hireStaff({ world: w, defId: 'warden', events, tick: 0, tx: 1, ty: 1 })
-    w.contracts.progress.completeDirectorateNode('finance')
+    w.directorate.grant('finance')
 
     runContractTicks(w, events, CONTRACT_SYSTEM_PERIOD)
 
@@ -345,7 +345,7 @@ describe('contract completion (T3.7)', () => {
 
     for (const id of STARTING_CONTRACT_IDS) {
       if (id === 'education_trial') {
-        w.contracts.progress.completeDirectorateNode('education')
+        w.directorate.grant('education')
       }
 
       const def = DATA.contracts.get(id)
@@ -375,7 +375,7 @@ describe('contract completion (T3.7)', () => {
   it('raises the concurrency cap from 2 to 3 after Additional Contract', () => {
     const w = world()
     expect(maxConcurrentContracts(w)).toBe(DATA.balance.economy.maxConcurrentContracts)
-    w.contracts.progress.completeDirectorateNode('additional_contract')
+    w.directorate.grant('additional_contract')
     expect(maxConcurrentContracts(w)).toBe(
       DATA.balance.economy.maxConcurrentContractsWithAdditional,
     )
@@ -441,7 +441,7 @@ function satisfy(
       w.contracts.progress.recordProgramCompletion(predicate.programId, predicate.min)
       break
     case 'directorateComplete':
-      w.contracts.progress.completeDirectorateNode(predicate.nodeId)
+      w.directorate.grant(predicate.nodeId)
       break
     case 'needBelow': {
       const index = NEED_INDEX.require(predicate.needId)

@@ -19,11 +19,7 @@ import {
   rollInstantKill,
   rollStunResist,
 } from '../../src/entities/health'
-import {
-  createInmateShell,
-  generateInmate,
-  type InmateEntity,
-} from '../../src/entities/inmate'
+import { createInmateShell, generateInmate, type InmateEntity } from '../../src/entities/inmate'
 import { hireStaff } from '../../src/entities/staff'
 import {
   COMBAT_EVENTS,
@@ -55,7 +51,7 @@ class RecordingSink {
 
 function makeWorld(size = 24): { world: InmateWorld; events: RecordingSink } {
   const events = new RecordingSink()
-  const world = createInmateWorld({ size, data: DATA })
+  const world = createInmateWorld({ size, data: DATA, research: 'all' })
   return { world, events }
 }
 

@@ -18,7 +18,7 @@ import {
   openDoorAt,
   inmateBlockedByLockedSecure,
 } from '../../src/entities/staff'
-import type { InmateWorld } from '../../src/systems/intakeSystem';
+import type { InmateWorld } from '../../src/systems/intakeSystem'
 import { arriveInmate, createInmateWorld } from '../../src/systems/intakeSystem'
 import { createStaffSystem } from '../../src/systems/staffSystem'
 import { refreshPassability } from '../../src/world/construction'
@@ -75,7 +75,11 @@ function putDoor(
   return index
 }
 
-function putRoomShell(world: InmateWorld, rect: Rect, doorType: 'standard' | 'secure' | 'barred' = 'standard'): void {
+function putRoomShell(
+  world: InmateWorld,
+  rect: Rect,
+  doorType: 'standard' | 'secure' | 'barred' = 'standard',
+): void {
   for (let y = rect.y; y < rect.y + rect.height; y += 1) {
     for (let x = rect.x; x < rect.x + rect.width; x += 1) {
       const onEdge =
@@ -120,7 +124,12 @@ function makeRoom(
 function furnishOffice(world: InmateWorld, events: RecordingSink, shell: Rect): number {
   const roomId = makeRoom(world, events, shell, 'office')
   const interior = interiorOf(shell)
-  const desk = placeObject(objectDeps(world, events), { x: interior.x, y: interior.y }, 'office_desk', 0)
+  const desk = placeObject(
+    objectDeps(world, events),
+    { x: interior.x, y: interior.y },
+    'office_desk',
+    0,
+  )
   const chair = placeObject(
     objectDeps(world, events),
     { x: interior.x + 2, y: interior.y },
@@ -182,7 +191,12 @@ function furnishIntakeHall(world: InmateWorld, events: RecordingSink, shell: Rec
   return roomId
 }
 
-function runStaffTicks(world: InmateWorld, events: RecordingSink, ticks: number, seed = SEED): void {
+function runStaffTicks(
+  world: InmateWorld,
+  events: RecordingSink,
+  ticks: number,
+  seed = SEED,
+): void {
   const simulation = new Simulation({
     seed,
     world,
@@ -199,7 +213,12 @@ function runStaffTicks(world: InmateWorld, events: RecordingSink, ticks: number,
 describe('office claiming (T2.7)', () => {
   it('claims and renames a free functional office when hiring an administrator', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 40,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const roomId = furnishOffice(world, events, { x: 2, y: 2, width: 6, height: 6 })
 
     const result = hireStaff({
@@ -229,17 +248,24 @@ describe('office claiming (T2.7)', () => {
 
   it('rejects an administrator hire when no free office remains', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 40,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     furnishOffice(world, events, { x: 2, y: 2, width: 6, height: 6 })
 
     expect(hireStaff({ world, defId: 'warden', events, tick: 1 }).entity).toBeDefined()
     const second = hireStaff({ world, defId: 'counsellor', events, tick: 2 })
     expect(second.entity).toBeUndefined()
     expect(second.reason).toBe('no-office')
-    expect(events.of(STAFF_EVENTS.hireRejected).some((e) => {
-      const data = e.data as { reason?: string }
-      return data.reason === 'no-office'
-    })).toBe(true)
+    expect(
+      events.of(STAFF_EVENTS.hireRejected).some((e) => {
+        const data = e.data as { reason?: string }
+        return data.reason === 'no-office'
+      }),
+    ).toBe(true)
   })
 })
 
@@ -250,7 +276,12 @@ describe('office claiming (T2.7)', () => {
 describe('hire costs (T2.7 / T3.6)', () => {
   it('debits hire cost onto the economy ledger immediately', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const starting = world.economy.balance
 
     const officer = hireStaff({ world, defId: 'officer', events, tick: 0, tx: 2, ty: 2 })
@@ -271,7 +302,12 @@ describe('hire costs (T2.7 / T3.6)', () => {
 describe('escort job lifecycle (T2.7)', () => {
   it('claims, picks up, escorts and completes', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 32, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 32,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
 
     // Open corridor: officer at (2,2), inmate at (5,2), destination at (10,2).
     for (let x = 1; x <= 12; x += 1) putFloor(world, x, 2)
@@ -323,7 +359,12 @@ describe('escort job lifecycle (T2.7)', () => {
 describe('locked secure doors (T2.7)', () => {
   it('lets an officer open a locked secure door for a nearby inmate', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     for (let x = 1; x <= 8; x += 1) putFloor(world, x, 4)
     const doorTile = putDoor(world, 5, 4, 'barred', true)
     expect(inmateBlockedByLockedSecure(world, DATA, doorTile)).toBe(true)
@@ -357,7 +398,12 @@ describe('locked secure doors (T2.7)', () => {
 
   it('keeps inmates blocked when no officers remain', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     for (let x = 1; x <= 8; x += 1) putFloor(world, x, 4)
     const doorTile = putDoor(world, 5, 4, 'barred', true)
 
@@ -396,7 +442,12 @@ describe('locked secure doors (T2.7)', () => {
 describe('cell assignment escorts (T2.7 acceptance)', () => {
   it('completes cell escorts for many inmates within one in-game day', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 160, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 160,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const inmateCount = 200
     const officerCount = 20
 
@@ -464,7 +515,12 @@ describe('cell assignment escorts (T2.7 acceptance)', () => {
 describe('officer fog of war (T2.7)', () => {
   it('reveals tiles around a patrolling officer', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     for (let y = 1; y < 12; y += 1) {
       for (let x = 1; x < 12; x += 1) putFloor(world, x, y)
     }
@@ -483,7 +539,12 @@ describe('officer fog of war (T2.7)', () => {
 describe('openDoorAt', () => {
   it('refreshes passability when unlocking', () => {
     const events = new RecordingSink()
-    const world = createInmateWorld({ size: 16, data: DATA, continuousIntake: false })
+    const world = createInmateWorld({
+      size: 16,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     putFloor(world, 3, 3)
     putFloor(world, 4, 3)
     const doorTile = putDoor(world, 4, 3, 'barred', true)

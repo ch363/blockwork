@@ -33,22 +33,34 @@ import type { TileGrid } from '../world/tileGrid'
 /** 'BKT1'. Distinguishes a patch from a snapshot on the same message port. */
 export const TILE_PATCH_MAGIC = 0x424b5431
 
-export const TILE_PATCH_VERSION = 1
+export const TILE_PATCH_VERSION = 2
 
 /** Tiles in one chunk. Square, so this is `CHUNK_SIZE ** 2`. */
 export const TILES_PER_CHUNK = CHUNK_SIZE * CHUNK_SIZE
 
 /**
  * The fields a patch carries, in the order they are written. 16-bit first so
- * every view is naturally aligned.
+ * every view is naturally aligned. `sectorId` was added in version 2 for the
+ * Phase 4 sectors overlay.
  */
-export const TILE_PATCH_FIELDS = ['roomId', 'objectId', 'floorMaterial', 'wallMaterial'] as const
+export const TILE_PATCH_FIELDS = [
+  'roomId',
+  'objectId',
+  'sectorId',
+  'floorMaterial',
+  'wallMaterial',
+] as const
 
 export type TilePatchField = (typeof TILE_PATCH_FIELDS)[number]
 
-/** `chunkId` plus the four field runs. */
+/** `chunkId` plus the five field runs. */
 export const TILE_PATCH_CHUNK_BYTES =
-  4 + TILES_PER_CHUNK * 2 + TILES_PER_CHUNK * 2 + TILES_PER_CHUNK + TILES_PER_CHUNK
+  4 +
+  TILES_PER_CHUNK * 2 +
+  TILES_PER_CHUNK * 2 +
+  TILES_PER_CHUNK * 2 +
+  TILES_PER_CHUNK +
+  TILES_PER_CHUNK
 
 /** magic, version + chunkSize, gridSize, chunk count. */
 export const TILE_PATCH_HEADER_BYTES = 16
@@ -62,6 +74,7 @@ export interface TilePatchChunk {
   readonly chunkId: number
   readonly roomId: Uint16Array
   readonly objectId: Uint16Array
+  readonly sectorId: Uint16Array
   readonly floorMaterial: Uint8Array
   readonly wallMaterial: Uint8Array
 }
@@ -93,6 +106,8 @@ function packChunk(grid: TileGrid, chunkId: number, view: DataView, at: number):
   offset += TILES_PER_CHUNK * 2
   const objectId = new Uint16Array(view.buffer, view.byteOffset + offset, TILES_PER_CHUNK)
   offset += TILES_PER_CHUNK * 2
+  const sectorId = new Uint16Array(view.buffer, view.byteOffset + offset, TILES_PER_CHUNK)
+  offset += TILES_PER_CHUNK * 2
   const floorMaterial = new Uint8Array(view.buffer, view.byteOffset + offset, TILES_PER_CHUNK)
   offset += TILES_PER_CHUNK
   const wallMaterial = new Uint8Array(view.buffer, view.byteOffset + offset, TILES_PER_CHUNK)
@@ -106,6 +121,7 @@ function packChunk(grid: TileGrid, chunkId: number, view: DataView, at: number):
       const to = local + (x - bounds.x)
       roomId[to] = grid.roomId[from] as number
       objectId[to] = grid.objectId[from] as number
+      sectorId[to] = grid.sectorId[from] as number
       floorMaterial[to] = grid.floorMaterial[from] as number
       wallMaterial[to] = grid.wallMaterial[from] as number
     }
@@ -174,12 +190,14 @@ export function decodeTilePatch(buffer: ArrayBuffer): TilePatch | null {
     offset += TILES_PER_CHUNK * 2
     const objectId = new Uint16Array(buffer, offset, TILES_PER_CHUNK)
     offset += TILES_PER_CHUNK * 2
+    const sectorId = new Uint16Array(buffer, offset, TILES_PER_CHUNK)
+    offset += TILES_PER_CHUNK * 2
     const floorMaterial = new Uint8Array(buffer, offset, TILES_PER_CHUNK)
     offset += TILES_PER_CHUNK
     const wallMaterial = new Uint8Array(buffer, offset, TILES_PER_CHUNK)
     offset += TILES_PER_CHUNK
 
-    chunks.push({ chunkId, roomId, objectId, floorMaterial, wallMaterial })
+    chunks.push({ chunkId, roomId, objectId, sectorId, floorMaterial, wallMaterial })
   }
 
   return { gridSize, chunkSize, chunks }
@@ -197,6 +215,7 @@ export interface TileMirror {
   readonly size: number
   readonly roomId: Uint16Array
   readonly objectId: Uint16Array
+  readonly sectorId: Uint16Array
   readonly floorMaterial: Uint8Array
   readonly wallMaterial: Uint8Array
 }
@@ -207,6 +226,7 @@ export function createTileMirror(size: number): TileMirror {
     size,
     roomId: new Uint16Array(tiles),
     objectId: new Uint16Array(tiles),
+    sectorId: new Uint16Array(tiles),
     floorMaterial: new Uint8Array(tiles),
     wallMaterial: new Uint8Array(tiles),
   }
@@ -228,13 +248,12 @@ export function applyTilePatch(mirror: TileMirror, patch: TilePatch): readonly n
         const from = local + (x - bounds.x)
         mirror.roomId[to] = chunk.roomId[from] as number
         mirror.objectId[to] = chunk.objectId[from] as number
+        mirror.sectorId[to] = chunk.sectorId[from] as number
         mirror.floorMaterial[to] = chunk.floorMaterial[from] as number
         mirror.wallMaterial[to] = chunk.wallMaterial[from] as number
       }
     }
-
     touched.push(chunk.chunkId)
   }
-
   return touched
 }

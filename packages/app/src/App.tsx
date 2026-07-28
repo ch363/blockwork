@@ -36,11 +36,16 @@ export function App({ session }: AppProps): JSX.Element {
         return
       }
       if (event.key === 'Escape') {
+        if (session.cancelPostsPatrolIfActive()) return
         session.discard()
         session.closeInspector()
         session.closePosts()
         session.closeEmergency()
+        session.closeStandingOrders()
         session.closeTrace()
+        session.closeDirectorate()
+        session.closePrograms()
+        session.closeIntelligence()
       }
     }
 
@@ -110,6 +115,91 @@ export function App({ session }: AppProps): JSX.Element {
       }}
       onPostsClose={() => {
         session.closePosts()
+      }}
+      onPostsSelectSector={(id) => {
+        session.selectPostsSector(id)
+      }}
+      onPostsHireSuggested={() => {
+        session.hireSuggestedOfficers()
+      }}
+      onPostsNewSector={() => {
+        session.createPostsSector()
+      }}
+      onPostsNewPost={() => {
+        session.createPostsPost()
+      }}
+      onPostsNewPatrol={() => {
+        session.beginPostsPatrol()
+      }}
+      onPostsConfigureSector={(id) => {
+        session.configurePostsSector(id)
+      }}
+      standingOrders={state.standingOrders.value}
+      standingOrdersTab={state.standingOrdersTab.value}
+      onStandingOrdersTab={(tab) => {
+        session.setStandingOrdersTab(tab)
+      }}
+      onStandingOrdersClose={() => {
+        session.closeStandingOrders()
+      }}
+      onStandingOrdersPunishment={(misconduct, punishment) => {
+        session.standingOrdersPunishment(misconduct, punishment)
+      }}
+      onStandingOrdersDuration={(misconduct, durationHours) => {
+        session.standingOrdersDuration(misconduct, durationHours)
+      }}
+      onStandingOrdersSearchTrigger={(misconduct, search) => {
+        session.standingOrdersSearchTrigger(misconduct, search)
+      }}
+      onStandingOrdersStrictness={(strictness) => {
+        session.standingOrdersStrictness(strictness)
+      }}
+      onStandingOrdersMealQuantity={(quantity) => {
+        session.standingOrdersMealQuantity(quantity)
+      }}
+      onStandingOrdersMealVariety={(variety) => {
+        session.standingOrdersMealVariety(variety)
+      }}
+      directorate={state.directorate.value}
+      directorateBranch={state.directorateBranch.value}
+      onDirectorateBranch={(branch) => {
+        session.setDirectorateBranch(branch)
+      }}
+      onDirectorateSelect={(nodeId) => {
+        session.selectDirectorateNode(nodeId)
+      }}
+      onDirectorateClose={() => {
+        session.closeDirectorate()
+      }}
+      onDirectorateStart={(nodeId) => {
+        session.startDirectorateResearch(nodeId)
+      }}
+      programs={state.programs.value}
+      onProgramsSelect={(programId) => {
+        session.selectProgram(programId)
+      }}
+      onProgramsClose={() => {
+        session.closePrograms()
+      }}
+      onProgramsPin={(programId) => {
+        session.pinProgram(programId)
+      }}
+      onProgramsUnpin={(programId) => {
+        session.unpinProgram(programId)
+      }}
+      intelligence={state.intelligence.value}
+      intelligenceTab={state.intelligenceTab.value}
+      onIntelligenceTab={(tab) => {
+        session.setIntelligenceTab(tab)
+      }}
+      onIntelligenceClose={() => {
+        session.closeIntelligence()
+      }}
+      onIntelligenceRecruit={(inmateId) => {
+        session.recruitInformant(inmateId)
+      }}
+      onIntelligenceFocusInformant={(inmateId) => {
+        session.focusInformant(inmateId)
       }}
       emergency={state.emergency.value}
       onEmergencyClose={() => {

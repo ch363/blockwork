@@ -3,9 +3,8 @@
  *
  * A `SaveFile` is JSON — base64 grids, plain objects, no classes. A
  * `SaveState` is the same information in the form the simulation actually runs
- * on, which today means a real `TileGrid` and, for the systems that do not
- * exist yet, the same opaque JSON records the file carries. `serialise.ts`
- * turns one into the other and `deserialise.ts` turns it back.
+ * on, which today means a real `TileGrid` and typed Phase 4 snapshots. 
+ * `serialise.ts` turns one into the other and `deserialise.ts` turns it back.
  *
  * The hashing here is what makes "the save round-tripped" a testable claim
  * rather than a hopeful one. `saveStateWorld` wraps a state as the
@@ -27,17 +26,31 @@ import type { World } from '../core/simulation'
 import type { TileGrid } from '../world/tileGrid'
 
 import type {
+  CombatStateSnapshot,
+  ContrabandStateSnapshot,
   ContractState,
-  DirectorateState,
+  DirectorateStateSnapshot,
   EconomyState,
+  EmergencyStateSnapshot,
+  EscapesStateSnapshot,
+  FireStateSnapshot,
+  GradingStateSnapshot,
+  ProgramsStateSnapshot,
+  ParoleStateSnapshot,
+  ReleaseStateSnapshot,
+  GradesStateSnapshot,
+  IntelligenceStateSnapshot,
   LogEntry,
   MapSettings,
-  PostState,
+  PostsState,
+  PunishmentsStateSnapshot,
+  RiotStateSnapshot,
   RoutineState,
+  SectorsState,
   SerialisedEntity,
   SerialisedRoom,
-  SerialisedSector,
   StandingOrdersState,
+  UtilitiesStateSnapshot,
 } from './format'
 
 /** Everything one saved prison consists of, in memory. */
@@ -49,13 +62,32 @@ export interface SaveState {
   readonly grid: TileGrid
   readonly entities: readonly SerialisedEntity[]
   readonly rooms: readonly SerialisedRoom[]
-  readonly sectors: readonly SerialisedSector[]
+  readonly nextRoomId: number
+  readonly sectors: SectorsState
   readonly economy: EconomyState
-  readonly directorate: DirectorateState
-  readonly contracts: readonly ContractState[]
+  readonly directorate: DirectorateStateSnapshot
+  readonly grading: GradingStateSnapshot
+  readonly programs: ProgramsStateSnapshot
+  readonly grades: GradesStateSnapshot
+  readonly parole: ParoleStateSnapshot
+  readonly release: ReleaseStateSnapshot
+  readonly intelligence: IntelligenceStateSnapshot
+  readonly contracts: ContractState
   readonly routines: RoutineState
   readonly standingOrders: StandingOrdersState
-  readonly posts: readonly PostState[]
+  readonly posts: PostsState
+  readonly contraband: ContrabandStateSnapshot
+  readonly fire: FireStateSnapshot
+  readonly riot: RiotStateSnapshot
+  readonly emergency: EmergencyStateSnapshot
+  readonly escapes: EscapesStateSnapshot
+  readonly combat: CombatStateSnapshot
+  readonly punishments: PunishmentsStateSnapshot
+  readonly utilities: UtilitiesStateSnapshot
+  readonly dangerLevel: number
+  readonly riotActive: boolean
+  readonly lockdownActive: boolean
+  readonly misconductWindowTicks: readonly number[]
   readonly log: readonly LogEntry[]
   readonly rngState: RngState
 }
@@ -75,23 +107,37 @@ function hashWorldInto(state: SaveState, hasher: Fnv1aHasher): void {
   hasher.writeUint32(state.entities.length)
   for (const entity of state.entities) hasher.writeJson(entity)
 
+  hasher.writeUint32(state.nextRoomId)
   hasher.writeUint32(state.rooms.length)
   for (const room of state.rooms) hasher.writeJson(room)
 
-  hasher.writeUint32(state.sectors.length)
-  for (const sector of state.sectors) hasher.writeJson(sector)
-
+  hasher.writeJson(state.sectors)
   hasher.writeJson(state.economy)
   hasher.writeJson(state.directorate)
-
-  hasher.writeUint32(state.contracts.length)
-  for (const contract of state.contracts) hasher.writeJson(contract)
-
+  hasher.writeJson(state.grading)
+  hasher.writeJson(state.programs)
+  hasher.writeJson(state.grades)
+  hasher.writeJson(state.parole)
+  hasher.writeJson(state.release)
+  hasher.writeJson(state.intelligence)
+  hasher.writeJson(state.contracts)
   hasher.writeJson(state.routines)
   hasher.writeJson(state.standingOrders)
+  hasher.writeJson(state.posts)
+  hasher.writeJson(state.contraband)
+  hasher.writeJson(state.fire)
+  hasher.writeJson(state.riot)
+  hasher.writeJson(state.emergency)
+  hasher.writeJson(state.escapes)
+  hasher.writeJson(state.combat)
+  hasher.writeJson(state.punishments)
+  hasher.writeJson(state.utilities)
 
-  hasher.writeUint32(state.posts.length)
-  for (const post of state.posts) hasher.writeJson(post)
+  hasher.writeFloat64(state.dangerLevel)
+  hasher.writeUint32(state.riotActive ? 1 : 0)
+  hasher.writeUint32(state.lockdownActive ? 1 : 0)
+  hasher.writeUint32(state.misconductWindowTicks.length)
+  for (const tick of state.misconductWindowTicks) hasher.writeUint32(tick)
 
   hasher.writeUint32(state.log.length)
   for (const entry of state.log) hasher.writeJson(entry)

@@ -229,6 +229,104 @@ export class EscapeState {
     hasher.writeUint32(this.failed ? 1 : 0)
     hasher.writeUint32(this.totalEscapes)
   }
+
+  serialise(): {
+    readonly nextTunnelId: number
+    readonly tunnels: readonly Tunnel[]
+    readonly breachedDoorTiles: readonly number[]
+    readonly pendingEscapes: readonly PendingNetworkEscape[]
+    readonly escapesToday: number
+    readonly escapesYesterday: number
+    readonly accountedDay: number
+    readonly warningActive: boolean
+    readonly failed: boolean
+    readonly totalEscapes: number
+  } {
+    return {
+      nextTunnelId: this.#nextTunnelId,
+      tunnels: this.all().map((tunnel) => ({
+        id: tunnel.id,
+        originTile: tunnel.originTile,
+        tiles: [...tunnel.tiles],
+        diggerIds: [...tunnel.diggerIds],
+        discovered: tunnel.discovered,
+        progress: tunnel.progress,
+        reachedExit: tunnel.reachedExit,
+        networkId: tunnel.networkId,
+      })),
+      breachedDoorTiles: [...this.breachedDoorTiles].sort((a, b) => a - b),
+      pendingEscapes: this.pendingEscapes.map((pending) => ({
+        networkId: pending.networkId,
+        inmateIds: [...pending.inmateIds],
+        remainingIds: [...pending.remainingIds],
+      })),
+      escapesToday: this.escapesToday,
+      escapesYesterday: this.escapesYesterday,
+      accountedDay: this.accountedDay,
+      warningActive: this.warningActive,
+      failed: this.failed,
+      totalEscapes: this.totalEscapes,
+    }
+  }
+
+  restore(snapshot: {
+    readonly nextTunnelId: number
+    readonly tunnels: readonly {
+      readonly id: number
+      readonly originTile: number
+      readonly tiles: readonly number[]
+      readonly diggerIds: readonly number[]
+      readonly discovered: boolean
+      readonly progress: number
+      readonly reachedExit: boolean
+      readonly networkId: number
+    }[]
+    readonly breachedDoorTiles: readonly number[]
+    readonly pendingEscapes: readonly {
+      readonly networkId: number
+      readonly inmateIds: readonly number[]
+      readonly remainingIds: readonly number[]
+    }[]
+    readonly escapesToday: number
+    readonly escapesYesterday: number
+    readonly accountedDay: number
+    readonly warningActive: boolean
+    readonly failed: boolean
+    readonly totalEscapes: number
+  }): void {
+    this.#tunnels.clear()
+    this.#tileIndex.clear()
+    this.#nextTunnelId = Math.max(1, snapshot.nextTunnelId)
+    for (const entry of snapshot.tunnels) {
+      const tunnel: Tunnel = {
+        id: entry.id,
+        originTile: entry.originTile,
+        tiles: [...entry.tiles],
+        diggerIds: [...entry.diggerIds],
+        discovered: entry.discovered,
+        progress: entry.progress,
+        reachedExit: entry.reachedExit,
+        networkId: entry.networkId,
+      }
+      this.add(tunnel)
+    }
+    this.breachedDoorTiles.clear()
+    for (const tile of snapshot.breachedDoorTiles) this.breachedDoorTiles.add(tile)
+    this.pendingEscapes.length = 0
+    for (const pending of snapshot.pendingEscapes) {
+      this.pendingEscapes.push({
+        networkId: pending.networkId,
+        inmateIds: [...pending.inmateIds],
+        remainingIds: [...pending.remainingIds],
+      })
+    }
+    this.escapesToday = snapshot.escapesToday
+    this.escapesYesterday = snapshot.escapesYesterday
+    this.accountedDay = snapshot.accountedDay
+    this.warningActive = snapshot.warningActive
+    this.failed = snapshot.failed
+    this.totalEscapes = snapshot.totalEscapes
+  }
 }
 
 export function createEscapeState(): EscapeState {

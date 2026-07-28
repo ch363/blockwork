@@ -22,8 +22,10 @@ import { createInmateShell, generateInmate } from '../../src/entities/inmate'
 import type { InmateEntity } from '../../src/entities/inmate'
 import { NeedIndex } from '../../src/entities/needs'
 import { setMisconductOrder } from '../../src/entities/standingOrders'
+import { hireStaff } from '../../src/entities/staff'
 import type { InmateWorld } from '../../src/systems/intakeSystem'
 import { createInmateWorld } from '../../src/systems/intakeSystem'
+import { COMBAT_EVENTS } from '../../src/systems/combatSystem'
 import {
   MISCONDUCT_SYSTEM_PERIOD,
   commitMisconduct,
@@ -34,6 +36,7 @@ import {
   beginPunishment,
   createPunishmentSystem,
 } from '../../src/systems/punishmentSystem'
+import { SEARCH_EVENTS } from '../../src/systems/searchSystem'
 import { refreshPassability } from '../../src/world/construction'
 import type { Rect } from '../../src/world/construction'
 import { initialLockState } from '../../src/world/doors'
@@ -528,7 +531,7 @@ describe('agitator propagation', () => {
 })
 
 describe('commitMisconduct integration', () => {
-  it('emits CausalEvent, logs rap sheet, applies standing orders, queues search stub', () => {
+  it('emits CausalEvent, logs rap sheet, applies standing orders, and runs search', () => {
     const world = makeWorld()
     const events = new RecordingSink()
     const cellId = makeCell(world, events, { x: 2, y: 2, width: 5, height: 5 })
@@ -542,6 +545,7 @@ describe('commitMisconduct integration', () => {
       search: true,
     })
 
+    const rng = new Rng(SEED).stream('search')
     const record = commitMisconduct({
       world,
       data: DATA,
@@ -549,6 +553,8 @@ describe('commitMisconduct integration', () => {
       tick: 42,
       inmateId: inmate.id,
       kind: 'contraband',
+      rng,
+      needIndex: INDEX,
     })
 
     expect(record?.kind).toBe('contraband')
@@ -556,7 +562,67 @@ describe('commitMisconduct integration', () => {
     expect(inmate.inmate.entitlement).toBe(6 - DATA.balance.entitlement.minorPenalty)
     expect(events.of(MISCONDUCT_EVENTS.committed).length).toBe(1)
     expect(events.of(MISCONDUCT_EVENTS.searchQueued).length).toBe(1)
+    expect(events.of(SEARCH_EVENTS.performed).length).toBe(1)
     expect(world.punishments.get(inmate.id)?.kind).toBe('lockdown')
+  })
+
+  it('starts a fight when attackInmate finds a neighbour', () => {
+    const world = makeWorld()
+    const events = new RecordingSink()
+    const attacker = spawnInmate(world, events, { tx: 5, ty: 5 })
+    const victim = spawnInmate(world, events, { tx: 6, ty: 5 })
+
+    setMisconductOrder(world.standingOrders, 'attackInmate', {
+      punishment: 'ignore',
+      durationHours: 0,
+      search: false,
+    })
+
+    commitMisconduct({
+      world,
+      data: DATA,
+      events,
+      tick: 10,
+      inmateId: attacker.id,
+      kind: 'attackInmate',
+    })
+
+    expect(events.of(COMBAT_EVENTS.fightStarted).length).toBe(1)
+    expect(world.combat.fightInvolving('inmate', attacker.id)).toBeDefined()
+    expect(world.combat.fightInvolving('inmate', victim.id)).toBeDefined()
+  })
+
+  it('starts a fight when attackStaff finds an officer', () => {
+    const world = makeWorld()
+    const events = new RecordingSink()
+    const inmate = spawnInmate(world, events, { tx: 5, ty: 5 })
+    const hired = hireStaff({
+      world,
+      defId: 'officer',
+      events,
+      tick: 0,
+      tx: 6,
+      ty: 5,
+    })
+    expect(hired.entity).toBeDefined()
+
+    setMisconductOrder(world.standingOrders, 'attackStaff', {
+      punishment: 'ignore',
+      durationHours: 0,
+      search: false,
+    })
+
+    commitMisconduct({
+      world,
+      data: DATA,
+      events,
+      tick: 10,
+      inmateId: inmate.id,
+      kind: 'attackStaff',
+    })
+
+    expect(events.of(COMBAT_EVENTS.fightStarted).length).toBe(1)
+    expect(world.combat.fightInvolving('inmate', inmate.id)).toBeDefined()
   })
 })
 

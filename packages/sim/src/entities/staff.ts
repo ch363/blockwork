@@ -18,6 +18,8 @@ import { tileCount } from '../world/coords'
 import { PASSABILITY } from '../world/tileGrid'
 import { NO_ROOM } from '../world/rooms'
 
+import { isUnlocked } from './directorate'
+import type { DirectorateState } from './directorate'
 import { NO_INMATE } from './inmate'
 
 /* -------------------------------------------------------------------------- */
@@ -505,6 +507,8 @@ export class StaffRegistry {
 
 export interface StaffWorldView {
   readonly data: GameData
+  /** Research state, so a locked role cannot be hired (T5.1). */
+  readonly directorate: DirectorateState
   readonly staff: StaffRegistry
   readonly offices: OfficeClaimRegistry
   readonly escorts: EscortJobQueue
@@ -547,6 +551,8 @@ export type HireRejection =
   | 'requires-room'
   | 'callable-only'
   | 'per-session'
+  /** The role's Directorate node has not completed (T5.1). */
+  | 'locked'
 
 export interface HireStaffOptions {
   readonly world: StaffWorldView
@@ -573,6 +579,13 @@ export function hireStaff(options: HireStaffOptions): HireStaffResult {
   if (def === undefined) {
     rejectHire(events, tick, defId, 'unknown-role')
     return { reason: 'unknown-role' }
+  }
+  // Research first: a role the player has not unlocked does not exist yet, so
+  // "you cannot hire an instructor directly" is the wrong thing to say about
+  // one whose Education node is still outstanding.
+  if (!isUnlocked(world.data, world.directorate, 'staff', defId)) {
+    rejectHire(events, tick, defId, 'locked')
+    return { reason: 'locked' }
   }
   if (def.callable) {
     rejectHire(events, tick, defId, 'callable-only')

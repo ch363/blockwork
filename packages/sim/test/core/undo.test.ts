@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   BUILD_ACTION_KINDS,
+  actionTiles,
   applyBuildActions,
   salvage,
   siteCancellationRefund,
@@ -138,6 +139,22 @@ describe('every command type has a working inverse', () => {
     })
   })
 
+  it('paintCable', () => {
+    // Cable overlays live on InmateWorld; ObjectWorld blueprint fixtures cannot
+    // round-trip them yet (session auto-route / undo wiring is a follow-up).
+    const run = scenario()
+    for (let x = 3; x <= 7; x += 1) putFloor(run, x, 4)
+    const action: BuildAction = { kind: 'paintCable', line: { x1: 3, y1: 4, x2: 7, y2: 4 } }
+    expect(actionTiles(run.world, run.data, action)).toHaveLength(5)
+  })
+
+  it('paintPipe', () => {
+    const run = scenario()
+    for (let x = 3; x <= 7; x += 1) putFloor(run, x, 5)
+    const action: BuildAction = { kind: 'paintPipe', line: { x1: 3, y1: 5, x2: 7, y2: 5 } }
+    expect(actionTiles(run.world, run.data, action)).toHaveLength(5)
+  })
+
   it('demolish', () => {
     const run = scenario()
     furnishedCell(run)
@@ -236,6 +253,8 @@ describe('every command type has a working inverse', () => {
       'removeWall',
       'placeDoor',
       'paintFloor',
+      'paintCable',
+      'paintPipe',
       'demolish',
       'designateRoom',
       'undesignateRoom',

@@ -58,10 +58,14 @@ import type {
   Tile,
   TileGridBuffers,
   TileMirror,
+  UtilityRouteKind,
+  UtilityRouteResult,
 } from '@blockwork/sim'
 
 import type {
+  ControlHudPayload,
   InspectResult,
+  SimEffectsMessage,
   SimWorkerInbound,
   SimWorkerOutbound,
   SnapshotTransportKind,
@@ -117,6 +121,7 @@ function sharedTileView(size: number, buffers: TileGridBuffers): TileMirror {
     size,
     roomId: new Uint16Array(buffers.roomId),
     objectId: new Uint16Array(buffers.objectId),
+    sectorId: new Uint16Array(buffers.sectorId),
     floorMaterial: new Uint8Array(buffers.floorMaterial),
     wallMaterial: new Uint8Array(buffers.wallMaterial),
   }
@@ -154,7 +159,14 @@ export class SimBridge {
   readonly #pendingReports = new Map<number, (report: BlueprintReport) => void>()
   readonly #pendingInspections = new Map<number, (result: InspectResult) => void>()
   readonly #pendingTraces = new Map<number, (result: TraceResult | null) => void>()
+  readonly #pendingAutoRoutes = new Map<number, (route: UtilityRouteResult | null) => void>()
+  readonly #pendingSaves = new Map<
+    number,
+    (result: { bytes: Uint8Array; playedTicks: number }) => void
+  >()
   #notifications: SnapshotNotification[] = []
+  #control: ControlHudPayload | null = null
+  #effects: SimEffectsMessage | null = null
 
   #latest: Snapshot | null = null
   /** Fallback transport: received but not yet decoded. */
@@ -307,6 +319,22 @@ export class SimBridge {
     return chunks
   }
 
+  /**
+   * Newest Posts / Emergency / Standing Orders summaries from the worker, or
+   * null before the first control publish.
+   */
+  latestControl(): ControlHudPayload | null {
+    return this.#control
+  }
+
+  /**
+   * Newest fire / tunnel overlay payload from the worker, or null before the
+   * first effects publish.
+   */
+  latestEffects(): SimEffectsMessage | null {
+    return this.#effects
+  }
+
   /** Queues a player command for the start of the worker's next tick. */
   sendCommand(command: Command): void {
     this.#assertLive()
@@ -377,6 +405,38 @@ export class SimBridge {
     this.#worker.postMessage({ type: 'sim:untrace', notificationId }, [])
   }
 
+  /**
+   * Shortest cable/pipe run from a tile to the nearest live utility node
+   * (PRD 3.4). Null when nothing is reachable.
+   */
+  async autoRoute(tile: Tile, kind: UtilityRouteKind): Promise<UtilityRouteResult | null> {
+    this.#assertLive()
+    const requestId = this.#nextRequestId
+    this.#nextRequestId += 1
+
+    return new Promise<UtilityRouteResult | null>((resolve) => {
+      this.#pendingAutoRoutes.set(requestId, resolve)
+      this.#worker.postMessage({ type: 'sim:autoRoute', requestId, tile, kind }, [])
+    })
+  }
+
+  /**
+   * Captures the live world as `.blockwork` bytes for autosave / export.
+   *
+   * `createdAt` is ISO 8601 from the host — the worker must not read the wall
+   * clock. Returns the container bytes plus the tick stamped into the save.
+   */
+  async exportSave(createdAt: string): Promise<{ bytes: Uint8Array; playedTicks: number }> {
+    this.#assertLive()
+    const requestId = this.#nextRequestId
+    this.#nextRequestId += 1
+
+    return new Promise<{ bytes: Uint8Array; playedTicks: number }>((resolve) => {
+      this.#pendingSaves.set(requestId, resolve)
+      this.#worker.postMessage({ type: 'sim:save', requestId, createdAt }, [])
+    })
+  }
+
   /** 0 pauses. PRD 3.9's ladder is 1, 2, 5 and 20. */
   setSpeed(multiplier: number): void {
     this.#assertLive()
@@ -395,6 +455,8 @@ export class SimBridge {
     this.#pendingReports.clear()
     this.#pendingInspections.clear()
     this.#pendingTraces.clear()
+    this.#pendingAutoRoutes.clear()
+    this.#pendingSaves.clear()
   }
 
   #handle(message: SimWorkerOutbound): void {
@@ -438,6 +500,29 @@ export class SimBridge {
         resolve(message.result)
         break
       }
+      case 'sim:autoRouted': {
+        const resolve = this.#pendingAutoRoutes.get(message.requestId)
+        if (resolve === undefined) break
+        this.#pendingAutoRoutes.delete(message.requestId)
+        resolve(message.route)
+        break
+      }
+      case 'sim:saved': {
+        const resolve = this.#pendingSaves.get(message.requestId)
+        if (resolve === undefined) break
+        this.#pendingSaves.delete(message.requestId)
+        resolve({
+          bytes: new Uint8Array(message.buffer),
+          playedTicks: message.playedTicks,
+        })
+        break
+      }
+      case 'sim:control':
+        this.#control = message.control
+        break
+      case 'sim:effects':
+        this.#effects = message
+        break
       case 'sim:error':
         this.#error = message.message
         break

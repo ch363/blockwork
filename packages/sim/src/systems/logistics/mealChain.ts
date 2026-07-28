@@ -26,6 +26,7 @@ import type { Fnv1aHasher } from '../../core/hash'
 import type { EventSink, System, SystemContext } from '../../core/simulation'
 import type { GameData } from '../../data/loader'
 import type { RoutineBlockId } from '../../data/schemas'
+import { hasFeature } from '../../entities/directorate'
 import { hasCapability } from '../../entities/staff'
 import { isOperational } from '../../entities/objects'
 import type { ObjectEntity } from '../../entities/objects'
@@ -330,7 +331,6 @@ export interface KitchenPrepSession {
 export class MealLogistics {
   standingOrders: MealStandingOrders
   /** Feature flags unlocked by Directorate research. */
-  readonly unlockedFeatures = new Set<string>()
   /** kitchenRoomId → messRoomId overrides (Delegation). */
   readonly routingOverrides = new Map<number, number>()
   /** fridgeObjectId → ingredientId → count */
@@ -357,14 +357,6 @@ export class MealLogistics {
       quantity: kitchen.defaultMealQuantity,
       variety: kitchen.defaultMealVariety,
     }
-  }
-
-  unlockFeature(featureId: string): void {
-    this.unlockedFeatures.add(featureId)
-  }
-
-  hasFeature(featureId: string): boolean {
-    return this.unlockedFeatures.has(featureId)
   }
 
   setRoutingOverride(kitchenRoomId: number, messRoomId: number): void {
@@ -497,9 +489,6 @@ export class MealLogistics {
     hasher.writeUint32(this.standingOrders.variety)
     hasher.writeUint32(this.missedMeals)
     hasher.writeUint32(this.mealsServed)
-    hasher.writeUint32(this.unlockedFeatures.size)
-    const features = [...this.unlockedFeatures].sort()
-    for (const feature of features) hasher.writeString(feature)
     hasher.writeUint32(this.routingOverrides.size)
     const routes = [...this.routingOverrides.entries()].sort((a, b) => a[0] - b[0])
     for (const [kitchenId, messId] of routes) {
@@ -654,7 +643,7 @@ function advanceKitchen(args: AdvanceKitchenArgs): void {
 
   if (window === null) return
 
-  const routingUnlocked = meals.hasFeature('kitchen_routing')
+  const routingUnlocked = hasFeature(data, world.directorate, 'kitchen_routing')
   const override = meals.routingOverrides.get(kitchen.id) ?? null
   const mess = selectMessForKitchen(kitchen, messHalls, world.grid.size, {
     routingUnlocked,

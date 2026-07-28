@@ -40,6 +40,7 @@ import {
   ticksToDay,
   ticksToTimeString,
   undoCommand,
+  utilityPathToLines,
 } from '@blockwork/sim'
 import type {
   BlueprintReport,
@@ -47,18 +48,29 @@ import type {
   GameData,
   NotificationSeverity,
   Tile,
+  UtilityRouteKind,
 } from '@blockwork/sim'
-import { BlockworkRenderer, interpolateAgents, terrainPalette } from '@blockwork/render'
-import type { RenderAgent, RenderObject, ToolStroke } from '@blockwork/render'
+import { BlockworkRenderer, interpolateAgents, parseCssColour, terrainPalette } from '@blockwork/render'
+import type { OverlayMode, RenderAgent, RenderObject, ToolStroke } from '@blockwork/render'
 import { signal } from '@preact/signals'
 import type { Signal } from '@preact/signals'
 import type {
   DockToolId,
+  DirectorateBranchId,
+  DirectorateModel,
   EmergencyModel,
   InspectorModel,
+  IntelligenceModel,
+  IntelligenceTab,
   PostsModel,
   PostsTab,
+  ProgramsModel,
   SpeedStop,
+  StandingMealQuantity,
+  StandingOrdersModel,
+  StandingOrdersTab,
+  StandingPunishment,
+  StandingStrictness,
   ToastModel,
   ToastSeverity,
   TopBarModel,
@@ -71,8 +83,9 @@ import { categoryToken, resolveWorldTap, traceModelFromView } from '@blockwork/u
 import { SimBridge, createSimWorker } from '../worker/bridge'
 import type { InspectResult, TraceResult } from '../worker/simWorker'
 import { snapshotEntityToRenderAgent } from '../worker/collectAgents'
+import { SaveStore } from '../save/store'
 
-import { createPalettes, gestureHint } from './palette'
+import { createPalettes, gestureHint, unlockSnapshotKey, type UnlockSnapshot } from './palette'
 import type { Palette, PaletteEntry } from './palette'
 
 /** PRD 4.3's Large map. The size a new game starts at until T5.x offers a menu. */
@@ -114,6 +127,17 @@ export interface SessionState {
   readonly postsTab: Signal<PostsTab>
   /** Open Emergency panel, or null when closed (T4.6, PRD 3.7). */
   readonly emergency: Signal<EmergencyModel | null>
+  /** Open Standing Orders panel, or null when closed (T4.3). */
+  readonly standingOrders: Signal<StandingOrdersModel | null>
+  readonly standingOrdersTab: Signal<StandingOrdersTab>
+  /** Open Directorate panel, or null when closed (T5.1). */
+  readonly directorate: Signal<DirectorateModel | null>
+  readonly directorateBranch: Signal<DirectorateBranchId | 'all'>
+  /** Open Programs panel, or null when closed (T5.3). */
+  readonly programs: Signal<ProgramsModel | null>
+  /** Open Intelligence panel, or null when closed (T5.6). */
+  readonly intelligence: Signal<IntelligenceModel | null>
+  readonly intelligenceTab: Signal<IntelligenceTab>
   readonly hint: Signal<string | null>
   readonly hud: Signal<string | null>
   readonly committing: Signal<boolean>
@@ -136,7 +160,7 @@ const EMPTY_TOP_BAR: TopBarModel = {
   critical: false,
 }
 
-/** Placeholder until the worker publishes live post / sector summaries. */
+/** Fallback Posts model before the worker's first control publish. */
 const EMPTY_POSTS_MODEL: PostsModel = {
   unfilledCount: 0,
   deployedCount: 0,
@@ -219,6 +243,24 @@ function emptyEmergencyModel(data: GameData): EmergencyModel {
         disabledReason: null,
       },
     ],
+  }
+}
+
+function emptyStandingOrdersModel(data: GameData): StandingOrdersModel {
+  const defaults = data.balance.contraband.standingOrders.defaults
+  return {
+    rows: Object.entries(defaults).map(([misconduct, order]) => ({
+      misconduct,
+      label: misconduct,
+      punishment: order.punishment,
+      durationHours: order.durationHours < 0 ? 0 : order.durationHours,
+      search: order.search,
+    })),
+    strictness: data.balance.contraband.standingOrders.defaultReassignmentStrictness,
+    mealQuantity: data.balance.kitchen.defaultMealQuantity,
+    mealVariety: data.balance.kitchen.defaultMealVariety,
+    maxMealVariety: data.balance.kitchen.maxMealVariety,
+    projection: null,
   }
 }
 
@@ -305,6 +347,8 @@ function toInspectorModel(result: InspectResult): InspectorModel {
         properties: result.properties,
         occupants: result.occupants,
         gradeLines: result.gradeLines,
+        grade: result.grade,
+        gradeMax: result.gradeMax,
         throughputLabel: result.throughputLabel,
       }
     case 'object':
@@ -346,7 +390,8 @@ export class Session {
   /** Staged, unsent, and priced by the worker. Nothing here has been paid for. */
   readonly staged = new Blueprint()
 
-  readonly #palettes: Readonly<Record<DockToolId, Palette>>
+  #palettes: Readonly<Record<DockToolId, Palette>>
+  #unlockKey = ''
   #validationId = 0
   #focusTile: Tile | null = null
   #frames = 0
@@ -361,6 +406,19 @@ export class Session {
   #openTrace: TraceResult | null = null
   /** Snapshot entity id highlighted with the selection ring. */
   #selectedSnapshotId: number | null = null
+  /** Sector chosen in Posts for Emergency level-1 lockdown / post target. */
+  #selectedSectorId: number | null = null
+  /** Sector currently being painted onto the map. */
+  #paintSectorId: number | null = null
+  /** Pending sector name after create, matched on next control HUD. */
+  #pendingSectorName: string | null = null
+  /** Patrol waypoint collection mode. */
+  #patrolWaypoints: number[] | null = null
+  #sectorCounter = 1
+  #postCounter = 1
+  #patrolCounter = 1
+  /** Bumped to drop in-flight auto-route replies after discard / commit. */
+  #autoRouteGeneration = 0
   readonly #categoryIds: readonly string[]
 
   private constructor(
@@ -389,6 +447,13 @@ export class Session {
       posts: signal<PostsModel | null>(null),
       postsTab: signal<PostsTab>('posts'),
       emergency: signal<EmergencyModel | null>(null),
+      standingOrders: signal<StandingOrdersModel | null>(null),
+      standingOrdersTab: signal<StandingOrdersTab>('punishment'),
+      directorate: signal<DirectorateModel | null>(null),
+      directorateBranch: signal<DirectorateBranchId | 'all'>('all'),
+      programs: signal<ProgramsModel | null>(null),
+      intelligence: signal<IntelligenceModel | null>(null),
+      intelligenceTab: signal<IntelligenceTab>('sources'),
       hint: signal<string | null>(null),
       hud: signal<string | null>(null),
       committing: signal(false),
@@ -401,6 +466,7 @@ export class Session {
     // never happens.
     renderer.setFloors(bridge.tiles.floorMaterial)
     renderer.setWalls(bridge.tiles.wallMaterial)
+    renderer.setSectorIds(bridge.tiles.sectorId)
 
     renderer.tools.handlers = {
       onTap: (tile) => {
@@ -502,51 +568,410 @@ export class Session {
       this.state.paletteSelection.value = null
       this.closePosts()
       this.closeEmergency()
+      this.closeStandingOrders()
+      this.closeDirectorate()
+      this.closePrograms()
+      this.closeIntelligence()
     } else if (next === 'posts') {
-      // Posts is a full panel, not a tray palette.
       this.state.palette.value = []
       this.state.paletteSelection.value = null
       this.closeEmergency()
+      this.closeStandingOrders()
+      this.closeDirectorate()
+      this.closePrograms()
+      this.closeIntelligence()
       this.openPosts()
     } else if (next === 'emergency') {
       this.state.palette.value = []
       this.state.paletteSelection.value = null
       this.closePosts()
+      this.closeStandingOrders()
+      this.closeDirectorate()
+      this.closePrograms()
+      this.closeIntelligence()
       this.openEmergency()
+    } else if (next === 'plan') {
+      // Plan opens Standing Orders (T4.3 policy matrix).
+      this.state.palette.value = []
+      this.state.paletteSelection.value = null
+      this.closePosts()
+      this.closeEmergency()
+      this.closeDirectorate()
+      this.closePrograms()
+      this.closeIntelligence()
+      this.openStandingOrders()
+    } else if (next === 'reports') {
+      this.closePosts()
+      this.closeEmergency()
+      this.closeStandingOrders()
+      this.closeDirectorate()
+      this.closePrograms()
+      this.closeIntelligence()
+      const palette = this.#palettes.reports
+      this.state.palette.value = palette.groups
+      this.state.paletteSelection.value = palette.initial
+      this.#openReportsSelection(palette.initial)
     } else {
       this.closePosts()
       this.closeEmergency()
+      this.closeStandingOrders()
+      this.closeDirectorate()
+      this.closePrograms()
+      this.closeIntelligence()
       const palette = this.#palettes[next]
       this.state.palette.value = palette.groups
       this.state.paletteSelection.value = palette.initial
+      if (next === 'overlay') this.#syncOverlayMode()
     }
 
     this.#syncInput()
   }
 
   openPosts(): void {
-    this.state.posts.value = EMPTY_POSTS_MODEL
+    const control = this.bridge.latestControl()
+    this.state.posts.value = control?.posts ?? EMPTY_POSTS_MODEL
     this.state.postsTab.value = 'posts'
   }
 
   closePosts(): void {
     this.state.posts.value = null
+    this.#paintSectorId = null
+    this.#patrolWaypoints = null
+    this.#pendingSectorName = null
     if (this.state.tool.value === 'posts') this.state.tool.value = null
+    this.#syncInput()
   }
 
   setPostsTab(tab: PostsTab): void {
     this.state.postsTab.value = tab
+    if (tab !== 'sectors') this.#paintSectorId = null
+    if (tab !== 'patrols') this.#patrolWaypoints = null
+    this.#syncInput()
+  }
+
+  selectPostsSector(sectorId: number): void {
+    this.#selectedSectorId = sectorId
+    this.#paintSectorId = sectorId
+    this.state.postsTab.value = 'sectors'
+    this.#syncInput()
+    this.#refreshOpenControlPanels()
+  }
+
+  createPostsSector(): void {
+    const name = `Sector ${this.#sectorCounter}`
+    this.#sectorCounter += 1
+    const colours = ['#c44', '#48a', '#4a8', '#a84', '#84a', '#4aa']
+    const colour = colours[(this.#sectorCounter - 1) % colours.length] ?? '#48a'
+    this.#pendingSectorName = name
+    this.bridge.sendCommand({
+      type: 'sector.create',
+      issuedAtTick: this.#tick(),
+      payload: {
+        name,
+        colour,
+        access: this.data.balance.sectors.defaultAccess,
+      },
+    })
+    this.state.postsTab.value = 'sectors'
+    this.#syncInput()
+  }
+
+  configurePostsSector(sectorId: number): void {
+    const row = this.state.posts.value?.sectors.find((s) => s.id === sectorId)
+    const modes = ['staffOnly', 'secure', 'shared', 'open'] as const
+    const currentAccess = (() => {
+      if (row === undefined) return this.data.balance.sectors.defaultAccess
+      const label = row.access.toLowerCase()
+      if (label.includes('staff')) return 'staffOnly'
+      if (label.includes('secure')) return 'secure'
+      if (label.includes('open')) return 'open'
+      return 'shared'
+    })()
+    const index = modes.indexOf(currentAccess)
+    const next = modes[(index + 1) % modes.length] ?? 'shared'
+    this.bridge.sendCommand({
+      type: 'sector.configure',
+      issuedAtTick: this.#tick(),
+      payload: { sectorId, access: next },
+    })
+    this.#selectedSectorId = sectorId
+    this.#paintSectorId = sectorId
+  }
+
+  createPostsPost(): void {
+    const sectorId = this.#paintSectorId ?? this.#selectedSectorId
+    if (sectorId === null) {
+      this.state.hint.value = 'Select or create a sector before adding a post'
+      return
+    }
+    const name = `Post ${this.#postCounter}`
+    this.#postCounter += 1
+    this.bridge.sendCommand({
+      type: 'post.create',
+      issuedAtTick: this.#tick(),
+      payload: {
+        name,
+        staffRole: 'officer',
+        count: 1,
+        sectorId,
+        timeWindows: [],
+      },
+    })
+    this.state.postsTab.value = 'posts'
+  }
+
+  beginPostsPatrol(): void {
+    if (this.#patrolWaypoints !== null && this.#patrolWaypoints.length >= 2) {
+      this.confirmPostsPatrol()
+    }
+    this.#patrolWaypoints = []
+    this.state.postsTab.value = 'patrols'
+    this.#syncInput()
+  }
+
+  confirmPostsPatrol(): void {
+    const waypoints = this.#patrolWaypoints
+    if (waypoints === null || waypoints.length < 2) {
+      this.state.hint.value = 'Tap at least two tiles for a patrol route'
+      return
+    }
+    const name = `Patrol ${this.#patrolCounter}`
+    this.#patrolCounter += 1
+    this.bridge.sendCommand({
+      type: 'post.createPatrol',
+      issuedAtTick: this.#tick(),
+      payload: {
+        name,
+        staffRole: 'officer',
+        count: 1,
+        waypoints,
+        timeWindows: [],
+      },
+    })
+    this.#patrolWaypoints = null
+    this.#syncInput()
+  }
+
+  cancelPostsPatrol(): void {
+    this.#patrolWaypoints = null
+    this.#syncInput()
+  }
+
+  /** Returns true when a patrol collect was cancelled (Escape should stop). */
+  cancelPostsPatrolIfActive(): boolean {
+    if (this.#patrolWaypoints === null) return false
+    this.cancelPostsPatrol()
+    return true
+  }
+
+  hireSuggestedOfficers(): void {
+    const model = this.state.posts.value
+    if (model === null || model.hireSuggestion <= 0) return
+    for (let i = 0; i < model.hireSuggestion; i += 1) {
+      this.bridge.sendCommand({
+        type: 'staff.hire',
+        issuedAtTick: this.#tick(),
+        payload: { defId: 'officer' },
+      })
+    }
   }
 
   openEmergency(): void {
-    const model = emptyEmergencyModel(this.data)
-    const digest = this.state.topBar.value
-    this.state.emergency.value = { ...model, danger: digest.danger }
+    const control = this.bridge.latestControl()
+    const base = control?.emergency ?? emptyEmergencyModel(this.data)
+    this.state.emergency.value = this.#withSelectedSector(base)
   }
 
   closeEmergency(): void {
     this.state.emergency.value = null
     if (this.state.tool.value === 'emergency') this.state.tool.value = null
+  }
+
+  openStandingOrders(): void {
+    const control = this.bridge.latestControl()
+    this.state.standingOrders.value =
+      control?.standingOrders ?? emptyStandingOrdersModel(this.data)
+    this.state.standingOrdersTab.value = 'punishment'
+  }
+
+  closeStandingOrders(): void {
+    this.state.standingOrders.value = null
+    if (this.state.tool.value === 'plan') this.state.tool.value = null
+  }
+
+  setStandingOrdersTab(tab: StandingOrdersTab): void {
+    this.state.standingOrdersTab.value = tab
+  }
+
+  #dispatchStandingOrders(
+    type: string,
+    payload: Record<string, number | boolean | string>,
+  ): void {
+    this.bridge.sendCommand({
+      type,
+      issuedAtTick: this.#tick(),
+      payload,
+    })
+  }
+
+  standingOrdersPunishment(misconduct: string, punishment: StandingPunishment): void {
+    const row = this.state.standingOrders.value?.rows.find((r) => r.misconduct === misconduct)
+    const durationHours = row?.durationHours ?? 0
+    this.#dispatchStandingOrders('standingOrders.setPunishment', {
+      misconduct,
+      punishment,
+      durationHours,
+    })
+    this.#patchStandingOrderRow(misconduct, { punishment })
+  }
+
+  standingOrdersDuration(misconduct: string, durationHours: number): void {
+    const row = this.state.standingOrders.value?.rows.find((r) => r.misconduct === misconduct)
+    const punishment = row?.punishment ?? 'lockdown'
+    this.#dispatchStandingOrders('standingOrders.setPunishment', {
+      misconduct,
+      punishment,
+      durationHours,
+    })
+    this.#patchStandingOrderRow(misconduct, { durationHours })
+  }
+
+  standingOrdersSearchTrigger(misconduct: string, search: boolean): void {
+    this.#dispatchStandingOrders('standingOrders.setSearchTrigger', { misconduct, search })
+    this.#patchStandingOrderRow(misconduct, { search })
+  }
+
+  standingOrdersStrictness(strictness: StandingStrictness): void {
+    this.#dispatchStandingOrders('standingOrders.setStrictness', { strictness })
+    const current = this.state.standingOrders.value
+    if (current !== null) {
+      this.state.standingOrders.value = { ...current, strictness }
+    }
+  }
+
+  standingOrdersMealQuantity(quantity: StandingMealQuantity): void {
+    const current = this.state.standingOrders.value
+    const variety = current?.mealVariety ?? this.data.balance.kitchen.defaultMealVariety
+    this.#dispatchStandingOrders('standingOrders.setMeals', { quantity, variety })
+    if (current !== null) {
+      this.state.standingOrders.value = { ...current, mealQuantity: quantity }
+    }
+  }
+
+  standingOrdersMealVariety(variety: number): void {
+    const current = this.state.standingOrders.value
+    const quantity = current?.mealQuantity ?? this.data.balance.kitchen.defaultMealQuantity
+    this.#dispatchStandingOrders('standingOrders.setMeals', { quantity, variety })
+    if (current !== null) {
+      this.state.standingOrders.value = { ...current, mealVariety: variety }
+    }
+  }
+
+  #patchStandingOrderRow(
+    misconduct: string,
+    patch: Partial<{
+      punishment: StandingPunishment
+      durationHours: number
+      search: boolean
+    }>,
+  ): void {
+    const current = this.state.standingOrders.value
+    if (current === null) return
+    this.state.standingOrders.value = {
+      ...current,
+      rows: current.rows.map((row) =>
+        row.misconduct === misconduct ? { ...row, ...patch } : row,
+      ),
+    }
+  }
+
+  #withSelectedSector(model: EmergencyModel): EmergencyModel {
+    const sectorId = this.#selectedSectorId
+    const sector =
+      sectorId === null
+        ? undefined
+        : model.selectedSectorId === sectorId
+          ? { id: sectorId, name: model.selectedSectorName }
+          : this.state.posts.value?.sectors.find((s) => s.id === sectorId) ??
+            this.bridge.latestControl()?.posts.sectors.find((s) => s.id === sectorId)
+
+    const selected = sector !== undefined
+    const name =
+      sector !== undefined && 'name' in sector
+        ? (sector.name ?? null)
+        : model.selectedSectorName
+
+    return {
+      ...model,
+      selectedSectorId: selected ? sectorId : null,
+      selectedSectorName: selected ? name : null,
+      levels: model.levels.map((level) => {
+        if (level.id !== 'sector_lockdown') return level
+        return {
+          ...level,
+          disabled: !selected,
+          disabledReason: selected ? null : 'Select a sector in Posts first',
+        }
+      }),
+    }
+  }
+
+  #refreshOpenControlPanels(): void {
+    const control = this.bridge.latestControl()
+    if (control === null) return
+
+    this.#syncPaletteUnlocks(control.unlocks)
+
+    if (this.#pendingSectorName !== null) {
+      const created = control.posts.sectors.find((s) => s.name === this.#pendingSectorName)
+      if (created !== undefined) {
+        this.#selectedSectorId = created.id
+        this.#paintSectorId = created.id
+        this.#pendingSectorName = null
+        this.#syncInput()
+      }
+    }
+
+    if (this.state.posts.value !== null) {
+      this.state.posts.value = control.posts
+    }
+    if (this.state.emergency.value !== null) {
+      this.state.emergency.value = this.#withSelectedSector(control.emergency)
+    }
+    if (this.state.standingOrders.value !== null) {
+      this.state.standingOrders.value = control.standingOrders
+    }
+    if (this.state.directorate.value !== null) {
+      const selectedId = this.state.directorate.value.selectedId
+      this.state.directorate.value = { ...control.directorate, selectedId }
+    }
+    if (this.state.programs.value !== null) {
+      const selectedId = this.state.programs.value.selectedId
+      this.state.programs.value = { ...control.programs, selectedId }
+    }
+    if (this.state.intelligence.value !== null) {
+      this.state.intelligence.value = control.intelligence
+    }
+  }
+
+  /** Rebuild trays when Directorate research unlocks rooms / objects / staff. */
+  #syncPaletteUnlocks(unlocks: UnlockSnapshot): void {
+    const key = unlockSnapshotKey(unlocks)
+    if (key === this.#unlockKey) return
+    this.#unlockKey = key
+    this.#palettes = createPalettes(this.data, unlocks)
+
+    const tool = this.state.tool.value
+    if (tool === null) return
+    if (tool === 'posts' || tool === 'emergency' || tool === 'plan' || tool === 'flow') return
+
+    const palette = this.#palettes[tool]
+    this.state.palette.value = palette.groups
+    const selection = this.state.paletteSelection.value
+    if (selection !== null && !palette.entries.has(selection)) {
+      this.state.paletteSelection.value = palette.initial
+    }
+    this.#syncInput()
   }
 
   #dispatchEmergency(type: string, payload: Record<string, number | boolean | string> = {}): void {
@@ -558,14 +983,16 @@ export class Session {
   }
 
   emergencySectorLockdown(): void {
-    const sectorId = this.state.emergency.value?.selectedSectorId
+    const sectorId =
+      this.state.emergency.value?.selectedSectorId ?? this.#selectedSectorId
     if (sectorId === null || sectorId === undefined) return
     this.#dispatchEmergency('emergency.sectorLockdown', { sectorId })
     this.#patchEmergencyLevel('sector_lockdown', true)
   }
 
   emergencyLiftSectorLockdown(): void {
-    const sectorId = this.state.emergency.value?.selectedSectorId
+    const sectorId =
+      this.state.emergency.value?.selectedSectorId ?? this.#selectedSectorId
     if (sectorId === null || sectorId === undefined) return
     this.#dispatchEmergency('emergency.liftSectorLockdown', { sectorId })
     this.#patchEmergencyLevel('sector_lockdown', false)
@@ -622,7 +1049,129 @@ export class Session {
 
   selectPaletteItem(itemId: string): void {
     this.state.paletteSelection.value = this.state.paletteSelection.value === itemId ? null : itemId
+    if (this.state.tool.value === 'overlay') this.#syncOverlayMode()
+    if (this.state.tool.value === 'reports') {
+      this.#openReportsSelection(this.state.paletteSelection.value)
+    }
     this.#syncInput()
+  }
+
+  #openReportsSelection(itemId: string | null): void {
+    this.closeDirectorate()
+    this.closePrograms()
+    this.closeIntelligence()
+    if (itemId === 'directorate') this.openDirectorate()
+    else if (itemId === 'programmes') this.openPrograms()
+    else if (itemId === 'intelligence') this.openIntelligence()
+  }
+
+  openDirectorate(): void {
+    const control = this.bridge.latestControl()
+    const base = control?.directorate
+    this.state.directorate.value =
+      base === undefined
+        ? {
+            nodes: [],
+            completeCount: 0,
+            totalCount: 0,
+            activeCount: 0,
+            balance: this.state.topBar.value.balance,
+            selectedId: null,
+          }
+        : { ...base, selectedId: null }
+    this.state.directorateBranch.value = 'all'
+  }
+
+  closeDirectorate(): void {
+    this.state.directorate.value = null
+  }
+
+  setDirectorateBranch(branch: DirectorateBranchId | 'all'): void {
+    this.state.directorateBranch.value = branch
+  }
+
+  selectDirectorateNode(nodeId: string | null): void {
+    const current = this.state.directorate.value
+    if (current === null) return
+    this.state.directorate.value = { ...current, selectedId: nodeId }
+  }
+
+  startDirectorateResearch(nodeId: string): void {
+    this.bridge.sendCommand({
+      type: 'directorate.start',
+      issuedAtTick: this.#tick(),
+      payload: { nodeId },
+    })
+  }
+
+  openPrograms(): void {
+    const control = this.bridge.latestControl()
+    const base = control?.programs
+    this.state.programs.value =
+      base === undefined ? { rows: [], selectedId: null, canPin: false } : { ...base, selectedId: null }
+  }
+
+  closePrograms(): void {
+    this.state.programs.value = null
+  }
+
+  selectProgram(programId: string | null): void {
+    const current = this.state.programs.value
+    if (current === null) return
+    this.state.programs.value = { ...current, selectedId: programId }
+  }
+
+  pinProgram(programId: string): void {
+    this.bridge.sendCommand({
+      type: 'program.pin',
+      issuedAtTick: this.#tick(),
+      payload: { programId },
+    })
+  }
+
+  unpinProgram(programId: string): void {
+    this.bridge.sendCommand({
+      type: 'program.unpin',
+      issuedAtTick: this.#tick(),
+      payload: { programId },
+    })
+  }
+
+  openIntelligence(): void {
+    const control = this.bridge.latestControl()
+    this.state.intelligence.value =
+      control?.intelligence ?? {
+        sources: [],
+        market: [],
+        informants: [],
+        reputations: [],
+        maxInformants: 0,
+        recruitCandidate: null,
+      }
+    this.state.intelligenceTab.value = 'sources'
+  }
+
+  closeIntelligence(): void {
+    this.state.intelligence.value = null
+  }
+
+  setIntelligenceTab(tab: IntelligenceTab): void {
+    this.state.intelligenceTab.value = tab
+  }
+
+  recruitInformant(inmateId: number): void {
+    this.bridge.sendCommand({
+      type: 'intelligence.recruit',
+      issuedAtTick: this.#tick(),
+      payload: { inmateId },
+    })
+  }
+
+  focusInformant(inmateId: number): void {
+    const snapshot = this.bridge.latestSnapshot()
+    const entity = snapshot?.entities.find((entry) => entry.id === inmateId)
+    if (entity === undefined) return
+    this.focusTile({ x: Math.floor(entity.x), y: Math.floor(entity.y) })
   }
 
   /**
@@ -640,11 +1189,72 @@ export class Session {
    */
   #syncInput(): void {
     const entry = this.activeEntry()
-    const building = entry !== undefined
+    const tool = this.state.tool.value
+    const overlaying = tool === 'overlay'
+    const panelTool = tool === 'reports' || tool === 'staff'
+    // Reports / Staff chips are not build strokes — keep one-finger pan.
+    const building = entry !== undefined && !overlaying && !panelTool
+    const postsGesture =
+      this.state.posts.value !== null &&
+      (this.#paintSectorId !== null || this.#patrolWaypoints !== null)
 
     this.renderer.tools.active = true
     this.renderer.gestures.singlePointerPan = !building
-    this.state.hint.value = building ? gestureHint(entry) : null
+    if (overlaying) {
+      const selection = this.state.paletteSelection.value
+      this.state.hint.value =
+        selection === null ? 'Choose an overlay' : `Showing ${selection} overlay`
+    } else if (tool === 'reports') {
+      const selection = this.state.paletteSelection.value
+      this.state.hint.value =
+        selection === null
+          ? 'Choose a report'
+          : selection === 'directorate'
+            ? 'Directorate — research and unlocks'
+            : selection === 'programmes'
+              ? 'Programmes — reform sessions and blockers'
+              : selection === 'intelligence'
+                ? 'Intelligence — informants and contraband'
+                : null
+    } else if (tool === 'staff') {
+      const selection = this.state.paletteSelection.value
+      this.state.hint.value =
+        selection === null
+          ? 'Choose a staff role, then tap a tile to hire'
+          : `Tap a tile to hire ${entry?.name ?? 'staff'}`
+    } else if (building) {
+      this.state.hint.value = gestureHint(entry)
+    } else if (this.#patrolWaypoints !== null) {
+      const n = this.#patrolWaypoints.length
+      this.state.hint.value =
+        n < 2
+          ? `Patrol: tap waypoints (${String(n)} so far). Tap again to add; Escape cancels.`
+          : `Patrol: ${String(n)} waypoints. Confirm in Posts or Escape to cancel.`
+    } else if (this.#paintSectorId !== null) {
+      this.state.hint.value = 'Tap a region to paint it into the active sector'
+    } else if (postsGesture) {
+      this.state.hint.value = null
+    } else {
+      this.state.hint.value = null
+    }
+  }
+
+  /** Picks the world overlay from paint mode or the Overlay tool palette. */
+  #syncOverlayMode(): void {
+    if (this.#paintSectorId !== null) {
+      this.renderer.setOverlayMode('sectors')
+      return
+    }
+    if (this.state.tool.value !== 'overlay') {
+      this.renderer.setOverlayMode('off')
+      return
+    }
+    const selection = this.state.paletteSelection.value
+    const mode: OverlayMode =
+      selection === 'sectors' || selection === 'fire' || selection === 'tunnels'
+        ? selection
+        : 'off'
+    this.renderer.setOverlayMode(mode)
   }
 
   /* ---------------------------------------------------------------------- */
@@ -667,6 +1277,8 @@ export class Session {
   }
 
   #onStrokePreview(stroke: ToolStroke): void {
+    if (this.state.tool.value === 'overlay') return
+    if (this.state.tool.value === 'reports' || this.state.tool.value === 'staff') return
     const entry = this.activeEntry()
     if (entry === undefined) return
 
@@ -684,6 +1296,47 @@ export class Session {
   }
 
   #onTap(tile: Tile): void {
+    if (this.#patrolWaypoints !== null) {
+      const index = tile.y * this.mapSize + tile.x
+      this.#patrolWaypoints.push(index)
+      this.#syncInput()
+      if (this.#patrolWaypoints.length >= 2) {
+        // Auto-confirm once the player has a valid loop start.
+        // They can keep tapping; each pair beyond 2 extends the route until
+        // they open Posts and start a new patrol. Confirm on Escape? No —
+        // Escape cancels. Confirm when they tap "New patrol" again? Better:
+        // auto-send when they leave patrol mode via tab change isn't right.
+        // Keep collecting; confirmPostsPatrol is explicit. Show count in hint.
+      }
+      return
+    }
+
+    if (this.#paintSectorId !== null && this.state.posts.value !== null) {
+      const tileIndex = tile.y * this.mapSize + tile.x
+      this.bridge.sendCommand({
+        type: 'sector.paintRegion',
+        issuedAtTick: this.#tick(),
+        payload: { sectorId: this.#paintSectorId, tileIndex },
+      })
+      return
+    }
+
+    // Overlay chips only switch the layer mode; they never stage builds.
+    if (this.state.tool.value === 'overlay') return
+    // Reports chips open panels; strokes are never staged.
+    if (this.state.tool.value === 'reports') return
+
+    if (this.state.tool.value === 'staff') {
+      const defId = this.state.paletteSelection.value
+      if (defId === null) return
+      this.bridge.sendCommand({
+        type: 'staff.hire',
+        issuedAtTick: this.#tick(),
+        payload: { defId, tx: tile.x, ty: tile.y },
+      })
+      return
+    }
+
     const entry = this.activeEntry()
     if (entry === undefined) {
       // Entities first (snapshot), then the tile — T2.9. The worker re-resolves
@@ -716,6 +1369,12 @@ export class Session {
   }
 
   #onStrokeEnd(stroke: ToolStroke): void {
+    if (this.state.tool.value === 'overlay') return
+    if (this.state.tool.value === 'reports') return
+    if (this.state.tool.value === 'staff') {
+      // Hire is tap-only; a drag should not spam multiple hires.
+      return
+    }
     const entry = this.activeEntry()
     if (entry === undefined) return
 
@@ -733,6 +1392,63 @@ export class Session {
     this.staged.add(action)
     this.#renderBlueprint()
     void this.#revalidate()
+    if (action.kind === 'placeObject') {
+      void this.#stageAutoRoutes(action)
+    }
+  }
+
+  /**
+   * Captures the live world into IndexedDB's rotating autosave slots
+   * (PRD 7.4). Safe to call on background; failures are swallowed so a save
+   * glitch never blocks pause.
+   */
+  async autosave(store?: SaveStore): Promise<boolean> {
+    try {
+      const createdAt = new Date().toISOString()
+      const { bytes, playedTicks } = await this.bridge.exportSave(createdAt)
+      const target = store ?? (await SaveStore.open())
+      await target.putAutosave(bytes, {
+        savedAt: createdAt,
+        playedTicks,
+        mapSize: this.mapSize,
+      })
+      if (store === undefined) target.close()
+      return true
+    } catch (error) {
+      console.error('Blockwork autosave failed', error)
+      return false
+    }
+  }
+
+  /**
+   * After placing a powered/plumbed object, propose cable/pipe runs to the
+   * nearest live grid as dashed blueprint strokes (PRD 3.4).
+   */
+  async #stageAutoRoutes(
+    action: Extract<BuildAction, { readonly kind: 'placeObject' }>,
+  ): Promise<void> {
+    const def = this.data.objects.find(action.objectDefId)
+    if (def === undefined) return
+
+    const kinds: UtilityRouteKind[] = []
+    if (def.needsPower > 0) kinds.push('power')
+    if (def.needsWater) kinds.push('water')
+    if (kinds.length === 0) return
+
+    const generation = this.#autoRouteGeneration
+    for (const kind of kinds) {
+      const route = await this.bridge.autoRoute(action.tile, kind)
+      if (generation !== this.#autoRouteGeneration) return
+      if (route === null || route.costTiles === 0) continue
+      const lines = utilityPathToLines(route.path, this.mapSize)
+      const strokeKind = kind === 'power' ? 'paintCable' : 'paintPipe'
+      for (const line of lines) {
+        this.staged.add({ kind: strokeKind, line })
+      }
+    }
+    if (generation !== this.#autoRouteGeneration) return
+    this.#renderBlueprint()
+    void this.#revalidate()
   }
 
   /** Takes back the last stroke. Local and instant: nothing has been sent. */
@@ -745,6 +1461,7 @@ export class Session {
   }
 
   discard(): void {
+    this.#autoRouteGeneration += 1
     this.staged.clear()
     this.#renderBlueprint()
     this.#abandonValidation()
@@ -776,6 +1493,7 @@ export class Session {
   commit(): void {
     if (this.staged.empty) return
 
+    this.#autoRouteGeneration += 1
     this.state.committing.value = true
     this.bridge.sendCommand(this.staged.commitCommand(this.#tick()))
     this.staged.clear()
@@ -878,8 +1596,31 @@ export class Session {
       this.#publishAgents(snapshot.entities)
       this.#publishDigest(snapshot.tick, snapshot.digest)
     }
+    this.#refreshOpenControlPanels()
+    this.#feedOverlay()
     this.#publishToasts()
     this.#publishHud()
+  }
+
+  /** Pushes sector colours, fire, tunnels and overlay mode into the renderer. */
+  #feedOverlay(): void {
+    const control = this.bridge.latestControl()
+    if (control !== null) {
+      const colours = new Map<number, number>()
+      for (const sector of control.posts.sectors) {
+        const parsed = parseCssColour(sector.colour)
+        if (parsed !== null) colours.set(sector.id, parsed)
+      }
+      this.renderer.setSectorColours(colours)
+    }
+
+    const effects = this.bridge.latestEffects()
+    if (effects !== null) {
+      this.renderer.setFireOverlay(effects.fire)
+      this.renderer.setTunnelOverlay(effects.tunnels)
+    }
+
+    this.#syncOverlayMode()
   }
 
   /* ---------------------------------------------------------------------- */
@@ -1079,6 +1820,8 @@ function actionRects(
       return [{ ...action.rect, valid: true }]
     case 'placeWall':
     case 'removeWall':
+    case 'paintCable':
+    case 'paintPipe':
       return [{ ...lineRect(action.line), valid: true }]
     case 'placeDoor':
     case 'placeObject':

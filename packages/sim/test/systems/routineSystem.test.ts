@@ -46,7 +46,14 @@ import {
 } from '../../src/world/routine'
 import type { RoutineBlockId } from '../../src/data/schemas'
 
-const DATA = loadGameData()
+const RAW_DATA = loadGameData()
+const DATA = {
+  ...RAW_DATA,
+  balance: {
+    ...RAW_DATA.balance,
+    utilities: { ...RAW_DATA.balance.utilities, utilitiesEnabled: false },
+  },
+}
 const INDEX = NeedIndex.fromData(DATA)
 const SEED = 0xb10c_2006
 

@@ -42,7 +42,14 @@ import { initialLockState } from '../../src/world/doors'
 import { designateRoom } from '../../src/world/roomDetection'
 import type { RoomDeps } from '../../src/world/roomDetection'
 
-const DATA = loadGameData()
+const RAW_DATA = loadGameData()
+const DATA = {
+  ...RAW_DATA,
+  balance: {
+    ...RAW_DATA.balance,
+    utilities: { ...RAW_DATA.balance.utilities, utilitiesEnabled: false },
+  },
+}
 const INDEX = NeedIndex.fromData(DATA)
 const SEED = 0xb10c_3008
 const MORALE = DATA.balance.morale

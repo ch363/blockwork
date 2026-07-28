@@ -16,6 +16,7 @@ import {
 import type { Fnv1aHasher } from '../../core/hash'
 import type { EventSink, System, SystemContext } from '../../core/simulation'
 import type { GameData } from '../../data/loader'
+import { hasFeature } from '../../entities/directorate'
 import { hasCapability } from '../../entities/staff'
 import { isOperational } from '../../entities/objects'
 import type { ObjectEntity } from '../../entities/objects'
@@ -154,7 +155,6 @@ export function selectLaundryForHousing(
  */
 export class LaundryLogistics {
   /** Feature flags unlocked by Directorate research. */
-  readonly unlockedFeatures = new Set<string>()
   /** laundryRoomId → housingRoomId overrides (Delegation). */
   readonly routingOverrides = new Map<number, number>()
   /** inmateId → worn uniform dirtiness. */
@@ -185,14 +185,6 @@ export class LaundryLogistics {
   /** Cumulative uniforms distributed (acceptance). */
   uniformsDistributed = 0
 
-  unlockFeature(featureId: string): void {
-    this.unlockedFeatures.add(featureId)
-  }
-
-  hasFeature(featureId: string): boolean {
-    return this.unlockedFeatures.has(featureId)
-  }
-
   setRoutingOverride(laundryRoomId: number, housingRoomId: number): void {
     this.routingOverrides.set(laundryRoomId, housingRoomId)
   }
@@ -204,9 +196,6 @@ export class LaundryLogistics {
   hashInto(hasher: Fnv1aHasher): void {
     hasher.writeUint32(this.uniformsDistributed)
     hasher.writeUint32(this.lastAccrualDay)
-    hasher.writeUint32(this.unlockedFeatures.size)
-    const features = [...this.unlockedFeatures].sort()
-    for (const feature of features) hasher.writeString(feature)
     hasher.writeUint32(this.routingOverrides.size)
     const routes = [...this.routingOverrides.entries()].sort((a, b) => a[0] - b[0])
     for (const [laundryId, housingId] of routes) {
@@ -414,7 +403,7 @@ function advanceWashIron(
     world.laundry.noLabourNotified.delete(laundry.id)
   }
 
-  const needed = countServedInmates(world, laundry, housingRooms(world))
+  const needed = countServedInmates(world, data, laundry, housingRooms(world))
   const capacity = uniformsPerHour(machines, labour, cfg)
   if (needed > 0 && capacity > 0 && capacity < needed / 24) {
     notifyUnderCapacity(world, events, tick, laundry, machines, labour, needed, capacity, cfg)
@@ -481,7 +470,7 @@ function redistributeCleanUniforms(
 
   const override = world.laundry.routingOverrides.get(laundry.id) ?? null
   const target = selectHousingForLaundry(laundry, housing, world.grid.size, {
-    routingUnlocked: world.laundry.hasFeature('laundry_routing'),
+    routingUnlocked: hasFeature(data, world.directorate, 'laundry_routing'),
     overrideHousingId: override,
   })
 
@@ -717,12 +706,13 @@ function countCleanerCollectors(world: InmateWorld, data: GameData): number {
 
 function countServedInmates(
   world: InmateWorld,
+  data: GameData,
   laundry: Room,
   housing: readonly Room[],
 ): number {
   if (housing.length === 0) return world.inmates.size
   const override = world.laundry.routingOverrides.get(laundry.id)
-  if (world.laundry.hasFeature('laundry_routing') && override !== undefined) {
+  if (hasFeature(data, world.directorate, 'laundry_routing') && override !== undefined) {
     let count = 0
     for (const inmate of world.inmates.all()) {
       if (inmate.inmate.cellId === override) count += 1

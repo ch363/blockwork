@@ -21,6 +21,7 @@ import type { Fnv1aHasher } from '../core/hash'
 import type { RngStream } from '../core/rng'
 import type { CommandHandler, EventSink, System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
+import { hasFeature } from '../entities/directorate'
 import type { Balance, ContrabandDef } from '../data/schemas'
 import { NeedIndex, clampNeed } from '../entities/needs'
 import { isOperational } from '../entities/objects'
@@ -851,6 +852,20 @@ export function searchCommandHandlers(data: GameData): Record<string, CommandHan
         !Number.isInteger(durationHours)
       ) {
         reject(context.events, context.clock.tick, 'bad-payload', { command: command.type })
+        return
+      }
+      // `0` is the indefinite hold (`balance.punishment.indefiniteHours`), and
+      // holding someone without an end date is the Legal branch's business:
+      // Indefinite Sanctions is what buys it (PRD 5.8).
+      if (
+        durationHours <= 0 &&
+        punishment !== 'ignore' &&
+        !hasFeature(data, context.world.directorate, 'indefinite_sanctions')
+      ) {
+        reject(context.events, context.clock.tick, 'feature-locked', {
+          command: command.type,
+          featureId: 'indefinite_sanctions',
+        })
         return
       }
       const order = context.world.standingOrders.misconduct[misconduct]

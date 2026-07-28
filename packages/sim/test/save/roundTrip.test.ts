@@ -108,6 +108,18 @@ describe('save round trip (PRD 7.4)', () => {
     expect(after.routines).toEqual(before.routines)
     expect(after.standingOrders).toEqual(before.standingOrders)
     expect(after.posts).toEqual(before.posts)
+    expect(after.contraband).toEqual(before.contraband)
+    expect(after.fire).toEqual(before.fire)
+    expect(after.riot).toEqual(before.riot)
+    expect(after.emergency).toEqual(before.emergency)
+    expect(after.escapes).toEqual(before.escapes)
+    expect(after.combat).toEqual(before.combat)
+    expect(after.punishments).toEqual(before.punishments)
+    expect(after.dangerLevel).toBe(before.dangerLevel)
+    expect(after.riotActive).toBe(before.riotActive)
+    expect(after.lockdownActive).toBe(before.lockdownActive)
+    expect(after.misconductWindowTicks).toEqual(before.misconductWindowTicks)
+    expect(after.nextRoomId).toBe(before.nextRoomId)
     expect(after.log).toEqual(before.log)
     expect(after.rngState).toEqual(before.rngState)
   })
@@ -140,7 +152,13 @@ describe('save round trip (PRD 7.4)', () => {
     const state = makeSaveState({ size: 8, population: 2 })
     const reordered: SaveState = {
       ...state,
-      economy: { dailyExpenditure: 3_100, balance: 42_000 },
+      economy: {
+        entries: state.economy.entries,
+        insolvencyStartedTick: state.economy.insolvencyStartedTick ?? null,
+        insolvencyDeadlineTick: state.economy.insolvencyDeadlineTick,
+        loanPrincipal: state.economy.loanPrincipal,
+        balance: state.economy.balance,
+      },
     }
 
     expect(hashSaveState(reordered)).toBe(hashSaveState(state))

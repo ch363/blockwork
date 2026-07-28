@@ -406,6 +406,47 @@ export class CorpseRegistry {
       hasher.writeUint32(corpse.mortuaryJobId)
     }
   }
+
+  serialise(): {
+    readonly nextId: number
+    readonly list: readonly Corpse[]
+  } {
+    return {
+      nextId: this.#nextId,
+      list: this.all().map((corpse) => ({ ...corpse })),
+    }
+  }
+
+  restore(snapshot: {
+    readonly nextId: number
+    readonly list: readonly {
+      readonly id: number
+      readonly agentKind: CorpseAgentKind
+      readonly agentId: number
+      readonly name: string
+      readonly tileIndex: number
+      readonly diedAtTick: number
+      readonly state: CorpseState
+      readonly hearseAtTick: number
+      readonly mortuaryJobId: number
+    }[]
+  }): void {
+    this.#corpses.clear()
+    this.#nextId = Math.max(1, snapshot.nextId)
+    for (const entry of snapshot.list) {
+      this.#corpses.set(entry.id, {
+        id: entry.id,
+        agentKind: entry.agentKind,
+        agentId: entry.agentId,
+        name: entry.name,
+        tileIndex: entry.tileIndex,
+        diedAtTick: entry.diedAtTick,
+        state: entry.state,
+        hearseAtTick: entry.hearseAtTick,
+        mortuaryJobId: entry.mortuaryJobId,
+      })
+    }
+  }
 }
 
 export function emitCorpseCreated(
@@ -580,6 +621,173 @@ export class CombatRuntime {
     hashStringNumberMap(hasher, this.staffHealth)
     hashStringListMap(hasher, this.staffStatus)
     hashStringListMap(hasher, this.staffInventory)
+  }
+
+  serialise(): {
+    readonly nextFightId: number
+    readonly fights: readonly {
+      readonly id: number
+      readonly state: FightState
+      readonly startedAtTick: number
+      readonly interveningOfficerId: number
+      readonly interventionTilesRemaining: number
+      readonly participants: readonly {
+        readonly kind: CombatantKind
+        readonly id: number
+        readonly nextAttackTick: number
+        readonly weaponId: string | null
+      }[]
+    }[]
+    readonly corpses: ReturnType<CorpseRegistry['serialise']>
+    readonly vestWearers: readonly string[]
+    readonly stunCharges: readonly { readonly id: number; readonly count: number }[]
+    readonly stunRechargeAt: readonly { readonly id: number; readonly at: number }[]
+    readonly overdoses: readonly OverdoseTimer[]
+    readonly clinicEscortQueued: readonly number[]
+    readonly staffHealth: readonly { readonly key: string; readonly hp: number }[]
+    readonly staffStatus: readonly { readonly key: string; readonly status: readonly string[] }[]
+    readonly staffInventory: readonly {
+      readonly key: string
+      readonly inventory: readonly string[]
+    }[]
+  } {
+    return {
+      nextFightId: this.#nextFightId,
+      fights: [...this.fights.values()]
+        .sort((a, b) => a.id - b.id)
+        .map((fight) => ({
+          id: fight.id,
+          state: fight.state,
+          startedAtTick: fight.startedAtTick,
+          interveningOfficerId: fight.interveningOfficerId,
+          interventionTilesRemaining: fight.interventionTilesRemaining,
+          participants: fight.participants.map((p) => ({
+            kind: p.ref.kind,
+            id: p.ref.id,
+            nextAttackTick: p.nextAttackTick,
+            weaponId: p.weaponId,
+          })),
+        })),
+      corpses: this.corpses.serialise(),
+      vestWearers: [...this.vestWearers].sort(),
+      stunCharges: [...this.stunCharges.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([id, count]) => ({ id, count })),
+      stunRechargeAt: [...this.stunRechargeAt.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([id, at]) => ({ id, at })),
+      overdoses: [...this.overdoses.values()]
+        .sort((a, b) => a.inmateId - b.inmateId)
+        .map((od) => ({ ...od })),
+      clinicEscortQueued: [...this.clinicEscortQueued].sort((a, b) => a - b),
+      staffHealth: [...this.staffHealth.entries()]
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([key, hp]) => ({ key, hp })),
+      staffStatus: [...this.staffStatus.entries()]
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([key, status]) => ({ key, status: [...status] })),
+      staffInventory: [...this.staffInventory.entries()]
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([key, inventory]) => ({ key, inventory: [...inventory] })),
+    }
+  }
+
+  restore(snapshot: {
+    readonly nextFightId: number
+    readonly fights: readonly {
+      readonly id: number
+      readonly state: string
+      readonly startedAtTick: number
+      readonly interveningOfficerId: number
+      readonly interventionTilesRemaining: number
+      readonly participants: readonly {
+        readonly kind: string
+        readonly id: number
+        readonly nextAttackTick: number
+        readonly weaponId: string | null
+      }[]
+    }[]
+    readonly corpses: {
+      readonly nextId: number
+      readonly list: readonly {
+        readonly id: number
+        readonly agentKind: string
+        readonly agentId: number
+        readonly name: string
+        readonly tileIndex: number
+        readonly diedAtTick: number
+        readonly state: string
+        readonly hearseAtTick: number
+        readonly mortuaryJobId: number
+      }[]
+    }
+    readonly vestWearers: readonly string[]
+    readonly stunCharges: readonly { readonly id: number; readonly count: number }[]
+    readonly stunRechargeAt: readonly { readonly id: number; readonly at: number }[]
+    readonly overdoses: readonly {
+      readonly inmateId: number
+      readonly startedAtTick: number
+      readonly fatalAtTick: number
+    }[]
+    readonly clinicEscortQueued: readonly number[]
+    readonly staffHealth: readonly { readonly key: string; readonly hp: number }[]
+    readonly staffStatus: readonly { readonly key: string; readonly status: readonly string[] }[]
+    readonly staffInventory: readonly {
+      readonly key: string
+      readonly inventory: readonly string[]
+    }[]
+  }): void {
+    this.fights.clear()
+    this.#nextFightId = Math.max(1, snapshot.nextFightId)
+    for (const entry of snapshot.fights) {
+      const participants = entry.participants.map((p) => ({
+        ref: { kind: p.kind as CombatantKind, id: p.id },
+        nextAttackTick: p.nextAttackTick,
+        weaponId: p.weaponId,
+      }))
+      if (participants.length < 2) continue
+      const first = participants[0]
+      const second = participants[1]
+      if (first === undefined || second === undefined) continue
+      this.fights.set(entry.id, {
+        id: entry.id,
+        state: entry.state as FightState,
+        startedAtTick: entry.startedAtTick,
+        interveningOfficerId: entry.interveningOfficerId,
+        interventionTilesRemaining: entry.interventionTilesRemaining,
+        participants: [first, second],
+      })
+    }
+    this.corpses.restore({
+      nextId: snapshot.corpses.nextId,
+      list: snapshot.corpses.list.map((c) => ({
+        ...c,
+        agentKind: c.agentKind as CorpseAgentKind,
+        state: c.state as CorpseState,
+      })),
+    })
+    this.vestWearers.clear()
+    for (const key of snapshot.vestWearers) this.vestWearers.add(key)
+    this.stunCharges.clear()
+    for (const entry of snapshot.stunCharges) this.stunCharges.set(entry.id, entry.count)
+    this.stunRechargeAt.clear()
+    for (const entry of snapshot.stunRechargeAt) this.stunRechargeAt.set(entry.id, entry.at)
+    this.overdoses.clear()
+    for (const od of snapshot.overdoses) {
+      this.overdoses.set(od.inmateId, { ...od })
+    }
+    this.clinicEscortQueued.clear()
+    for (const id of snapshot.clinicEscortQueued) this.clinicEscortQueued.add(id)
+    this.staffHealth.clear()
+    for (const entry of snapshot.staffHealth) this.staffHealth.set(entry.key, entry.hp)
+    this.staffStatus.clear()
+    for (const entry of snapshot.staffStatus) {
+      this.staffStatus.set(entry.key, [...entry.status] as StatusEffectId[])
+    }
+    this.staffInventory.clear()
+    for (const entry of snapshot.staffInventory) {
+      this.staffInventory.set(entry.key, [...entry.inventory])
+    }
   }
 }
 

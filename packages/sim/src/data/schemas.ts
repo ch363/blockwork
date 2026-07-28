@@ -77,7 +77,7 @@ export const ROOM_PROPERTIES = ['enclosed', 'indoors', 'outdoors', 'secure'] as 
 
 export const OBJECT_PLACEMENTS = ['floor', 'wall', 'door', 'ceiling'] as const
 
-export const MATERIAL_SURFACES = ['floor', 'wall'] as const
+export const MATERIAL_SURFACES = ['floor', 'wall', 'cable', 'pipe'] as const
 
 /**
  * The door types of T1.2. Structural rather than content: each one maps onto a
@@ -218,6 +218,18 @@ export const PUNISHMENT_KINDS = ['ignore', 'lockdown', 'isolation'] as const
 /** Cell reassignment strictness on Standing Orders. */
 export const REASSIGNMENT_STRICTNESS = ['off', 'lenient', 'strict'] as const
 
+/** One workshop product line: what goes in, how long it takes, what it fetches. */
+const productionLineSchema = z.strictObject({
+  productId: id,
+  inputItemId: id,
+  inputUnits: positiveCount,
+  /** Worker-minutes of labour for one finished unit. */
+  workerMinutesPerUnit: positiveCount,
+  salePrice: money,
+  /** Programme-unlocked production line this needs (`unlockProduction`). */
+  requiresProductionId: id.optional(),
+})
+
 const misconductOrderSchema = z.strictObject({
   punishment: z.enum(PUNISHMENT_KINDS),
   durationHours: z.number().int(),
@@ -318,6 +330,31 @@ export const balanceSchema = z.strictObject({
       boostFactor: rate,
       boostMinutes: positiveCount,
     }),
+  }),
+
+  /** Room grading and the hourly reassignment pass (T5.2, PRD 5.2). */
+  grading: def({
+    evaluationHours: positiveCount,
+    /** The object a `windowRule` counts. Wall-placed. */
+    windowObjectId: id,
+    custom: z.strictObject({
+      /** `meal_quality`: points by Standing Orders meal quantity. */
+      mealQualityPoints: z.record(z.string(), z.number().int()),
+      /** `meal_variety`: one point per this many ingredients above the first. */
+      mealVarietyIngredientsPerPoint: positiveCount,
+      mealVarietyMaxPoints: count,
+      /** `running_track_length`: perimeter tiles a yard needs to score. */
+      runningTrackMinPerimeterTiles: positiveCount,
+      runningTrackPoints: z.number().int(),
+    }),
+    reassignment: z.strictObject({
+      /** `lenient` strictness accepts a grade within this of the entitlement. */
+      lenientTolerance: count,
+      /** Escort jobs one pass may queue, so a re-grade cannot stampede. */
+      maxEscortsPerPass: positiveCount,
+    }),
+    /** Grade used for a sector with no graded rooms in it. */
+    defaultSectorGrade: count,
   }),
 
   entitlement: def({
@@ -460,6 +497,10 @@ export const balanceSchema = z.strictObject({
   economy: def({
     startingFunds: money,
     taxRate: fraction,
+    /** Multiplies `taxRate` once Tax Relief is researched (T5.1, PRD 5.8). */
+    taxReliefRateMultiplier: fraction,
+    /** Multiplies again once Offshore Structure is researched. */
+    offshoreRateMultiplier: fraction,
     utilityCostPerWattHour: rate,
     utilityCostPerWaterUnit: rate,
     loan: z.strictObject({
@@ -589,6 +630,38 @@ export const balanceSchema = z.strictObject({
    * Job assignment scoring (T3.2). Aging raises effective priority each tick a
    * job sits open so low-priority work is not starved forever.
    */
+  /** Inmate labour and workshop / grove / commissary production (T5.7). */
+  labour: def({
+    workshop: z.strictObject({
+      basic: productionLineSchema,
+      fine: productionLineSchema,
+    }),
+    grove: z.strictObject({
+      treeGrowthMinutes: positiveCount,
+      timberPerTree: positiveCount,
+      fellWorkerMinutes: positiveCount,
+    }),
+    commissary: z.strictObject({
+      visitChancePerHour: fraction,
+      spendPerVisit: money,
+      luxuryRelief: rate,
+      restockUnitCost: money,
+      goodsPerRestock: positiveCount,
+    }),
+    /** Freedom need discharged per hour worked. */
+    freedomReliefPerHour: rate,
+    /**
+     * Programme an assignment requires, keyed by assignment id. Sparse: an
+     * assignment with no entry needs no training.
+     */
+    prerequisites: z.partialRecord(z.enum(LABOUR_ASSIGNMENTS), id),
+    /**
+     * Directorate feature an assignment requires beyond `inmate_labour`.
+     * Sparse for the same reason.
+     */
+    featureByAssignment: z.partialRecord(z.enum(LABOUR_ASSIGNMENTS), id),
+  }),
+
   jobs: def({
     /** Added to base priority per tick the job has been open. */
     agingPerTick: rate,
@@ -682,6 +755,44 @@ export const balanceSchema = z.strictObject({
     concentrationScale: fraction,
     suppressionFactor: fraction,
     aptitude: z.strictObject({ min: rate, max: rate }),
+    /** Daily chance a suitable inmate opts into a voluntary program (T5.3). */
+    voluntaryBaseChancePerDay: fraction,
+    /** How much a good mood raises that chance. */
+    voluntaryMoodWeight: fraction,
+    /** Missed sessions before enrolment lapses. */
+    sessionsBeforeDropOut: positiveCount,
+    /** Seats × this is the enrolment cap, so a queue can form. */
+    enrolmentCapMultiplier: positiveCount,
+  }),
+
+  /** Per-inmate grade formulas (T5.4, PRD 5.5). */
+  grades: def({
+    recomputeHours: positiveCount,
+    punishment: z.strictObject({
+      /** Hours in solitary count this much more than hours in lockdown. */
+      isolationWeight: rate,
+      lockdownWeight: rate,
+      /** The grade tops out at this fraction of the sentence spent confined. */
+      maxHoursScale: fraction,
+    }),
+    reform: z.strictObject({
+      perProgramCompleted: rate,
+      perSessionPassed: rate,
+      /** Suppression points subtract this much reform each. */
+      suppressionPenaltyPerPoint: rate,
+      /** Hours of work worth one reform point (T5.7). */
+      labourHoursPerPoint: positiveCount,
+    }),
+    security: z.strictObject({
+      windowDays: positiveCount,
+      perMinorMisconduct: rate,
+      perMajorMisconduct: rate,
+    }),
+    health: z.strictObject({
+      needWeight: fraction,
+      injuryWeight: fraction,
+      addictionWeight: fraction,
+    }),
   }),
 
   reoffend: def({
@@ -702,6 +813,18 @@ export const balanceSchema = z.strictObject({
     hearingHours: positiveCount,
     deniedAngryHours: positiveCount,
     reoffendDelayDays: positiveCount,
+    /** Hearings the panel can sit in one day. */
+    hearingsPerDay: positiveCount,
+    approval: z.strictObject({
+      base: fraction,
+      reformWeight: rate,
+      misconductWeight: rate,
+      servedWeight: rate,
+      min: fraction,
+      max: fraction,
+    }),
+    /** Rolling window for the re-offending rate on the statistics panel. */
+    statisticsWindowDays: positiveCount,
   }),
 
   utilities: def({
@@ -710,7 +833,39 @@ export const balanceSchema = z.strictObject({
     sheddingPriority: z.array(z.enum(POWER_PRIORITIES)).nonempty(),
     temperatureDiffusionTicks: positiveCount,
     outdoorTemperatureC: z.strictObject({ min: z.number(), max: z.number() }),
+    /** The slow cycle under the daily one (PRD 5.12's season setting). */
+    season: z.strictObject({ lengthDays: positiveCount, swingC: rate }),
     waterUnitsPerFixture: rate,
+    /** Indoor tiles drift toward this when no heat source is nearby. */
+    indoorBaselineC: z.number().default(18),
+    /** Fraction of neighbour delta applied each diffusion pass (0..1). */
+    temperatureDiffusionRate: fraction.default(0.35),
+  }),
+
+  /** Informants, monitoring and what they reveal (T5.6, PRD 5.10). */
+  intelligence: def({
+    passMinutes: positiveCount,
+    recruitCost: money,
+    maxInformants: positiveCount,
+    recruitment: z.strictObject({
+      baseLoyalty: rate,
+      loyalTraitBonus: rate,
+      deceitfulTraitPenalty: rate,
+      /** Recruitable only at or below this loyalty… */
+      maxLoyalty: rate,
+      /** …and at or above this fear. */
+      minFear: rate,
+      fearFromSuppression: fraction,
+      fearFromDanger: fraction,
+      fearFromInjury: fraction,
+    }),
+    revealRadiusTiles: positiveCount,
+    blowChancePerDay: fraction,
+    /** Added to the blow chance when the informant was summoned in the open. */
+    carelessSummonBlowBonus: fraction,
+    assassinationChancePerDay: fraction,
+    assassinationDamage: rate,
+    phoneTapRevealChance: fraction,
   }),
 
   contraband: def({
@@ -1051,6 +1206,15 @@ export const objectDefSchema = def({
   /** Watts. 0 means the object never needs a cable. */
   needsPower: count.default(0),
   needsWater: z.boolean().default(false),
+  /** Watts contributed when this object is a power source (generator, etc.). */
+  outputWatts: count.default(0),
+  /** Water flow units contributed when this object is a pump. */
+  flowRate: rate.default(0),
+  /**
+   * Load-shedding class for powered demand (PRD 5.12). Absent demand objects
+   * default to `comfort` (shed first).
+   */
+  powerPriority: z.enum(POWER_PRIORITIES).optional(),
   servesNeeds: z
     .array(
       z.strictObject({
@@ -1165,6 +1329,19 @@ export const programDefSchema = def({
   /** Session length. Programs schedule only into contiguous `work_*` blocks. */
   hours: positiveCount,
   attendance: z.enum(PROGRAM_ATTENDANCE),
+  /**
+   * What makes an inmate a candidate for a `referred` program (T5.3).
+   *
+   * Referral is automatic, so the trigger has to be stated rather than
+   * inferred from the effects: Alcohol Recovery and Substance Treatment share
+   * an effect shape and refer entirely different people.
+   */
+  referral: z
+    .strictObject({
+      addiction: z.enum(['narcotics', 'alcohol']).optional(),
+      traitId: id.optional(),
+    })
+    .optional(),
   /** One object per seat, so the panel can say "room has 6, program needs 10". */
   seatObjectId: id.optional(),
   prerequisiteProgramId: id.optional(),

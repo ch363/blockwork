@@ -12,6 +12,7 @@ import {
 import { Simulation } from '../../../src/core/simulation'
 import type { SimulationEvent } from '../../../src/core/simulation'
 import { loadGameData } from '../../../src/data/loader'
+import type { GameData } from '../../../src/data/loader'
 import { createInmateShell, generateInmate } from '../../../src/entities/inmate'
 import { hireStaff } from '../../../src/entities/staff'
 import { placeObject } from '../../../src/entities/objects'
@@ -36,7 +37,14 @@ import { initialLockState } from '../../../src/world/doors'
 import { designateRoom } from '../../../src/world/roomDetection'
 import { setCategoryRoutine } from '../../../src/world/routine'
 
-const DATA = loadGameData()
+const RAW_DATA = loadGameData()
+const DATA: GameData = {
+  ...RAW_DATA,
+  balance: {
+    ...RAW_DATA.balance,
+    utilities: { ...RAW_DATA.balance.utilities, utilitiesEnabled: false },
+  },
+}
 const KITCHEN = DATA.balance.kitchen
 const SEED = 0xb10c_3003
 

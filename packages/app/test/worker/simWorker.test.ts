@@ -9,7 +9,9 @@ import {
   createSnapshotBuffer,
   decodeSnapshot,
   decodeTilePatch,
+  loadFromBytes,
   notificationKindId,
+  CURRENT_SAVE_VERSION,
 } from '@blockwork/sim'
 import type { Snapshot, SnapshotEntity, SnapshotLimits } from '@blockwork/sim'
 
@@ -84,7 +86,8 @@ function sharedHarness(
     limits: LIMITS,
     snapshotBuffer: buffer,
     speed: options.speed ?? 1,
-    post: () => {
+    post: (message) => {
+      if (message.type === 'sim:control' || message.type === 'sim:effects') return
       throw new Error('the shared transport must not post snapshots')
     },
     ...(options.entities === undefined ? {} : { collectEntities: dummyEntities(options.entities) }),
@@ -178,6 +181,28 @@ describe('SimWorkerLoop pacing (PRD 4.1)', () => {
     const harness = sharedHarness({ speed: 20 })
     harness.loop.advance(1000)
     expect(harness.loop.advance(500)).toBe(0)
+  })
+})
+
+describe('SimWorkerLoop save + auto-route', () => {
+  it('exports a loadable current-version save from the live InmateWorld', async () => {
+    const harness = sharedHarness()
+    run(harness, 250, 4)
+    const { bytes, playedTicks } = await harness.loop.exportSave('2031-07-28T12:00:00.000Z')
+    expect(playedTicks).toBe(4)
+    const loaded = await loadFromBytes(bytes)
+    expect(loaded.playedTicks).toBe(4)
+    expect(loaded.grid.size).toBe(MAP_SIZE)
+    expect(loaded.seed).toBe(SEED)
+    expect(CURRENT_SAVE_VERSION).toBe(4)
+    expect(loaded.sectors.nextSectorId).toBeGreaterThanOrEqual(1)
+  })
+
+  it('answers auto-route against the live grid', () => {
+    const harness = sharedHarness()
+    const route = harness.loop.autoRoute({ x: 2, y: 2 }, 'power')
+    // Fresh map has no live cable — null is the honest answer.
+    expect(route).toBeNull()
   })
 })
 

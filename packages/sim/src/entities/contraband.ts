@@ -226,6 +226,66 @@ export class ContrabandState {
       hasher.writeUint32(price)
     }
   }
+
+  serialise(): {
+    readonly nextStashId: number
+    readonly nextThrowInId: number
+    readonly confiscatedCount: number
+    readonly pendingArrivalIds: readonly number[]
+    readonly pendingDeliveryLines: readonly {
+      readonly itemId: string
+      readonly units: number
+      readonly truckId: number
+    }[]
+    readonly stashes: readonly ContrabandStash[]
+    readonly throwIns: readonly ArrangedThrowIn[]
+    readonly prices: readonly { readonly itemId: string; readonly price: number }[]
+  } {
+    const prices = [...this.prices.entries()]
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([itemId, price]) => ({ itemId, price }))
+    return {
+      nextStashId: this.#nextStashId,
+      nextThrowInId: this.#nextThrowInId,
+      confiscatedCount: this.confiscatedCount,
+      pendingArrivalIds: [...this.pendingArrivalIds],
+      pendingDeliveryLines: this.pendingDeliveryLines.map((line) => ({ ...line })),
+      stashes: this.stashes.map((stash) => ({ ...stash })),
+      throwIns: this.throwIns.map((entry) => ({ ...entry })),
+      prices,
+    }
+  }
+
+  restore(snapshot: {
+    readonly nextStashId: number
+    readonly nextThrowInId: number
+    readonly confiscatedCount: number
+    readonly pendingArrivalIds: readonly number[]
+    readonly pendingDeliveryLines: readonly {
+      readonly itemId: string
+      readonly units: number
+      readonly truckId: number
+    }[]
+    readonly stashes: readonly ContrabandStash[]
+    readonly throwIns: readonly ArrangedThrowIn[]
+    readonly prices: readonly { readonly itemId: string; readonly price: number }[]
+  }): void {
+    this.#nextStashId = Math.max(1, snapshot.nextStashId)
+    this.#nextThrowInId = Math.max(1, snapshot.nextThrowInId)
+    this.confiscatedCount = snapshot.confiscatedCount
+    this.pendingArrivalIds.length = 0
+    this.pendingArrivalIds.push(...snapshot.pendingArrivalIds)
+    this.pendingDeliveryLines.length = 0
+    for (const line of snapshot.pendingDeliveryLines) {
+      this.pendingDeliveryLines.push({ ...line })
+    }
+    this.stashes.length = 0
+    for (const stash of snapshot.stashes) this.stashes.push({ ...stash })
+    this.throwIns.length = 0
+    for (const entry of snapshot.throwIns) this.throwIns.push({ ...entry })
+    this.prices.clear()
+    for (const entry of snapshot.prices) this.prices.set(entry.itemId, entry.price)
+  }
 }
 
 export function createContrabandState(): ContrabandState {

@@ -340,6 +340,92 @@ export class PostRegistry {
       hasher.writeString(route.shortfallReason ?? '')
     }
   }
+
+  serialise(): {
+    readonly nextPostId: number
+    readonly nextRouteId: number
+    readonly posts: readonly Post[]
+    readonly routes: readonly PatrolRoute[]
+  } {
+    return {
+      nextPostId: this.#nextPostId,
+      nextRouteId: this.#nextRouteId,
+      posts: this.posts().map((post) => ({
+        ...post,
+        timeWindows: [...post.timeWindows],
+        assigned: [...post.assigned],
+      })),
+      routes: this.routes().map((route) => ({
+        ...route,
+        waypoints: [...route.waypoints],
+        timeWindows: [...route.timeWindows],
+        assigned: [...route.assigned],
+      })),
+    }
+  }
+
+  restore(snapshot: {
+    readonly nextPostId: number
+    readonly nextRouteId: number
+    readonly posts: readonly {
+      readonly id: number
+      readonly name: string
+      readonly sectorId: number
+      readonly objectId: number
+      readonly staffRole: string
+      readonly count: number
+      readonly timeWindows: readonly HourRange[]
+      readonly assigned: readonly number[]
+      readonly shortfallReason: UnfilledReason | null
+      readonly lastReportedTick: number
+    }[]
+    readonly routes: readonly {
+      readonly id: number
+      readonly name: string
+      readonly staffRole: string
+      readonly count: number
+      readonly waypoints: readonly number[]
+      readonly timeWindows: readonly HourRange[]
+      readonly assigned: readonly number[]
+      readonly shortfallReason: UnfilledReason | null
+      readonly lastReportedTick: number
+    }[]
+  }): void {
+    this.#posts.clear()
+    this.#routes.clear()
+    for (const entry of snapshot.posts) {
+      const post: Post = {
+        id: entry.id,
+        name: entry.name,
+        sectorId: entry.sectorId,
+        objectId: entry.objectId,
+        staffRole: entry.staffRole,
+        count: entry.count,
+        timeWindows: [...entry.timeWindows],
+        assigned: [...entry.assigned],
+        shortfallReason: entry.shortfallReason,
+        lastReportedTick: entry.lastReportedTick,
+      }
+      this.#posts.set(post.id, post)
+    }
+    for (const entry of snapshot.routes) {
+      const route: PatrolRoute = {
+        id: entry.id,
+        name: entry.name,
+        staffRole: entry.staffRole,
+        count: entry.count,
+        waypoints: [...entry.waypoints],
+        timeWindows: [...entry.timeWindows],
+        assigned: [...entry.assigned],
+        shortfallReason: entry.shortfallReason,
+        lastReportedTick: entry.lastReportedTick,
+      }
+      this.#routes.set(route.id, route)
+    }
+    this.#nextPostId = Math.max(1, snapshot.nextPostId)
+    this.#nextRouteId = Math.max(1, snapshot.nextRouteId)
+    this.#dirty = true
+  }
 }
 
 function hashWindows(hasher: Fnv1aHasher, windows: readonly HourRange[]): void {

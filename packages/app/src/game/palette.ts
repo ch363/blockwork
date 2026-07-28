@@ -26,6 +26,17 @@ export type PaletteGesture =
   /** Tap one tile. A drag places a run of them. */
   | 'tile'
 
+/**
+ * Content ids the Directorate has unlocked (T5.1). Built on the worker via
+ * `isUnlocked` and applied when rebuilding trays so research completion
+ * clears chip locks without a page reload.
+ */
+export interface UnlockSnapshot {
+  readonly rooms: readonly string[]
+  readonly objects: readonly string[]
+  readonly staff: readonly string[]
+}
+
 export interface PaletteEntry {
   readonly id: string
   readonly name: string
@@ -187,17 +198,17 @@ function roomNote(room: GameData['rooms']['all'][number]): string {
   return 'any size'
 }
 
-function roomsPalette(data: GameData): Palette {
+function roomsPalette(data: GameData, unlocks: UnlockSnapshot | null): Palette {
+  const unlocked = new Set(unlocks?.rooms ?? [])
   const entries: PaletteEntry[] = data.rooms.all.map((room) => ({
     id: `room:${room.id}`,
     name: room.name,
     note: roomNote(room),
     icon: 'rooms',
     gesture: 'rect',
-    // Unlocks are the Directorate's (PRD 5.8); until T5.1 runs it, a room
-    // that names an `unlockedBy` node is shown locked rather than hidden, so
-    // the palette is the same shape all game.
-    ...(room.unlockedBy === undefined ? {} : { locked: true }),
+    // Unlocks are the Directorate's (PRD 5.8). Gated chips stay visible but
+    // disabled until the worker reports them unlocked.
+    ...(room.unlockedBy === undefined || unlocked.has(room.id) ? {} : { locked: true }),
     action: ({ rect }) => ({ kind: 'designateRoom', rect: toRect(rect), roomDefId: room.id }),
   }))
 
@@ -229,14 +240,15 @@ function roomsPalette(data: GameData): Palette {
  * Grouping by the room they serve is the grouping the player is already
  * thinking in, because they opened the palette while standing in that room.
  */
-function objectsPalette(data: GameData): Palette {
+function objectsPalette(data: GameData, unlocks: UnlockSnapshot | null): Palette {
+  const unlocked = new Set(unlocks?.objects ?? [])
   const entries: PaletteEntry[] = data.objects.all.map((object) => ({
     id: `object:${object.id}`,
     name: object.name,
     note: `$${String(object.cost)}`,
     icon: 'objects',
     gesture: 'tile',
-    ...(object.unlockedBy === undefined ? {} : { locked: true }),
+    ...(object.unlockedBy === undefined || unlocked.has(object.id) ? {} : { locked: true }),
     action: ({ tile }) => ({
       kind: 'placeObject',
       tile,
@@ -263,38 +275,233 @@ function objectsPalette(data: GameData): Palette {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Utilities                                                                   */
+/* -------------------------------------------------------------------------- */
+
+const UTILITY_OBJECT_IDS = ['generator', 'water_pump', 'capacitor', 'pipe_valve'] as const
+
+function utilitiesPalette(data: GameData, unlocks: UnlockSnapshot | null): Palette {
+  const unlocked = new Set(unlocks?.objects ?? [])
+  const cables = data.materials.all.filter((material) => material.surfaces.includes('cable'))
+  const pipes = data.materials.all.filter((material) => material.surfaces.includes('pipe'))
+
+  const runs: PaletteEntry[] = [
+    ...cables.map((material) => ({
+      id: `cable:${material.id}`,
+      name: material.name,
+      note: `$${String(material.costPerTile)}/tile`,
+      icon: 'utilities' as const,
+      gesture: 'line' as const,
+      action: ({ line }: { rect: TileRect; line: TileLine; tile: Tile }): BuildAction => ({
+        kind: 'paintCable',
+        line,
+      }),
+    })),
+    ...pipes.map((material) => ({
+      id: `pipe:${material.id}`,
+      name: material.name,
+      note: `$${String(material.costPerTile)}/tile`,
+      icon: 'utilities' as const,
+      gesture: 'line' as const,
+      action: ({ line }: { rect: TileRect; line: TileLine; tile: Tile }): BuildAction => ({
+        kind: 'paintPipe',
+        line,
+      }),
+    })),
+  ]
+
+  const equipment: PaletteEntry[] = []
+  for (const id of UTILITY_OBJECT_IDS) {
+    const object = data.objects.find(id)
+    if (object === undefined) continue
+    equipment.push({
+      id: `object:${object.id}`,
+      name: object.name,
+      note: `$${String(object.cost)}`,
+      icon: 'utilities',
+      gesture: 'tile',
+      ...(object.unlockedBy === undefined || unlocked.has(object.id) ? {} : { locked: true }),
+      action: ({ tile }) => ({
+        kind: 'placeObject',
+        tile,
+        objectDefId: object.id,
+        rotation: 0,
+      }),
+    })
+  }
+
+  const all = [...runs, ...equipment]
+  if (all.length === 0) return EMPTY_PALETTE
+
+  const groups = [
+    ...(runs.length > 0 ? [group('runs', 'Runs', runs)] : []),
+    ...(equipment.length > 0 ? [group('equipment', 'Equipment', equipment)] : []),
+  ]
+
+  return palette(groups, all)
+}
+
+/* -------------------------------------------------------------------------- */
+/* Staff                                                                       */
+/* -------------------------------------------------------------------------- */
 
 /**
- * Every tool's palette, built once from the data.
+ * Hire chips for every staff role. Strokes are no-ops — selecting a chip and
+ * tapping a tile issues `staff.hire` via the session (not the build queue).
+ */
+function staffPalette(data: GameData, unlocks: UnlockSnapshot | null): Palette {
+  const unlocked = new Set(unlocks?.staff ?? [])
+  const noop = (): BuildAction => ({ kind: 'restore', tiles: [] })
+
+  const administrators: PaletteEntry[] = []
+  const operations: PaletteEntry[] = []
+
+  for (const member of data.staff.all) {
+    // Callable / per-session roles (riot squad, tutors) are not hire chips.
+    if (member.callable || member.perSession) continue
+    const entry: PaletteEntry = {
+      id: member.id,
+      name: member.name,
+      note: `$${String(member.hireCost)}`,
+      icon: 'staff',
+      gesture: 'tile',
+      ...(member.unlockedBy === undefined || unlocked.has(member.id) ? {} : { locked: true }),
+      action: noop,
+    }
+    if (member.isAdministrator) administrators.push(entry)
+    else operations.push(entry)
+  }
+
+  const all = [...administrators, ...operations]
+  if (all.length === 0) return EMPTY_PALETTE
+
+  return palette(
+    [
+      ...(administrators.length > 0
+        ? [group('administrators', 'Administrators', administrators)]
+        : []),
+      ...(operations.length > 0 ? [group('operations', 'Operations', operations)] : []),
+    ],
+    all,
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Overlay                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Map visualisation chips (Phase 4 interim). Strokes are no-ops — selecting a
+ * chip only switches the renderer's overlay mode via the session.
+ */
+function overlayPalette(): Palette {
+  const noop = (): BuildAction => ({ kind: 'restore', tiles: [] })
+
+  const entries: PaletteEntry[] = [
+    {
+      id: 'sectors',
+      name: 'Sectors',
+      note: 'Painted sector colours',
+      icon: 'posts',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'fire',
+      name: 'Fire',
+      note: 'Active fire and smoke',
+      icon: 'emergency',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'tunnels',
+      name: 'Tunnels',
+      note: 'Discovered dig routes',
+      icon: 'search',
+      gesture: 'tile',
+      action: noop,
+    },
+  ]
+
+  return palette([group('overlays', 'Overlays', entries)], entries)
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Every tool's palette, built once from the data (and refreshed when the
+ * Directorate unlocks content).
  *
  * Tools with no system behind them yet return an empty palette, which is what
  * keeps their tray shut rather than opening an empty one.
  */
-export function createPalettes(data: GameData): Readonly<Record<DockToolId, Palette>> {
+export function createPalettes(
+  data: GameData,
+  unlocks: UnlockSnapshot | null = null,
+): Readonly<Record<DockToolId, Palette>> {
   return {
     build: buildPalette(data),
-    rooms: roomsPalette(data),
-    objects: objectsPalette(data),
-    utilities: EMPTY_PALETTE,
-    staff: EMPTY_PALETTE,
+    rooms: roomsPalette(data, unlocks),
+    objects: objectsPalette(data, unlocks),
+    utilities: utilitiesPalette(data, unlocks),
+    staff: staffPalette(data, unlocks),
     posts: EMPTY_PALETTE,
     flow: EMPTY_PALETTE,
     plan: EMPTY_PALETTE,
-    reports: EMPTY_PALETTE,
-    overlay: EMPTY_PALETTE,
+    reports: reportsPalette(),
+    overlay: overlayPalette(),
     emergency: EMPTY_PALETTE,
   }
 }
 
+/** Stable key so the session can skip rebuilds when unlocks have not changed. */
+export function unlockSnapshotKey(unlocks: UnlockSnapshot): string {
+  return [
+    unlocks.rooms.join(','),
+    unlocks.objects.join(','),
+    unlocks.staff.join(','),
+  ].join('|')
+}
+
 /** Tools whose systems do not exist yet, so the dock can grey them out. */
-export const UNBUILT_TOOLS: readonly DockToolId[] = [
-  'utilities',
-  'staff',
-  'flow',
-  'plan',
-  'reports',
-  'overlay',
-]
+export const UNBUILT_TOOLS: readonly DockToolId[] = ['flow']
+
+/**
+ * Reports palette chips open Phase 5 panels (Directorate / Programs /
+ * Intelligence). Strokes are no-ops — selecting a chip opens the panel via
+ * the session.
+ */
+function reportsPalette(): Palette {
+  const noop = (): BuildAction => ({ kind: 'restore', tiles: [] })
+  const entries: PaletteEntry[] = [
+    {
+      id: 'directorate',
+      name: 'Directorate',
+      note: 'Research tree',
+      icon: 'reports',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'programmes',
+      name: 'Programmes',
+      note: 'Reform sessions',
+      icon: 'flow',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'intelligence',
+      name: 'Intelligence',
+      note: 'Informants and contraband',
+      icon: 'search',
+      gesture: 'tile',
+      action: noop,
+    },
+  ]
+  return palette([group('reports', 'Reports', entries)], entries)
+}
 
 /** The one-line instruction shown over the world for the selected chip. */
 export function gestureHint(entry: PaletteEntry | undefined): string | null {

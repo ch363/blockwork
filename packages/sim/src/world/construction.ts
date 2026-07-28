@@ -39,6 +39,7 @@ import type { CommandHandler, EventSink, SystemContext, World } from '../core/si
 import type { GameData } from '../data/loader'
 import { DOOR_TYPES } from '../data/schemas'
 import type { DoorDef, DoorType, MaterialDef } from '../data/schemas'
+import { DirectorateState } from '../entities/directorate'
 
 import { DoorRegistry, doorPassability, initialLockState } from './doors'
 import { MaterialTable, NO_MATERIAL } from './materials'
@@ -328,6 +329,15 @@ export class ConstructionWorld implements World {
   readonly materials: MaterialTable
   readonly doors = new DoorRegistry()
   readonly sites = new ConstructionQueue()
+  /**
+   * Directorate research (T5.1).
+   *
+   * It sits this low because the two earliest gates — designating a room and
+   * placing an object — run against a `ConstructionWorld`, both from the
+   * command handlers and from a blueprint commit. Anywhere higher and those
+   * paths could not see it, which would leave "locked" as UI decoration.
+   */
+  readonly directorate = new DirectorateState()
 
   /** Demolition proceeds awaiting the economy (T3.6). */
   #refunds = 0
@@ -396,6 +406,7 @@ export class ConstructionWorld implements World {
     this.grid.hashInto(hasher)
     this.doors.hashInto(hasher)
     this.sites.hashInto(hasher, this.materials)
+    this.directorate.hashInto(hasher)
     hasher.writeUint32(this.#refunds)
     hasher.writeUint32(this.#spend)
   }

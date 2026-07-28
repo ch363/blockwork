@@ -16,35 +16,275 @@
  * and always set `version`. Never throw for a field you can default; throw
  * only when the save genuinely cannot be brought forward, and the loader will
  * turn it into a `SaveError` with the version that failed.
- *
- * The v1 to v2 step below is a no-op and exists to be that pattern. A chain
- * whose first real use is also its first execution is a chain nobody has
- * tested.
  */
 
-import type { JsonObject } from '../../core/commands'
+import type { JsonObject, JsonValue } from '../../core/commands'
+import { isSectorAccessMode } from '../../world/sectors'
+
+import {
+  defaultStandingOrdersState,
+  emptyCombatState,
+  emptyContrabandState,
+  emptyContractState,
+  emptyDirectorateState,
+  emptyGradingState,
+  emptyProgramsState,
+  emptyGradesState,
+  emptyParoleState,
+  emptyReleaseState,
+  emptyIntelligenceState,
+  emptyEconomyState,
+  emptyEmergencyState,
+  emptyEscapesState,
+  emptyFireState,
+  emptyPostsState,
+  emptyPunishmentsState,
+  emptyRiotState,
+  emptySectorsState,
+  emptyUtilitiesState,
+} from '../defaults'
 
 /** Transforms a save from version `n` to version `n + 1`. */
 export type Migration = (save: JsonObject) => JsonObject
+
+function isJsonObject(value: JsonValue | undefined): value is JsonObject {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
 
 /**
  * v1 to v2: no change to the data.
  *
  * v2 is the first version written by a build that has a migration chain, and
  * the version bump is the whole point: it proves the chain runs, in CI, on
- * every load of an old file. A real migration would look the same but do
- * something between the spread and the version, for example:
- *
- * ```ts
- * const economy = isJsonObject(save['economy']) ? save['economy'] : {}
- * return { ...save, version: 3, economy: { ...economy, wages: economy['wages'] ?? 0 } }
- * ```
+ * every load of an old file.
  */
 const migrateV1ToV2: Migration = (save) => ({ ...save, version: 2 })
+
+function normaliseSectors(value: JsonValue | undefined): JsonObject {
+  if (isJsonObject(value) && Array.isArray(value['sectors'])) {
+    const nextSectorId =
+      typeof value['nextSectorId'] === 'number' && Number.isInteger(value['nextSectorId'])
+        ? value['nextSectorId']
+        : 1
+    const sectors = value['sectors'].flatMap((entry) => {
+      if (!isJsonObject(entry) || typeof entry['id'] !== 'number') return []
+      const access = typeof entry['access'] === 'string' ? entry['access'] : 'shared'
+      return [
+        {
+          id: entry['id'],
+          name: typeof entry['name'] === 'string' ? entry['name'] : `Sector ${entry['id']}`,
+          colour: typeof entry['colour'] === 'string' ? entry['colour'] : '',
+          access: isSectorAccessMode(access) ? access : 'shared',
+          categories: Array.isArray(entry['categories'])
+            ? entry['categories'].filter((c): c is string => typeof c === 'string')
+            : [],
+        },
+      ]
+    })
+    return { nextSectorId, sectors }
+  }
+  // v2 stub arrays are not real sector defs — drop them.
+  return emptySectorsState()
+}
+
+function normalisePosts(value: JsonValue | undefined): JsonObject {
+  if (isJsonObject(value) && Array.isArray(value['posts']) && Array.isArray(value['routes'])) {
+    return {
+      nextPostId:
+        typeof value['nextPostId'] === 'number' && Number.isInteger(value['nextPostId'])
+          ? value['nextPostId']
+          : 1,
+      nextRouteId:
+        typeof value['nextRouteId'] === 'number' && Number.isInteger(value['nextRouteId'])
+          ? value['nextRouteId']
+          : 1,
+      posts: value['posts'],
+      routes: value['routes'],
+    }
+  }
+  return emptyPostsState()
+}
+
+function normaliseStandingOrders(value: JsonValue | undefined): JsonObject {
+  if (isJsonObject(value) && isJsonObject(value['misconduct'])) {
+    return value
+  }
+  return defaultStandingOrdersState()
+}
+
+function normaliseEconomy(value: JsonValue | undefined): JsonObject {
+  if (
+    isJsonObject(value) &&
+    typeof value['balance'] === 'number' &&
+    Array.isArray(value['entries'])
+  ) {
+    return {
+      balance: value['balance'],
+      loanPrincipal: typeof value['loanPrincipal'] === 'number' ? value['loanPrincipal'] : 0,
+      insolvencyDeadlineTick:
+        typeof value['insolvencyDeadlineTick'] === 'number' || value['insolvencyDeadlineTick'] === null
+          ? value['insolvencyDeadlineTick']
+          : null,
+      insolvencyStartedTick:
+        typeof value['insolvencyStartedTick'] === 'number' || value['insolvencyStartedTick'] === null
+          ? value['insolvencyStartedTick']
+          : null,
+      entries: value['entries'],
+    }
+  }
+  return emptyEconomyState()
+}
+
+function normaliseContracts(value: JsonValue | undefined): JsonObject {
+  if (isJsonObject(value) && Array.isArray(value['active']) && Array.isArray(value['finished'])) {
+    return {
+      active: value['active'],
+      finished: value['finished'],
+      revealed: Array.isArray(value['revealed']) ? value['revealed'] : [],
+    }
+  }
+  // v2 stored an opaque array.
+  return emptyContractState()
+}
+
+function mapSizeOf(save: JsonObject): number {
+  return typeof save['mapSize'] === 'number' && Number.isInteger(save['mapSize'])
+    ? save['mapSize']
+    : 0
+}
+
+function normaliseUtilities(value: JsonValue | undefined): JsonObject {
+  if (
+    isJsonObject(value) &&
+    Array.isArray(value['cableTiles']) &&
+    Array.isArray(value['pipeTiles'])
+  ) {
+    return { cableTiles: value['cableTiles'], pipeTiles: value['pipeTiles'] }
+  }
+  return emptyUtilitiesState()
+}
+
+/**
+ * v2 to v3: Phase 4 live snapshots + concrete economy / contracts / posts /
+ * sectors / standing orders shapes. Missing fields default; already-v3-shaped
+ * fields (e.g. a current save stamped back to v1 for migration tests) are kept.
+ */
+const migrateV2ToV3: Migration = (save) => {
+  const size = mapSizeOf(save)
+  return {
+    ...save,
+    version: 3,
+    nextRoomId: typeof save['nextRoomId'] === 'number' ? save['nextRoomId'] : 1,
+    sectors: normaliseSectors(save['sectors']),
+    posts: normalisePosts(save['posts']),
+    standingOrders: normaliseStandingOrders(save['standingOrders']),
+    economy: normaliseEconomy(save['economy']),
+    contracts: normaliseContracts(save['contracts']),
+    contraband: isJsonObject(save['contraband']) ? save['contraband'] : emptyContrabandState(),
+    fire: isJsonObject(save['fire']) ? save['fire'] : emptyFireState(size),
+    riot: isJsonObject(save['riot']) ? save['riot'] : emptyRiotState(),
+    emergency: isJsonObject(save['emergency']) ? save['emergency'] : emptyEmergencyState(),
+    escapes: isJsonObject(save['escapes']) ? save['escapes'] : emptyEscapesState(),
+    combat: isJsonObject(save['combat']) ? save['combat'] : emptyCombatState(),
+    punishments: isJsonObject(save['punishments']) ? save['punishments'] : emptyPunishmentsState(),
+    utilities: normaliseUtilities(save['utilities']),
+    dangerLevel: typeof save['dangerLevel'] === 'number' ? save['dangerLevel'] : 0,
+    riotActive: save['riotActive'] === true,
+    lockdownActive: save['lockdownActive'] === true,
+    misconductWindowTicks: Array.isArray(save['misconductWindowTicks'])
+      ? save['misconductWindowTicks']
+      : [],
+  }
+}
+
+function normaliseDirectorate(value: JsonValue | undefined): JsonObject {
+  if (isJsonObject(value) && Array.isArray(value['completed']) && Array.isArray(value['active'])) {
+    return {
+      completed: value['completed'].filter((id): id is string => typeof id === 'string'),
+      active: value['active'].flatMap((entry) => {
+        if (!isJsonObject(entry) || typeof entry['nodeId'] !== 'string') return []
+        return [
+          {
+            nodeId: entry['nodeId'],
+            startedTick: typeof entry['startedTick'] === 'number' ? entry['startedTick'] : 0,
+            elapsedTicks: typeof entry['elapsedTicks'] === 'number' ? entry['elapsedTicks'] : 0,
+            pausedReason: typeof entry['pausedReason'] === 'string' ? entry['pausedReason'] : null,
+          },
+        ]
+      }),
+    }
+  }
+  // v3 stored an opaque placeholder object.
+  return emptyDirectorateState()
+}
+
+function normaliseGrading(value: JsonValue | undefined): JsonObject {
+  if (
+    isJsonObject(value) &&
+    Array.isArray(value['roomGrades']) &&
+    Array.isArray(value['lastEntitlementTick'])
+  ) {
+    return {
+      roomGrades: value['roomGrades'],
+      lastEntitlementTick: value['lastEntitlementTick'],
+      averageCellGrade:
+        typeof value['averageCellGrade'] === 'number' ? value['averageCellGrade'] : 0,
+    }
+  }
+  return emptyGradingState()
+}
+
+function normalisePrograms(value: JsonValue | undefined): JsonObject {
+  if (
+    isJsonObject(value) &&
+    Array.isArray(value['enrolments']) &&
+    Array.isArray(value['completions']) &&
+    Array.isArray(value['pins'])
+  ) {
+    return {
+      enrolments: value['enrolments'],
+      completions: value['completions'],
+      pins: value['pins'],
+    }
+  }
+  return emptyProgramsState()
+}
+
+/**
+ * v3 to v4: Phase 5 state.
+ *
+ * A v3 save was written before any of this existed, so every field defaults to
+ * "nothing has happened yet" — no research bought, no grades computed, no
+ * programmes scheduled. The grading and grade passes recompute on their next
+ * hourly tick regardless, so defaulting them costs the player one in-game hour
+ * of stale numbers rather than a wrong prison.
+ */
+const migrateV3ToV4: Migration = (save) => ({
+  ...save,
+  version: 4,
+  directorate: normaliseDirectorate(save['directorate']),
+  grading: normaliseGrading(save['grading']),
+  programs: normalisePrograms(save['programs']),
+  grades: isJsonObject(save['grades']) && Array.isArray(save['grades']['confinement'])
+    ? save['grades']
+    : emptyGradesState(),
+  parole: isJsonObject(save['parole']) && Array.isArray(save['parole']['queue'])
+    ? save['parole']
+    : emptyParoleState(),
+  release: isJsonObject(save['release']) && Array.isArray(save['release']['released'])
+    ? save['release']
+    : emptyReleaseState(),
+  intelligence:
+    isJsonObject(save['intelligence']) && Array.isArray(save['intelligence']['informants'])
+      ? save['intelligence']
+      : emptyIntelligenceState(),
+})
 
 /** Keyed by the version each function migrates *from*. */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: migrateV1ToV2,
+  2: migrateV2ToV3,
+  3: migrateV3ToV4,
 }
 
 /** The version each step in the chain starts from, ascending. */

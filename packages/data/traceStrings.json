@@ -3,26 +3,26 @@
     "inmate.starved": {
       "title": "Inmate {inmateId} starved to death",
       "detail": "Food need held above {foodNeed} for {hours} continuous in-game hours.",
-      "meta": "Day {day} \u00b7 {time} \u00b7 {location}"
+      "meta": "Day {day} · {time} · {location}"
     },
     "inmate.missedMeal": {
       "title": "Ate {mealsEaten} meals in the last {blocks} meal blocks",
       "detail": "Attended {messName} at {blockTimes} and left without eating each time.",
-      "meta": "Day {day} \u00b7 caused by the node below"
+      "meta": "Day {day} · caused by the node below"
     },
     "mess.emptyAtMealtime": {
       "title": "{messName} had {mealsAvailable} meals on the serving counters at {time}",
       "detail": "{routed} inmates were routed to {messName}. {mealsDelivered} meals were delivered. {leftHungry} inmates left hungry, of whom {missedThreePlus} have now missed 3 or more blocks.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "kitchen.producedShortfall": {
       "title": "Kitchen {kitchenName} produced {produced} meals, needed {needed}",
       "detail": "Preparation began at {prepStart} as scheduled. Production stopped at capacity.",
-      "meta": "Day {day} \u00b7 {prepStart} to {mealTime}"
+      "meta": "Day {day} · {prepStart} to {mealTime}"
     },
     "kitchen.underCapacity": {
       "title": "Kitchen {kitchenName} has {cookers} cookers and {cooks} assigned cook{cooksPlural}",
-      "detail": "Capacity is {cookers} \u00d7 {mealsPerCookerPerHour} \u00d7 {assistFactor} = {mealsPerHour} meals per hour. Serving {needed} inmates in a {prepHours} hour preparation window needs {neededCookers} cookers or {altCookers} cookers and {altCooks} assigned cooks.",
+      "detail": "Capacity is {cookers} × {mealsPerCookerPerHour} × {assistFactor} = {mealsPerHour} meals per hour. Serving {needed} inmates in a {prepHours} hour preparation window needs {neededCookers} cookers or {altCookers} cookers and {altCooks} assigned cooks.",
       "meta": "Root cause"
     },
     "kitchen.noIngredients": {
@@ -43,7 +43,7 @@
     "mess.full": {
       "title": "{messName} serving counters are full",
       "detail": "Counters hold {mealsHeld} of {capacity} meals. Kitchen {kitchenName} could not stage {blocked} more meals.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "laundry.noRouteToHousing": {
       "title": "Laundry {laundryName} has no route to a housing block",
@@ -52,7 +52,7 @@
     },
     "laundry.underCapacity": {
       "title": "Laundry {laundryName} has {machines} washing machine{machinesPlural} and {labour} assigned worker{labourPlural}",
-      "detail": "Capacity is {machines} \u00d7 {uniformsPerMachinePerHour} \u00d7 {assistFactor} = {uniformsPerHour} uniforms per hour. Serving {needed} inmates needs more machines or labour.",
+      "detail": "Capacity is {machines} × {uniformsPerMachinePerHour} × {assistFactor} = {uniformsPerHour} uniforms per hour. Serving {needed} inmates needs more machines or labour.",
       "meta": "Root cause"
     },
     "laundry.noLabour": {
@@ -63,17 +63,17 @@
     "cleaning.noCleaners": {
       "title": "No cleaners are working while floors are dirty",
       "detail": "Mean indoor dirt is {meanDirt}. Hire cleaners, groundskeepers for outdoor tiles, or assign cleaning labour during work blocks.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "morale.bribeTaken": {
       "title": "Officer {officerId} pocketed {contrabandId} during a search",
       "detail": "Staff morale was {morale}. Bribe chance was {chance}. The inmate kept their secret and the officer kept the goods.",
-      "meta": "Day {day} \u00b7 inmate {inmateId}"
+      "meta": "Day {day} · inmate {inmateId}"
     },
     "morale.strikeStarted": {
-      "title": "Staff walked out \u2014 morale fell to {morale}",
+      "title": "Staff walked out — morale fell to {morale}",
       "detail": "Non-emergency staff stop working for 24 hours. A pay demand of +{demandedRaise} is open until they return.",
-      "meta": "Day {day} \u00b7 ends at tick {endsAtTick}"
+      "meta": "Day {day} · ends at tick {endsAtTick}"
     },
     "morale.payDemand": {
       "title": "Staff demand a {demandedRaise} wage rise",
@@ -83,27 +83,27 @@
     "search.performed": {
       "title": "{kind} search completed",
       "detail": "Touched {inmatesTouched} inmates and {stashesTouched} stashes. Found {found} items. Mood cost {moodCost}. Staff morale was {morale}.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "search.found": {
       "title": "Search recovered {count} contraband item{countPlural}",
       "detail": "Items: {items}.",
-      "meta": "Day {day} \u00b7 search kind {kind}"
+      "meta": "Day {day} · search kind {kind}"
     },
     "search.intakeDelayed": {
       "title": "Intake search delayed inmate {inmateId} by {delayMinutes} minutes",
       "detail": "{officers} officers searched at chance {chance}.",
-      "meta": "Day {day} \u00b7 intake hall"
+      "meta": "Day {day} · intake hall"
     },
     "search.metalDetect": {
       "title": "Metal detector flagged inmate {inmateId}",
       "detail": "Recovered {items} at chance {chance} (morale {morale}).",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "search.dogDetect": {
       "title": "Dog team flagged inmate {inmateId}",
       "detail": "Recovered odorous items {items} at chance {chance} (morale {morale}).",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "search.standingOrderApplied": {
       "title": "Standing Orders applied for {misconduct}",
@@ -116,14 +116,14 @@
       "meta": "Population {population}"
     },
     "riot.started": {
-      "title": "Riot started \u2014 inmate {inmateId}",
+      "title": "Riot started — inmate {inmateId}",
       "detail": "Danger was {danger} across a population of {population}.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "riot.contained": {
       "title": "Riot contained",
       "detail": "No rioting inmates for {quietMinutes} continuous minutes.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "emergency.riotSquadCalled": {
       "title": "Riot squad deployed",
@@ -138,72 +138,127 @@
     "emergency.playerFired": {
       "title": "You have been dismissed",
       "detail": "Reason: {reason}.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "escape.tunnelDiscovered": {
       "title": "Tunnel from cell entrance {originTile} collapsed",
       "detail": "Found by {method}. Diggers {diggerIds} were punished. Suppression +{suppression}.",
-      "meta": "Day {day} \u00b7 tunnel {tunnelId}"
+      "meta": "Day {day} · tunnel {tunnelId}"
     },
     "escape.inmateEscaped": {
       "title": "Inmate {inmateId} escaped via {route}",
       "detail": "{escapesToday} escapes today ({totalEscapes} total). Investigate perimeter, tunnels and zoning.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "escape.failureWarning": {
-      "title": "Escape crisis \u2014 {escapesToday} escapes today",
+      "title": "Escape crisis — {escapesToday} escapes today",
       "detail": "Warning threshold is {warningPerDay}. {thenNextDay} more tomorrow will fail the facility.",
       "meta": "Day {day}"
     },
     "escape.failure": {
-      "title": "Facility failed \u2014 escapes out of control",
+      "title": "Facility failed — escapes out of control",
       "detail": "{escapesYesterday} escapes yesterday and {escapesToday} more today crossed the failure line.",
       "meta": "Day {day}"
     },
     "fire.ignited": {
       "title": "Fire ignited",
       "detail": "A fire started ({source}).",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "fire.spread": {
       "title": "Fire spread",
       "detail": "Fire spread to another tile.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "fire.extinguished": {
       "title": "Fire extinguished",
       "detail": "A fire was put out.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "fire.objectDestroyed": {
       "title": "Object burned",
       "detail": "Fire destroyed an object.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "fire.agentDamaged": {
       "title": "Burn injury",
       "detail": "Fire damaged an agent.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "fire.sprinklerActive": {
       "title": "Sprinkler active",
       "detail": "Sprinklers are suppressing a fire.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "fire.firefighterSummoned": {
       "title": "Firefighters called",
       "detail": "Firefighters were summoned.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "fire.firefighterRejected": {
       "title": "Firefighters unavailable",
       "detail": "Could not summon firefighters.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
     },
     "fire.overloadMarked": {
       "title": "Electrical overload",
       "detail": "A power branch was marked overloaded.",
-      "meta": "Day {day} \u00b7 {time}"
+      "meta": "Day {day} · {time}"
+    },
+    "post.unfilled": {
+      "title": "Post {postName} is short {shortfall} staff",
+      "detail": "Need {required} {staffRole}; {filled} assigned. Reason: {reason}.",
+      "meta": "Day {day} · {time}"
+    },
+    "contraband.throwInIntercepted": {
+      "title": "Throw-in intercepted",
+      "detail": "Officer or dog stopped inmate {inmateId} collecting {itemId} at the perimeter.",
+      "meta": "Day {day} · {time}"
+    },
+    "misconduct.committed": {
+      "title": "Misconduct: {misconductKind}",
+      "detail": "Inmate {inmateId} drew {punishment} for {durationHours} hours. Category {category}.",
+      "meta": "Day {day} · {time}"
+    },
+    "punishment.started": {
+      "title": "Punishment started: {kind}",
+      "detail": "Inmate {inmateId} held for {durationHours} hours after {sourceMisconduct}.",
+      "meta": "Day {day} · {time}"
+    },
+    "combat.fightStarted": {
+      "title": "Fight started",
+      "detail": "Combatants engaged. Fight id {fightId}.",
+      "meta": "Day {day} · {time}"
+    },
+    "combat.died": {
+      "title": "Death in custody",
+      "detail": "Agent {subjectId} died ({cause}).",
+      "meta": "Day {day} · {time}"
+    },
+    "failure.riotWarning": {
+      "title": "Uncontained riot — failure warning",
+      "detail": "Riot has run for {warningHours} hours. Contain it or the facility fails in {thenHours} more.",
+      "meta": "Day {day} · fails at tick {failureAtTick}"
+    },
+    "failure.riot": {
+      "title": "Facility failed — uncontained riot",
+      "detail": "The riot was not contained within the failure window.",
+      "meta": "Day {day} · {time}"
+    },
+    "failure.riotCancelled": {
+      "title": "Riot failure countdown cancelled",
+      "detail": "Containment cleared the failure ladder.",
+      "meta": "Day {day} · {time}"
+    },
+    "utilities.brownout": {
+      "title": "Power brownout on branch {branchId}",
+      "detail": "Demand {demandWatts}W exceeded capacity {capacityWatts}W by {shortfallWatts}W. Shed priority {priority}.",
+      "meta": "Day {day} · {time}"
+    },
+    "directorate.paused": {
+      "title": "{branch} research paused — no {administrator}",
+      "detail": "{nodeId} needs the {administrator} in post with a functional office. Reason: {reason}. Nothing advances until the post is filled.",
+      "meta": "Day {day} · {time}"
     }
   }
 }

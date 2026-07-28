@@ -33,23 +33,51 @@ export {
   SaveError,
 } from './format'
 export type {
+  CombatStateSnapshot,
+  ContrabandStateSnapshot,
   ContractState,
-  DirectorateState,
+  DirectorateStateSnapshot,
   EconomyState,
+  EmergencyStateSnapshot,
+  EscapesStateSnapshot,
+  FireStateSnapshot,
   LogEntry,
   MapSettings,
   PostState,
+  PostsState,
+  PunishmentsStateSnapshot,
+  RiotStateSnapshot,
   RoutineState,
   SaveErrorCode,
   SaveFile,
   SaveHeader,
+  SectorsState,
   SerialisedEntity,
   SerialisedGrid,
+  SerialisedPatrolRoute,
+  SerialisedPost,
   SerialisedRngState,
   SerialisedRoom,
   SerialisedSector,
   StandingOrdersState,
+  UtilitiesStateSnapshot,
 } from './format'
+
+export {
+  defaultStandingOrdersState,
+  emptyCombatState,
+  emptyContrabandState,
+  emptyContractState,
+  emptyEconomyState,
+  emptyEmergencyState,
+  emptyEscapesState,
+  emptyFireState,
+  emptyPostsState,
+  emptyPunishmentsState,
+  emptyRiotState,
+  emptySectorsState,
+  emptyUtilitiesState,
+} from './defaults'
 
 export { compressionAvailable, gunzipBytes, gzipBytes } from './gzip'
 
@@ -72,3 +100,8 @@ export type { LoadOptions } from './deserialise'
 
 export { hashSaveState, saveStateWorld } from './state'
 export type { SaveState } from './state'
+
+export { captureInmateWorld } from './fromWorld'
+export type { CaptureInmateWorldOptions } from './fromWorld'
+
+export { restoreInmateWorld } from './toWorld'

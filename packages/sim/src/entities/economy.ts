@@ -117,6 +117,7 @@ export interface EconomySnapshot {
   readonly balance: number
   readonly loanPrincipal: number
   readonly insolvencyDeadlineTick: number | null
+  readonly insolvencyStartedTick?: number | null
   readonly entries: readonly LedgerEntry[]
 }
 
@@ -395,7 +396,20 @@ export class EconomyLedger {
       balance: this.#balance,
       loanPrincipal: this.#loanPrincipal,
       insolvencyDeadlineTick: this.#insolvencyDeadlineTick,
+      insolvencyStartedTick: this.#insolvencyStartedTick,
       entries: this.#entries.map((entry) => ({ ...entry })),
+    }
+  }
+
+  /** Replaces ledger state from a snapshot (save load). */
+  restore(snapshot: EconomySnapshot): void {
+    this.#balance = snapshot.balance
+    this.#loanPrincipal = snapshot.loanPrincipal
+    this.#insolvencyDeadlineTick = snapshot.insolvencyDeadlineTick
+    this.#insolvencyStartedTick = snapshot.insolvencyStartedTick ?? null
+    this.#entries.length = 0
+    for (const entry of snapshot.entries) {
+      this.#entries.push({ ...entry, category: entry.category as LedgerCategory })
     }
   }
 

@@ -41,6 +41,15 @@ export class MisconductWindow {
     hasher.writeUint32(this.#ticks.length)
     for (const tick of this.#ticks) hasher.writeUint32(tick)
   }
+
+  serialise(): readonly number[] {
+    return [...this.#ticks]
+  }
+
+  restore(ticks: readonly number[]): void {
+    this.#ticks.length = 0
+    for (const tick of ticks) this.#ticks.push(tick)
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -77,6 +86,48 @@ export class RiotState {
     for (const [tile, minutes] of doors) {
       hasher.writeUint32(tile)
       hasher.writeUint32(minutes)
+    }
+  }
+
+  serialise(): {
+    readonly active: boolean
+    readonly riotingInmateIds: readonly number[]
+    readonly quietMinutes: number
+    readonly startedAtTick: number
+    readonly doorBreakProgress: readonly {
+      readonly tileIndex: number
+      readonly minutes: number
+    }[]
+  } {
+    return {
+      active: this.active,
+      riotingInmateIds: [...this.riotingInmateIds].sort((a, b) => a - b),
+      quietMinutes: this.quietMinutes,
+      startedAtTick: this.startedAtTick,
+      doorBreakProgress: [...this.doorBreakProgress.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([tileIndex, minutes]) => ({ tileIndex, minutes })),
+    }
+  }
+
+  restore(snapshot: {
+    readonly active: boolean
+    readonly riotingInmateIds: readonly number[]
+    readonly quietMinutes: number
+    readonly startedAtTick: number
+    readonly doorBreakProgress: readonly {
+      readonly tileIndex: number
+      readonly minutes: number
+    }[]
+  }): void {
+    this.active = snapshot.active
+    this.riotingInmateIds.clear()
+    for (const id of snapshot.riotingInmateIds) this.riotingInmateIds.add(id)
+    this.quietMinutes = snapshot.quietMinutes
+    this.startedAtTick = snapshot.startedAtTick
+    this.doorBreakProgress.clear()
+    for (const entry of snapshot.doorBreakProgress) {
+      this.doorBreakProgress.set(entry.tileIndex, entry.minutes)
     }
   }
 }
@@ -150,5 +201,89 @@ export class EmergencyState {
     for (const id of this.riotSquadStaffIds) hasher.writeUint32(id)
     hasher.writeUint32(this.nationalGuardStaffIds.length)
     for (const id of this.nationalGuardStaffIds) hasher.writeUint32(id)
+  }
+
+  serialise(): {
+    readonly sectorLockdowns: readonly number[]
+    readonly fullLockdown: boolean
+    readonly riotSquadActive: boolean
+    readonly riotSquadStaffIds: readonly number[]
+    readonly freeFireActive: boolean
+    readonly freeFirePenaltiesApplied: boolean
+    readonly nationalGuardActive: boolean
+    readonly nationalGuardStaffIds: readonly number[]
+    readonly playerFired: boolean
+    readonly riotFailureEnabled: boolean
+    readonly warningAtTick: number | null
+    readonly failureAtTick: number | null
+    readonly warningEmitted: boolean
+    readonly failed: boolean
+    readonly staffHealth: readonly { readonly id: number; readonly hp: number }[]
+    readonly prPenalty: number
+    readonly riotSquadLastWageTick: number
+  } {
+    return {
+      sectorLockdowns: [...this.sectorLockdowns].sort((a, b) => a - b),
+      fullLockdown: this.fullLockdown,
+      riotSquadActive: this.riotSquadActive,
+      riotSquadStaffIds: [...this.riotSquadStaffIds],
+      freeFireActive: this.freeFireActive,
+      freeFirePenaltiesApplied: this.freeFirePenaltiesApplied,
+      nationalGuardActive: this.nationalGuardActive,
+      nationalGuardStaffIds: [...this.nationalGuardStaffIds],
+      playerFired: this.playerFired,
+      riotFailureEnabled: this.riotFailureEnabled,
+      warningAtTick: this.warningAtTick,
+      failureAtTick: this.failureAtTick,
+      warningEmitted: this.warningEmitted,
+      failed: this.failed,
+      staffHealth: [...this.staffHealth.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([id, hp]) => ({ id, hp })),
+      prPenalty: this.prPenalty,
+      riotSquadLastWageTick: this.riotSquadLastWageTick,
+    }
+  }
+
+  restore(snapshot: {
+    readonly sectorLockdowns: readonly number[]
+    readonly fullLockdown: boolean
+    readonly riotSquadActive: boolean
+    readonly riotSquadStaffIds: readonly number[]
+    readonly freeFireActive: boolean
+    readonly freeFirePenaltiesApplied: boolean
+    readonly nationalGuardActive: boolean
+    readonly nationalGuardStaffIds: readonly number[]
+    readonly playerFired: boolean
+    readonly riotFailureEnabled: boolean
+    readonly warningAtTick: number | null
+    readonly failureAtTick: number | null
+    readonly warningEmitted: boolean
+    readonly failed: boolean
+    readonly staffHealth: readonly { readonly id: number; readonly hp: number }[]
+    readonly prPenalty: number
+    readonly riotSquadLastWageTick: number
+  }): void {
+    this.sectorLockdowns.clear()
+    for (const id of snapshot.sectorLockdowns) this.sectorLockdowns.add(id)
+    this.fullLockdown = snapshot.fullLockdown
+    this.riotSquadActive = snapshot.riotSquadActive
+    this.riotSquadStaffIds.length = 0
+    this.riotSquadStaffIds.push(...snapshot.riotSquadStaffIds)
+    this.freeFireActive = snapshot.freeFireActive
+    this.freeFirePenaltiesApplied = snapshot.freeFirePenaltiesApplied
+    this.nationalGuardActive = snapshot.nationalGuardActive
+    this.nationalGuardStaffIds.length = 0
+    this.nationalGuardStaffIds.push(...snapshot.nationalGuardStaffIds)
+    this.playerFired = snapshot.playerFired
+    this.riotFailureEnabled = snapshot.riotFailureEnabled
+    this.warningAtTick = snapshot.warningAtTick
+    this.failureAtTick = snapshot.failureAtTick
+    this.warningEmitted = snapshot.warningEmitted
+    this.failed = snapshot.failed
+    this.staffHealth.clear()
+    for (const entry of snapshot.staffHealth) this.staffHealth.set(entry.id, entry.hp)
+    this.prPenalty = snapshot.prPenalty
+    this.riotSquadLastWageTick = snapshot.riotSquadLastWageTick
   }
 }

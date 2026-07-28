@@ -391,6 +391,57 @@ export class SectorRegistry {
     this.#refreshTables(data)
   }
 
+  /** Definitions only — tile membership is on `grid.sectorId`. */
+  serialise(): {
+    readonly nextSectorId: number
+    readonly sectors: readonly Sector[]
+  } {
+    return {
+      nextSectorId: this.#nextId,
+      sectors: this.all().map((sector) => ({
+        id: sector.id,
+        name: sector.name,
+        colour: sector.colour,
+        access: sector.access,
+        categories: [...sector.categories],
+      })),
+    }
+  }
+
+  /**
+   * Restores definitions from a save. Call {@link reindex} afterwards so the
+   * reverse tile index matches the grid.
+   */
+  restore(
+    data: GameData,
+    snapshot: {
+      readonly nextSectorId: number
+      readonly sectors: readonly {
+        readonly id: number
+        readonly name: string
+        readonly colour: string
+        readonly access: SectorAccessMode
+        readonly categories: readonly string[]
+      }[]
+    },
+  ): void {
+    this.#sectors.clear()
+    this.#tiles.clear()
+    for (const entry of snapshot.sectors) {
+      const sector: Sector = {
+        id: entry.id,
+        name: entry.name,
+        colour: entry.colour,
+        access: entry.access,
+        categories: [...entry.categories],
+      }
+      this.#sectors.set(sector.id, sector)
+      this.#tiles.set(sector.id, new Set())
+    }
+    this.#nextId = Math.max(1, snapshot.nextSectorId)
+    this.#refreshTables(data)
+  }
+
   hashInto(hasher: Fnv1aHasher): void {
     hasher.writeUint32(this.#nextId)
     hasher.writeUint32(this.#sectors.size)

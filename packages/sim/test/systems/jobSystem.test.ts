@@ -42,7 +42,12 @@ function harness(): {
   run(ticks: number): void
 } {
   const events = new RecordingSink()
-  const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false })
+  const world = createInmateWorld({
+    size: 40,
+    data: DATA,
+    continuousIntake: false,
+    research: 'all',
+  })
   const sim = new Simulation({
     seed: SEED,
     world,
@@ -74,12 +79,7 @@ function hireCleaner(world: InmateWorld, events: RecordingSink, tx: number, ty: 
   return entity.id
 }
 
-function spawnLabourInmate(
-  world: InmateWorld,
-  labour: string,
-  tx: number,
-  ty: number,
-): number {
+function spawnLabourInmate(world: InmateWorld, labour: string, tx: number, ty: number): number {
   const rng = new Rng(SEED).stream('job-test-inmate')
   const component = generateInmate({ data: DATA, rng, category: 'minimum' })
   component.jobId = labour
@@ -151,7 +151,7 @@ describe('job assignment', () => {
         world,
         kind: 'clean',
         priority: 1 + (i % 5),
-        location: world.grid.idx(5 + (i % 20), 5 + Math.floor(i / 20) % 20),
+        location: world.grid.idx(5 + (i % 20), 5 + (Math.floor(i / 20) % 20)),
         tick: 0,
         events,
       })
@@ -240,10 +240,12 @@ describe('job assignment', () => {
     expect(job.claimedBy).toBe(0)
     expect(world.jobs.isIdle('staff', workerId)).toBe(true)
     expect(world.staff.get(workerId)?.staff.duty).toEqual({ kind: 'idle' })
-    expect(events.of(JOB_EVENTS.abandoned).some((event) => {
-      const data = event.data as { reason?: string; jobId?: number }
-      return data.reason === 'riot' && data.jobId === job.id
-    })).toBe(true)
+    expect(
+      events.of(JOB_EVENTS.abandoned).some((event) => {
+        const data = event.data as { reason?: string; jobId?: number }
+        return data.reason === 'riot' && data.jobId === job.id
+      }),
+    ).toBe(true)
 
     world.riotActive = false
     run(TICKS_PER_MINUTE)
@@ -273,10 +275,12 @@ describe('job assignment', () => {
 
     run(TICKS_PER_MINUTE)
     expect(job.state).toBe('open')
-    expect(events.of(JOB_EVENTS.abandoned).some((event) => {
-      const data = event.data as { reason?: string }
-      return data.reason === 'injured'
-    })).toBe(true)
+    expect(
+      events.of(JOB_EVENTS.abandoned).some((event) => {
+        const data = event.data as { reason?: string }
+        return data.reason === 'injured'
+      }),
+    ).toBe(true)
   })
 
   it('ages low-priority jobs until they outrank fresh high-priority work', () => {
@@ -346,7 +350,7 @@ describe('job assignment', () => {
         world,
         kind: 'clean',
         priority: i < 50 ? 1 : 10,
-        location: world.grid.idx(3 + (i % 15), 3 + Math.floor(i / 15) % 15),
+        location: world.grid.idx(3 + (i % 15), 3 + (Math.floor(i / 15) % 15)),
         tick: 0,
         events,
       })

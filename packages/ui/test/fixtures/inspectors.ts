@@ -112,7 +112,14 @@ export const FIXTURE_ROOM: RoomInspectorModel = {
   ],
   properties: ['enclosed', 'indoors'],
   occupants: 1,
-  gradeLines: [],
+  grade: 4,
+  gradeMax: 10,
+  gradeLines: [
+    { label: 'Comfort bed', points: 1, detail: '1 present' },
+    { label: 'Sink / mirror', points: 1, detail: '1 present' },
+    { label: 'Size', points: 3, detail: '30 tiles, needs 16' },
+    { label: 'No window', points: -1, detail: null },
+  ],
   throughputLabel: null,
 }
 

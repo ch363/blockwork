@@ -55,8 +55,6 @@ export type ContractRejection =
 export class FacilityProgress {
   /** Completions keyed by program definition id. */
   readonly programCompletions = new Map<string, number>()
-  /** Directorate nodes marked complete (stub until T5.1). */
-  readonly completedDirectorate = new Set<string>()
   /**
    * Tick of the most recent incident of each kind, or absent when none have
    * occurred yet (clean streak measured from tick 0).
@@ -82,14 +80,6 @@ export class FacilityProgress {
       programId,
       (this.programCompletions.get(programId) ?? 0) + count,
     )
-  }
-
-  completeDirectorateNode(nodeId: string): void {
-    this.completedDirectorate.add(nodeId)
-  }
-
-  hasDirectorateNode(nodeId: string): boolean {
-    return this.completedDirectorate.has(nodeId)
   }
 
   recordIncident(kind: IncidentKind, tick: number): void {
@@ -139,10 +129,6 @@ export class FacilityProgress {
       hasher.writeString(id)
       hasher.writeUint32(count)
     }
-
-    const nodes = [...this.completedDirectorate].sort()
-    hasher.writeUint32(nodes.length)
-    for (const id of nodes) hasher.writeString(id)
 
     hasher.writeUint32(INCIDENT_KINDS.length)
     for (const kind of INCIDENT_KINDS) {
@@ -277,6 +263,25 @@ export class ContractBook {
       finished: this.#finished.map((f) => ({ ...f })),
       revealed: [...this.#revealed].sort(),
     }
+  }
+
+  /** Replaces book state from a snapshot (save load). */
+  restore(snapshot: ContractBookSnapshot): void {
+    this.#active.length = 0
+    for (const c of snapshot.active) {
+      this.#active.push({
+        defId: c.defId,
+        acceptedTick: c.acceptedTick,
+        advancePaid: c.advancePaid,
+        itemPassed: [...c.itemPassed],
+      })
+    }
+    this.#finished.length = 0
+    for (const f of snapshot.finished) {
+      this.#finished.push({ ...f })
+    }
+    this.#revealed.clear()
+    for (const id of snapshot.revealed) this.#revealed.add(id)
   }
 
   hashInto(hasher: Fnv1aHasher): void {

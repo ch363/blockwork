@@ -3,8 +3,7 @@
  *
  * Combat is turn-based per weapon recharge, not per tick: each participant
  * strikes when their recharge elapses. Misconduct (T4.4) starts fights via
- * {@link beginFight}; this ticket stubs that entry point rather than rolling
- * misconduct itself.
+ * {@link beginFight} for violent kinds when a target is in range.
  *
  * PRD 4.4 slot 13 — runs every tick alongside movement / pathing.
  */
@@ -143,7 +142,7 @@ export interface BeginFightOptions {
 
 /**
  * Starts a fight between two combatants. No-ops when either is already in a
- * fight, missing, or dead. Stub entry for T4.4 misconduct violence.
+ * fight, missing, or dead. Called by misconduct violence and by tests.
  */
 export function beginFight(options: BeginFightOptions): Fight | undefined {
   const { world, data, events, tick, a, b } = options

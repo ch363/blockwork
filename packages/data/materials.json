@@ -272,6 +272,32 @@
       "flammability": 0,
       "dirtMultiplier": 1.8,
       "depressing": true
+    },
+    {
+      "_tuning": true,
+      "id": "cable",
+      "name": "Electrical cable",
+      "surfaces": [
+        "cable"
+      ],
+      "costPerTile": 8,
+      "buildMinutes": 1,
+      "flammability": 0.4,
+      "dirtMultiplier": 1,
+      "depressing": false
+    },
+    {
+      "_tuning": true,
+      "id": "pipe",
+      "name": "Water pipe",
+      "surfaces": [
+        "pipe"
+      ],
+      "costPerTile": 10,
+      "buildMinutes": 2,
+      "flammability": 0,
+      "dirtMultiplier": 1,
+      "depressing": false
     }
   ],
   "doors": [

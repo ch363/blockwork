@@ -276,13 +276,70 @@ export function assertSaveFile(save: JsonObject): asserts save is SaveFile {
   checkGrid(save['grid'])
   checkIdentifiedRecords(save['entities'], 'entities')
   checkIdentifiedRecords(save['rooms'], 'rooms')
-  checkIdentifiedRecords(save['sectors'], 'sectors')
+  requireInteger(save['nextRoomId'], 'nextRoomId', 1, UINT32_MAX)
+
+  const sectors = requireObject(save['sectors'], 'sectors')
+  requireInteger(sectors['nextSectorId'], 'sectors.nextSectorId', 1, UINT32_MAX)
+  checkIdentifiedRecords(sectors['sectors'], 'sectors.sectors')
+
   requireObject(save['economy'], 'economy')
-  requireObject(save['directorate'], 'directorate')
-  checkRecords(save['contracts'], 'contracts')
+  const directorate = requireObject(save['directorate'], 'directorate')
+  requireArray(directorate['completed'], 'directorate.completed')
+  requireArray(directorate['active'], 'directorate.active')
+
+  const grading = requireObject(save['grading'], 'grading')
+  requireArray(grading['roomGrades'], 'grading.roomGrades')
+  requireArray(grading['lastEntitlementTick'], 'grading.lastEntitlementTick')
+
+  const programs = requireObject(save['programs'], 'programs')
+  requireArray(programs['enrolments'], 'programs.enrolments')
+  requireArray(programs['completions'], 'programs.completions')
+  requireArray(programs['pins'], 'programs.pins')
+
+  requireArray(requireObject(save['grades'], 'grades')['confinement'], 'grades.confinement')
+
+  const parole = requireObject(save['parole'], 'parole')
+  requireArray(parole['queue'], 'parole.queue')
+
+  const release = requireObject(save['release'], 'release')
+  requireArray(release['released'], 'release.released')
+  requireArray(release['paroleReoffences'], 'release.paroleReoffences')
+
+  const intelligence = requireObject(save['intelligence'], 'intelligence')
+  requireArray(intelligence['informants'], 'intelligence.informants')
+  requireArray(intelligence['revealedStashIds'], 'intelligence.revealedStashIds')
+  requireArray(intelligence['revealedThrowInIds'], 'intelligence.revealedThrowInIds')
+  requireObject(save['contracts'], 'contracts')
   requireObject(save['routines'], 'routines')
   requireObject(save['standingOrders'], 'standingOrders')
-  checkRecords(save['posts'], 'posts')
+
+  const posts = requireObject(save['posts'], 'posts')
+  requireInteger(posts['nextPostId'], 'posts.nextPostId', 1, UINT32_MAX)
+  requireInteger(posts['nextRouteId'], 'posts.nextRouteId', 1, UINT32_MAX)
+  checkIdentifiedRecords(posts['posts'], 'posts.posts')
+  checkIdentifiedRecords(posts['routes'], 'posts.routes')
+
+  requireObject(save['contraband'], 'contraband')
+  requireObject(save['fire'], 'fire')
+  requireObject(save['riot'], 'riot')
+  requireObject(save['emergency'], 'emergency')
+  requireObject(save['escapes'], 'escapes')
+  requireObject(save['combat'], 'combat')
+  requireObject(save['punishments'], 'punishments')
+  const utilities = requireObject(save['utilities'], 'utilities')
+  requireArray(utilities['cableTiles'], 'utilities.cableTiles')
+  requireArray(utilities['pipeTiles'], 'utilities.pipeTiles')
+
+  requireInteger(save['dangerLevel'], 'dangerLevel', 0, 100)
+  if (typeof save['riotActive'] !== 'boolean') {
+    throw invalid('riotActive', 'a boolean', save['riotActive'])
+  }
+  if (typeof save['lockdownActive'] !== 'boolean') {
+    throw invalid('lockdownActive', 'a boolean', save['lockdownActive'])
+  }
+  requireArray(save['misconductWindowTicks'], 'misconductWindowTicks').forEach((tick, index) => {
+    requireInteger(tick, `misconductWindowTicks[${index}]`, 0, MAX_PLAYED_TICKS)
+  })
 
   checkRecords(save['log'], 'log').forEach((entry, index) => {
     requireInteger(entry['tick'], `log[${index}].tick`, 0, MAX_PLAYED_TICKS)
@@ -402,13 +459,32 @@ export function deserialiseSave(file: SaveFile): SaveState {
     grid: deserialiseGrid(file.grid, file.mapSize),
     entities: file.entities,
     rooms: file.rooms,
+    nextRoomId: file.nextRoomId,
     sectors: file.sectors,
     economy: file.economy,
     directorate: file.directorate,
+    grading: file.grading,
+    programs: file.programs,
+    grades: file.grades,
+    parole: file.parole,
+    release: file.release,
+    intelligence: file.intelligence,
     contracts: file.contracts,
     routines: file.routines,
     standingOrders: file.standingOrders,
     posts: file.posts,
+    contraband: file.contraband,
+    fire: file.fire,
+    riot: file.riot,
+    emergency: file.emergency,
+    escapes: file.escapes,
+    combat: file.combat,
+    punishments: file.punishments,
+    utilities: file.utilities,
+    dangerLevel: file.dangerLevel,
+    riotActive: file.riotActive,
+    lockdownActive: file.lockdownActive,
+    misconductWindowTicks: file.misconductWindowTicks,
     log: file.log,
     rngState: file.rngState,
   }

@@ -101,15 +101,26 @@ export function InspectorRoom({ model }: InspectorRoomProps): JSX.Element {
         </div>
       </div>
 
-      {model.gradeLines.length > 0 && (
+      {model.grade !== null && (
         <div class="bw-block">
-          <h4>Grade breakdown</h4>
-          {model.gradeLines.map((line) => (
-            <div key={line.label} class="bw-kv">
-              <span class="k">{line.label}</span>
-              <span class="v bw-num">{line.points > 0 ? `+${line.points}` : line.points}</span>
-            </div>
-          ))}
+          <h4>
+            Grade {model.grade} / {model.gradeMax}
+          </h4>
+          {model.gradeLines.length === 0 ? (
+            <p style="font-size:var(--f-sm);color:var(--text-dim)">
+              Nothing in this room scores. Furnish it to raise the grade.
+            </p>
+          ) : (
+            model.gradeLines.map((line) => (
+              <div key={`${line.label}:${line.detail ?? ''}`} class="bw-kv">
+                <span class="k">
+                  {line.label}
+                  {line.detail === null ? '' : ` · ${line.detail}`}
+                </span>
+                <span class="v bw-num">{line.points > 0 ? `+${line.points}` : line.points}</span>
+              </div>
+            ))
+          )}
         </div>
       )}
 

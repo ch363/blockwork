@@ -440,6 +440,7 @@
       },
       "rotatable": true,
       "needsPower": 400,
+      "powerPriority": "production",
       "jobSlots": 1,
       "producesHeat": 6,
       "countsForRooms": [
@@ -658,6 +659,7 @@
       "cost": 800,
       "hp": 70,
       "needsPower": 450,
+      "powerPriority": "security",
       "countsForRooms": [
         "intake_hall",
         "visit_hall"
@@ -1167,6 +1169,7 @@
         "w": 3,
         "h": 3
       },
+      "outputWatts": 5000,
       "producesHeat": 4,
       "countsForRooms": []
     },
@@ -1203,6 +1206,8 @@
         "h": 2
       },
       "needsPower": 600,
+      "flowRate": 8,
+      "powerPriority": "lifeSafety",
       "countsForRooms": []
     },
     {
@@ -1264,6 +1269,7 @@
       "hp": 15,
       "placement": "ceiling",
       "needsPower": 30,
+      "powerPriority": "comfort",
       "countsForRooms": []
     },
     {

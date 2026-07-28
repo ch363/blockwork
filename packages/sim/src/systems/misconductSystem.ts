@@ -3,11 +3,13 @@
  *
  * Every 10 in-game minutes each inmate rolls against the PRD probability. On a
  * hit: emit a CausalEvent, log the rap sheet, adjust entitlement, apply
- * auto-reclassification, queue Standing Orders punishment (and a search stub),
- * and propagate agitator boosts to neighbours within 5 tiles.
+ * auto-reclassification, apply Standing Orders punishment, run a Standing
+ * Orders search when configured, start a fight for violent kinds, and
+ * propagate agitator boosts to neighbours within 5 tiles.
  */
 
 import { TICKS_PER_MINUTE } from '../core/clock'
+import type { RngStream } from '../core/rng'
 import type { EventSink, System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
 import type { MisconductKind } from '../data/schemas'
@@ -27,9 +29,12 @@ import { NeedIndex } from '../entities/needs'
 import { inmateAccessMask } from '../pathfinding/regionGraph'
 import { orderForKind } from '../entities/standingOrders'
 import { hasCapability } from '../entities/staff'
+import { beginFight } from './combatSystem'
+import { traitMisconductMultiplierFor } from './programSystem'
 import { isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 import { beginPunishment } from './punishmentSystem'
+import { performSearch } from './searchSystem'
 
 export interface MisconductSystemOptions {
   readonly data: GameData
@@ -76,6 +81,7 @@ export function createMisconductSystem(options: MisconductSystemOptions): System
           entity.inmate.traits,
         )
         const hasViolent = entity.inmate.traits.includes('violent')
+        const violentOverride = traitMisconductMultiplierFor(world, entity.id, 'violent')
         const cellGradeModifier = cellGradeMisconductModifier(
           data.balance.misconduct.cellGrade,
           world.averageCellGrade,
@@ -106,6 +112,7 @@ export function createMisconductSystem(options: MisconductSystemOptions): System
             instigatorNearby,
             guardNearby,
             hasViolentTrait: hasViolent,
+            ...(violentOverride === undefined ? {} : { violentTraitMultiplierOverride: violentOverride }),
             agitatorBoostMultiplier: boost,
           },
         )
@@ -123,6 +130,8 @@ export function createMisconductSystem(options: MisconductSystemOptions): System
           tick,
           inmateId: entity.id,
           kind,
+          rng,
+          needIndex: index,
         })
       }
     },
@@ -136,11 +145,14 @@ export interface CommitMisconductOptions {
   readonly tick: number
   readonly inmateId: number
   readonly kind: MisconductKind
+  /** Required to run Standing Orders searches; tests may omit. */
+  readonly rng?: RngStream
+  readonly needIndex?: NeedIndex
 }
 
 /**
- * Applies one misconduct hit. Exported so tests and later combat / escape
- * systems can force a kind without rolling.
+ * Applies one misconduct hit. Exported so tests and combat / escape systems
+ * can force a kind without rolling.
  */
 export function commitMisconduct(options: CommitMisconductOptions): MisconductRecord | undefined {
   const { world, data, events, tick, inmateId, kind } = options
@@ -214,7 +226,30 @@ export function commitMisconduct(options: CommitMisconductOptions): MisconductRe
       causeIds: [],
       data: { inmateId, misconductKind: kind, reason: 'standing-orders' },
     })
+    if (options.rng !== undefined) {
+      performSearch({
+        world,
+        data,
+        rng: options.rng,
+        events,
+        tick,
+        kind: 'individual',
+        inmateId,
+        ...(options.needIndex === undefined ? {} : { needIndex: options.needIndex }),
+      })
+    }
   }
+
+  startFightForMisconduct({
+    world,
+    data,
+    events,
+    tick,
+    inmateId,
+    kind,
+    tx: entity.tx,
+    ty: entity.ty,
+  })
 
   if (order.punishment !== 'ignore') {
     beginPunishment({
@@ -232,6 +267,98 @@ export function commitMisconduct(options: CommitMisconductOptions): MisconductRe
   propagateAgitatorBoost(world, data, tick, inmateId, entity.tx, entity.ty)
 
   return record
+}
+
+/** Violent misconduct kinds that open a fight when a target is in range. */
+const FIGHT_MISCONDUCT: ReadonlySet<MisconductKind> = new Set([
+  'attackInmate',
+  'attackStaff',
+  'seriousInjury',
+  'homicide',
+])
+
+function startFightForMisconduct(options: {
+  readonly world: InmateWorld
+  readonly data: GameData
+  readonly events: EventSink
+  readonly tick: number
+  readonly inmateId: number
+  readonly kind: MisconductKind
+  readonly tx: number
+  readonly ty: number
+}): void {
+  if (!FIGHT_MISCONDUCT.has(options.kind)) return
+
+  const range = options.data.balance.misconduct.agitator.nearbyTiles
+  const attacker = { kind: 'inmate' as const, id: options.inmateId }
+
+  if (options.kind === 'attackStaff') {
+    const staffId = nearestStaffId(options.world, options.tx, options.ty, range)
+    if (staffId === undefined) return
+    beginFight({
+      world: options.world,
+      data: options.data,
+      events: options.events,
+      tick: options.tick,
+      a: attacker,
+      b: { kind: 'staff', id: staffId },
+    })
+    return
+  }
+
+  const otherId = nearestInmateId(
+    options.world,
+    options.inmateId,
+    options.tx,
+    options.ty,
+    range,
+  )
+  if (otherId === undefined) return
+  beginFight({
+    world: options.world,
+    data: options.data,
+    events: options.events,
+    tick: options.tick,
+    a: attacker,
+    b: { kind: 'inmate', id: otherId },
+  })
+}
+
+function nearestInmateId(
+  world: InmateWorld,
+  selfId: number,
+  tx: number,
+  ty: number,
+  range: number,
+): number | undefined {
+  let bestId: number | undefined
+  let bestDist = Number.POSITIVE_INFINITY
+  for (const other of world.inmates.all()) {
+    if (other.id === selfId) continue
+    if (other.inmate.health <= 0) continue
+    const dist = chebyshevTiles(tx, ty, other.tx, other.ty)
+    if (dist > range || dist >= bestDist) continue
+    bestDist = dist
+    bestId = other.id
+  }
+  return bestId
+}
+
+function nearestStaffId(
+  world: InmateWorld,
+  tx: number,
+  ty: number,
+  range: number,
+): number | undefined {
+  let bestId: number | undefined
+  let bestDist = Number.POSITIVE_INFINITY
+  for (const staff of world.staff.all()) {
+    const dist = chebyshevTiles(tx, ty, staff.tx, staff.ty)
+    if (dist > range || dist >= bestDist) continue
+    bestDist = dist
+    bestId = staff.id
+  }
+  return bestId
 }
 
 function propagateAgitatorBoost(

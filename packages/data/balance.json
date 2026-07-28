@@ -112,6 +112,23 @@
       "boostMinutes": 30
     }
   },
+  "grading": {
+    "_tuning": true,
+    "evaluationHours": 1,
+    "windowObjectId": "window",
+    "custom": {
+      "mealQualityPoints": { "low": -1, "normal": 0, "high": 1 },
+      "mealVarietyIngredientsPerPoint": 2,
+      "mealVarietyMaxPoints": 2,
+      "runningTrackMinPerimeterTiles": 24,
+      "runningTrackPoints": 1
+    },
+    "reassignment": {
+      "lenientTolerance": 2,
+      "maxEscortsPerPass": 12
+    },
+    "defaultSectorGrade": 5
+  },
   "entitlement": {
     "_tuning": true,
     "start": 2,
@@ -258,6 +275,8 @@
     "_tuning": true,
     "startingFunds": 30000,
     "taxRate": 0.12,
+    "taxReliefRateMultiplier": 0.6,
+    "offshoreRateMultiplier": 0.5,
     "utilityCostPerWattHour": 0.004,
     "utilityCostPerWaterUnit": 0.06,
     "loan": {
@@ -351,6 +370,47 @@
     "unfilledReportPeriodHours": 1,
     "maxWaypoints": 24
   },
+  "labour": {
+    "_tuning": true,
+    "workshop": {
+      "basic": {
+        "productId": "basic_furniture",
+        "inputItemId": "timber",
+        "inputUnits": 2,
+        "workerMinutesPerUnit": 45,
+        "salePrice": 130
+      },
+      "fine": {
+        "productId": "fine_furniture",
+        "inputItemId": "timber",
+        "inputUnits": 3,
+        "workerMinutesPerUnit": 90,
+        "salePrice": 340,
+        "requiresProductionId": "fine_furniture"
+      }
+    },
+    "grove": {
+      "treeGrowthMinutes": 720,
+      "timberPerTree": 2,
+      "fellWorkerMinutes": 30
+    },
+    "commissary": {
+      "visitChancePerHour": 0.2,
+      "spendPerVisit": 15,
+      "luxuryRelief": 25,
+      "restockUnitCost": 45,
+      "goodsPerRestock": 10
+    },
+    "freedomReliefPerHour": 4,
+    "prerequisites": {
+      "workshop": "workshop_induction",
+      "kitchen": "kitchen_induction"
+    },
+    "featureByAssignment": {
+      "cleaning": "sanitation_jobs",
+      "grove": "grounds_jobs"
+    }
+  },
   "jobs": {
     "_tuning": true,
     "agingPerTick": 0.01,
@@ -400,6 +460,35 @@
     "aptitude": {
       "min": 0.7,
       "max": 1.3
+    },
+    "voluntaryBaseChancePerDay": 0.35,
+    "voluntaryMoodWeight": 0.5,
+    "sessionsBeforeDropOut": 3,
+    "enrolmentCapMultiplier": 1
+  },
+  "grades": {
+    "_tuning": true,
+    "recomputeHours": 1,
+    "punishment": {
+      "isolationWeight": 3,
+      "lockdownWeight": 1,
+      "maxHoursScale": 0.25
+    },
+    "reform": {
+      "perProgramCompleted": 25,
+      "perSessionPassed": 4,
+      "suppressionPenaltyPerPoint": 0.4,
+      "labourHoursPerPoint": 24
+    },
+    "security": {
+      "windowDays": 14,
+      "perMinorMisconduct": 8,
+      "perMajorMisconduct": 22
+    },
+    "health": {
+      "needWeight": 0.6,
+      "injuryWeight": 0.3,
+      "addictionWeight": 0.1
     }
   },
   "reoffend": {
@@ -419,11 +508,21 @@
     "eligibilityFraction": 0.5,
     "hearingHours": 4,
     "deniedAngryHours": 24,
-    "reoffendDelayDays": 30
+    "reoffendDelayDays": 30,
+    "hearingsPerDay": 2,
+    "approval": {
+      "base": 0.15,
+      "reformWeight": 0.5,
+      "misconductWeight": 0.35,
+      "servedWeight": 0.25,
+      "min": 0.02,
+      "max": 0.95
+    },
+    "statisticsWindowDays": 30
   },
   "utilities": {
     "_tuning": true,
-    "utilitiesEnabled": false,
+    "utilitiesEnabled": true,
     "sheddingPriority": [
       "comfort",
       "production",
@@ -435,7 +534,35 @@
       "min": 2,
       "max": 24
     },
-    "waterUnitsPerFixture": 1
+    "season": {
+      "lengthDays": 28,
+      "swingC": 6
+    },
+    "waterUnitsPerFixture": 1,
+    "indoorBaselineC": 18,
+    "temperatureDiffusionRate": 0.35
+  },
+  "intelligence": {
+    "_tuning": true,
+    "passMinutes": 6,
+    "recruitCost": 250,
+    "maxInformants": 12,
+    "recruitment": {
+      "baseLoyalty": 55,
+      "loyalTraitBonus": 40,
+      "deceitfulTraitPenalty": 25,
+      "maxLoyalty": 45,
+      "minFear": 50,
+      "fearFromSuppression": 0.5,
+      "fearFromDanger": 0.3,
+      "fearFromInjury": 0.2
+    },
+    "revealRadiusTiles": 8,
+    "blowChancePerDay": 0.06,
+    "carelessSummonBlowBonus": 0.2,
+    "assassinationChancePerDay": 0.3,
+    "assassinationDamage": 55,
+    "phoneTapRevealChance": 0.35
   },
   "contraband": {
     "_tuning": true,

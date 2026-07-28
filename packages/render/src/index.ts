@@ -184,5 +184,8 @@ export {
 } from './layers/blueprint'
 export type { BlueprintLayerOptions, BlueprintRect } from './layers/blueprint'
 
+export { OverlayLayer, parseCssColour } from './layers/overlay'
+export type { OverlayFireTile, OverlayLayerOptions, OverlayMode, OverlayTunnel } from './layers/overlay'
+
 export { BlockworkRenderer, LETTERBOX_COLOUR, MAX_RENDER_RESOLUTION } from './app'
 export type { BlockworkRendererOptions } from './app'

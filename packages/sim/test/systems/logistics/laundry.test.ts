@@ -4,11 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import {
-  TICKS_PER_DAY,
-  TICKS_PER_HOUR,
-  TICKS_PER_MINUTE,
-} from '../../../src/core/clock'
+import { TICKS_PER_DAY, TICKS_PER_HOUR, TICKS_PER_MINUTE } from '../../../src/core/clock'
 import type { SimulationEvent } from '../../../src/core/simulation'
 import { Rng } from '../../../src/core/rng'
 import { loadGameData } from '../../../src/data/loader'
@@ -30,7 +26,14 @@ import { initialLockState } from '../../../src/world/doors'
 import { designateRoom } from '../../../src/world/roomDetection'
 import { roomCentroidDistance } from '../../../src/systems/logistics/mealChain'
 
-const DATA = loadGameData()
+const RAW_DATA = loadGameData()
+const DATA = {
+  ...RAW_DATA,
+  balance: {
+    ...RAW_DATA.balance,
+    utilities: { ...RAW_DATA.balance.utilities, utilitiesEnabled: false },
+  },
+}
 const LAUNDRY = DATA.balance.logistics.laundry
 const SEED = 0xb10c_3005
 
@@ -134,6 +137,7 @@ function buildLaundryFacility(options: {
     size: options.mapSize ?? 64,
     data: DATA,
     continuousIntake: false,
+    research: 'all',
   })
 
   const laundryShell = { x: 2, y: 2, width: 12, height: 10 }
@@ -152,7 +156,9 @@ function buildLaundryFacility(options: {
   designateRoom(roomDeps(world, events), farInterior, 'cell')
 
   const laundryRoom = [...world.rooms.all()].find((room) => room.defId === 'laundry')
-  const cells = [...world.rooms.all()].filter((room) => room.defId === 'cell').sort((a, b) => a.id - b.id)
+  const cells = [...world.rooms.all()]
+    .filter((room) => room.defId === 'cell')
+    .sort((a, b) => a.id - b.id)
   if (laundryRoom === undefined || cells.length < 2) {
     throw new Error('expected laundry and two cells')
   }
@@ -170,7 +176,11 @@ function buildLaundryFacility(options: {
 
   const machines = options.machines ?? 2
   let placed = 0
-  for (let x = laundryInterior.x; x < laundryInterior.x + laundryInterior.width && placed < machines; x += 2) {
+  for (
+    let x = laundryInterior.x;
+    x < laundryInterior.x + laundryInterior.width && placed < machines;
+    x += 2
+  ) {
     const result = placeObject(
       objectDeps(world, events),
       { x, y: laundryInterior.y + 1 },
@@ -339,8 +349,9 @@ describe('uniform lifecycle', () => {
     updateLaundry(world, DATA, events, TICKS_PER_DAY)
     expect(world.laundry.uniformDirtiness.get(shell.id) ?? 0).toBe(0)
     expect(
-      (world.laundry.pendingWash.get(world.rooms.all().find((r) => r.defId === 'laundry')?.id ?? -1) ??
-        0) +
+      (world.laundry.pendingWash.get(
+        world.rooms.all().find((r) => r.defId === 'laundry')?.id ?? -1,
+      ) ?? 0) +
         [...world.laundry.basketDirty.values()].reduce((a, b) => a + b, 0) +
         [...world.laundry.bedDirty.values()].reduce((a, b) => a + b, 0),
     ).toBeGreaterThan(0)
@@ -432,7 +443,7 @@ describe('laundry routing', () => {
       hireCleaners: 2,
       laundryLabour: 2,
     })
-    world.laundry.unlockFeature('laundry_routing')
+    world.directorate.grant('delegation')
     world.laundry.setRoutingOverride(laundryId, cellFarId)
 
     const laundry = world.rooms.get(laundryId)

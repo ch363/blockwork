@@ -97,8 +97,20 @@ export interface RoomInspectorModel {
   readonly requirements: readonly RoomRequirement[]
   readonly properties: readonly string[]
   readonly occupants: number
-  /** Line-by-line grade breakdown; empty until grading lands (T5.2). */
-  readonly gradeLines: readonly { readonly label: string; readonly points: number }[]
+  /**
+   * Line-by-line grade breakdown (T5.2). Empty for an ungraded room.
+   *
+   * `detail` is the "2 of 3 needed for 9 occupants" half — the reason a line
+   * scored what it scored, which is what the inspector exists to show.
+   */
+  readonly gradeLines: readonly {
+    readonly label: string
+    readonly points: number
+    readonly detail: string | null
+  }[]
+  /** Published grade and its ceiling, or null for an ungraded room. */
+  readonly grade: number | null
+  readonly gradeMax: number
   readonly throughputLabel: string | null
 }
 

@@ -1,7 +1,7 @@
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { SaveError, encodeSaveFile, readSaveHeader } from '@blockwork/sim'
+import { CURRENT_SAVE_VERSION, SaveError, encodeSaveFile, readSaveHeader } from '@blockwork/sim'
 import type { SaveFile } from '@blockwork/sim'
 
 import {
@@ -21,7 +21,7 @@ import type { SaveDescriptor, SaveSummary } from '../../src/save/store'
  */
 function emptySaveFile(overrides: Partial<SaveFile> = {}): SaveFile {
   return {
-    version: 2,
+    version: CURRENT_SAVE_VERSION,
     seed: 1,
     createdAt: '2031-03-12T14:05:00.000Z',
     playedTicks: 0,
@@ -43,13 +43,109 @@ function emptySaveFile(overrides: Partial<SaveFile> = {}): SaveFile {
     },
     entities: [],
     rooms: [],
-    sectors: [],
-    economy: {},
-    directorate: {},
-    contracts: [],
+    nextRoomId: 1,
+    sectors: { nextSectorId: 1, sectors: [] },
+    economy: {
+      balance: 0,
+      loanPrincipal: 0,
+      insolvencyDeadlineTick: null,
+      entries: [],
+    },
+    directorate: { completed: [], active: [] },
+    grading: { roomGrades: [], lastEntitlementTick: [], averageCellGrade: 0 },
+    programs: { enrolments: [], completions: [], pins: [] },
+    grades: { confinement: [] },
+    parole: { queue: [], hearingsToday: 0, hearingDay: 0 },
+    release: {
+      released: [],
+      lifetimeReleased: 0,
+      lifetimeReoffended: 0,
+      paroleReoffences: [],
+      recidivismWarned: false,
+    },
+    intelligence: {
+      informants: [],
+      revealedStashIds: [],
+      revealedThrowInIds: [],
+      lastBlowRollDay: -1,
+    },
+    contracts: { active: [], finished: [], revealed: [] },
     routines: {},
-    standingOrders: {},
-    posts: [],
+    standingOrders: {
+      misconduct: {},
+      reassignmentStrictness: 'lenient',
+      mealQuantity: 'normal',
+      mealVariety: 2,
+    },
+    posts: { nextPostId: 1, nextRouteId: 1, posts: [], routes: [] },
+    contraband: {
+      nextStashId: 1,
+      nextThrowInId: 1,
+      confiscatedCount: 0,
+      pendingArrivalIds: [],
+      pendingDeliveryLines: [],
+      stashes: [],
+      throwIns: [],
+      prices: [],
+    },
+    fire: { size: 8, burning: [], smoke: [], overloadedBranches: [] },
+    riot: {
+      active: false,
+      riotingInmateIds: [],
+      quietMinutes: 0,
+      startedAtTick: 0,
+      doorBreakProgress: [],
+    },
+    emergency: {
+      sectorLockdowns: [],
+      fullLockdown: false,
+      riotSquadActive: false,
+      riotSquadStaffIds: [],
+      freeFireActive: false,
+      freeFirePenaltiesApplied: false,
+      nationalGuardActive: false,
+      nationalGuardStaffIds: [],
+      playerFired: false,
+      riotFailureEnabled: true,
+      warningAtTick: null,
+      failureAtTick: null,
+      warningEmitted: false,
+      failed: false,
+      staffHealth: [],
+      prPenalty: 0,
+      riotSquadLastWageTick: 0,
+    },
+    escapes: {
+      nextTunnelId: 1,
+      tunnels: [],
+      breachedDoorTiles: [],
+      pendingEscapes: [],
+      escapesToday: 0,
+      escapesYesterday: 0,
+      accountedDay: 1,
+      warningActive: false,
+      failed: false,
+      totalEscapes: 0,
+    },
+    combat: {
+      nextFightId: 1,
+      fights: [],
+      corpses: { nextId: 1, list: [] },
+      vestWearers: [],
+      stunCharges: [],
+      stunRechargeAt: [],
+      overdoses: [],
+      clinicEscortQueued: [],
+      staffHealth: [],
+      staffStatus: [],
+      staffInventory: [],
+    },
+    punishments: { active: [], agitatorBoostUntil: [] },
+    utilities: { cableTiles: [], pipeTiles: [] },
+    dangerLevel: 0,
+    riotActive: false,
+    lockdownActive: false,
+    misconductWindowTicks: [],
     log: [],
     rngState: { seed: 1, streams: [] },
     ...overrides,
@@ -71,7 +167,7 @@ beforeEach(async () => {
   store = await SaveStore.open(`blockwork-saves-test-${counter}`)
 })
 
-async function bytesFor(playedTicks: number, version = 2): Promise<Uint8Array> {
+async function bytesFor(playedTicks: number, version = CURRENT_SAVE_VERSION): Promise<Uint8Array> {
   return encodeSaveFile(emptySaveFile({ playedTicks, version }))
 }
 
@@ -84,7 +180,7 @@ describe('nextAutosaveSlot (PRD 7.4)', () => {
       slot,
       sequence,
       savedAt: '2031-03-12T14:05:00.000Z',
-      schemaVersion: 2,
+      schemaVersion: CURRENT_SAVE_VERSION,
       playedTicks: 0,
       mapSize: 220,
       byteLength: 0,

@@ -30,8 +30,10 @@ import {
 } from '../entities/needs'
 import type { InmateNeedState, NeedFillContext } from '../entities/needs'
 import type { InmateEntity } from '../entities/inmate'
+import { suppressedNeedFor } from './programSystem'
 import { isInmateWorld } from './intakeSystem'
 import { NO_ROOM } from '../world/rooms'
+import { waterUseMultiplier } from './utilitiesSystem'
 
 export interface NeedsSystemOptions {
   readonly data: GameData
@@ -90,11 +92,23 @@ export function createNeedsSystem(options: NeedsSystemOptions): System {
 
         applyNeedFills(entity.inmate.needs, index, balance, fillCtx)
 
+        // Substance Treatment holds the narcotics need down for as long as the
+        // inmate stays enrolled, and no longer (PRD 5.9).
+        const suppressedNeed = suppressedNeedFor(world, data, entity.id)
+        if (suppressedNeed !== undefined) {
+          const suppressedIndex = index.indexOf(suppressedNeed)
+          if (suppressedIndex >= 0) entity.inmate.needs[suppressedIndex] = 0
+        }
+
         const using = resolveUsingObject(world.objects, state.usingObjectId)
         if (using !== undefined) {
           const def = data.objects.find(using.object.defId)
           if (def !== undefined && def.servesNeeds.length > 0) {
-            applyNeedDischarge(entity.inmate.needs, index, def.servesNeeds)
+            const scale =
+              def.needsWater && isInmateWorld(world)
+                ? waterUseMultiplier(world, using.tileIndex)
+                : 1
+            applyNeedDischarge(entity.inmate.needs, index, def.servesNeeds, scale)
           }
         }
 

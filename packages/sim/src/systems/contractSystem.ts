@@ -12,7 +12,9 @@ import { isJsonArray } from '../core/commands'
 import type { Command, JsonValue } from '../core/commands'
 import type { CommandHandler, EventSink, System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
-import type { ContractDef, ContractPredicate, GradingRuleSet, RoomDef } from '../data/schemas'
+import { hasFeature } from '../entities/directorate'
+import { gradeRoom } from './gradingSystem'
+import type { ContractDef, ContractPredicate, RoomDef } from '../data/schemas'
 import {
   CONTRACT_EVENTS,
   CONTRACT_SYSTEM_NAME,
@@ -87,57 +89,21 @@ export function countStaffOfType(world: InmateWorld, staffId: string): number {
 }
 
 /**
- * Minimal room-grade evaluation for contract predicates (full grading is T5.2).
- * Honours object point rules and size thresholds; window / material / custom
- * rules contribute 0 until grading lands. Overrides on {@link FacilityProgress}
- * win when set.
+ * The grade a contract predicate sees.
+ *
+ * T5.2 owns the scoring; this is the adapter that keeps the override on
+ * {@link FacilityProgress} authoritative for scripted scenarios, and answers 0
+ * for an ungraded room rather than throwing.
  */
 export function evaluateRoomGrade(
+  world: InmateWorld,
   room: Room,
   def: RoomDef,
-  objects: ObjectRegistry,
-  occupants: number,
   override: number | undefined,
 ): number {
   if (override !== undefined) return override
   if (!def.graded || def.gradingRules === undefined) return 0
-  return scoreGradingRules(room, def.gradingRules, objects, occupants)
-}
-
-function scoreGradingRules(
-  room: Room,
-  rules: GradingRuleSet,
-  objects: ObjectRegistry,
-  occupants: number,
-): number {
-  let score = 0
-
-  for (const entry of rules.objectPoints) {
-    let found = 0
-    for (const objectId of entry.objectIds) {
-      found += objects.objectCount(room.id, objectId)
-    }
-    if (entry.perCount !== undefined) {
-      score += Math.floor(found / entry.perCount) * entry.points
-    } else if (entry.perOccupants !== undefined) {
-      const needed = Math.max(1, Math.ceil(occupants / entry.perOccupants))
-      if (found >= needed) score += entry.points
-    } else if (found > 0) {
-      score += entry.points
-    }
-  }
-
-  let sizePoints = 0
-  for (const threshold of rules.sizeThresholds) {
-    if (room.tiles.length >= threshold.tiles) {
-      sizePoints = Math.max(sizePoints, threshold.points)
-    }
-  }
-  score += sizePoints
-
-  if (score < rules.min) return rules.min
-  if (score > rules.max) return rules.max
-  return score
+  return gradeRoom(world, world.data, room, def)?.score ?? 0
 }
 
 /** How many rooms of `roomId` meet `minGrade`. */
@@ -153,12 +119,10 @@ export function countRoomsAtGrade(
     if (status === undefined || !status.functional) continue
     const def = world.data.rooms.find(room.defId)
     if (def === undefined) continue
-    const occupants = world.contents().occupants(room.id)
     const grade = evaluateRoomGrade(
+      world,
       room,
       def,
-      world.objects,
-      occupants,
       world.contracts.progress.roomGradeOverride.get(room.id),
     )
     if (grade >= minGrade) count += 1
@@ -204,7 +168,7 @@ export function evaluatePredicate(predicate: ContractPredicate, ctx: PredicateCo
     case 'programCompletions':
       return (progress.programCompletions.get(predicate.programId) ?? 0) >= predicate.min
     case 'directorateComplete':
-      return progress.hasDirectorateNode(predicate.nodeId)
+      return world.directorate.isComplete(predicate.nodeId)
     case 'needBelow':
       return meanNeed(world, needIndex, predicate.needId) < predicate.maxMean
     case 'daysWithout':
@@ -242,7 +206,7 @@ export function evaluateAllPredicates(
 
 export function maxConcurrentContracts(world: InmateWorld): number {
   const economy = world.data.balance.economy
-  if (world.contracts.progress.hasDirectorateNode('additional_contract')) {
+  if (hasFeature(world.data, world.directorate, 'additional_contract')) {
     return economy.maxConcurrentContractsWithAdditional
   }
   return economy.maxConcurrentContracts
@@ -256,7 +220,7 @@ export function isContractAvailable(def: ContractDef, world: InmateWorld): boole
   if (world.contracts.isActive(def.id) || world.contracts.isFinished(def.id)) return false
 
   for (const nodeId of def.prerequisites) {
-    if (!world.contracts.progress.hasDirectorateNode(nodeId)) return false
+    if (!world.directorate.isComplete(nodeId)) return false
   }
 
   if (def.hidden && !world.contracts.wasRevealed(def.id)) return false
@@ -319,7 +283,7 @@ export function acceptContract(
   const ctx: PredicateContext = { world, data: world.data, tick, needIndex }
 
   for (const nodeId of def.prerequisites) {
-    if (!world.contracts.progress.hasDirectorateNode(nodeId)) {
+    if (!world.directorate.isComplete(nodeId)) {
       reject(events, tick, defId, 'prerequisites')
       return { ok: false, reason: 'prerequisites' }
     }

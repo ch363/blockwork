@@ -35,6 +35,7 @@ import {
   NO_INMATE,
 } from '../entities/inmate'
 import type { InmateEntity } from '../entities/inmate'
+import { isUnlocked } from '../entities/directorate'
 import { NeedsRuntime } from '../entities/needs'
 import { ObjectRegistry, ObjectWorld } from '../entities/objects'
 import { JobPool } from '../entities/job'
@@ -69,7 +70,8 @@ import { SupplyLogistics } from './logistics/supply'
 import { DeliverySchedule } from './logistics/deliveries'
 import { CleaningLogistics } from './logistics/cleaning'
 import { LaundryLogistics } from './logistics/laundry'
-import { ContrabandState, createContrabandState } from '../entities/contraband'
+import { createContrabandState } from '../entities/contraband'
+import type { ContrabandState } from '../entities/contraband'
 import {
   createDefaultStandingOrders,
   hashStandingOrders,
@@ -79,6 +81,15 @@ import { createPunishmentRuntime } from '../entities/punishment'
 import type { PunishmentRuntime } from '../entities/punishment'
 import { CombatRuntime } from '../entities/health'
 import { FireGrid } from '../world/fireGrid'
+import { PowerGrid } from '../world/powerGrid'
+import { WaterGrid } from '../world/waterGrid'
+import { GradingRuntime } from './gradingSystem'
+import { ProgramRuntime } from './programSystem'
+import { GradesRuntime } from './gradesSystem'
+import { ParoleRuntime } from './paroleSystem'
+import { ReleaseRuntime } from './releaseSystem'
+import { IntelligenceRuntime } from './intelligenceSystem'
+import { LabourRuntime } from './labourSystem'
 import { createEscapeState } from './escapeSystem'
 import type { EscapeState } from './escapeSystem'
 import {
@@ -203,6 +214,20 @@ export class InmateWorld extends ObjectWorld {
    * until then stays empty and `averageCellGrade` is used).
    */
   readonly cellGrades = new Map<number, number>()
+  /** Room grade breakdowns, sector grades and entitlement clocks (T5.2). */
+  readonly grading = new GradingRuntime()
+  /** Programme enrolment, schedules, sessions and blocking reasons (T5.3). */
+  readonly programs = new ProgramRuntime()
+  /** Confinement and suppression exposure behind the four grades (T5.4). */
+  readonly grades = new GradesRuntime()
+  /** Parole queue and hearing budget (T5.4). */
+  readonly parole = new ParoleRuntime()
+  /** Everyone who has left, and the re-offending ledger (T5.4). */
+  readonly release = new ReleaseRuntime()
+  /** Informants, revealed stashes and phone-tap intelligence (T5.6). */
+  readonly intelligence = new IntelligenceRuntime()
+  /** Inmate work assignments, production and the commissary (T5.7). */
+  readonly labour = new LabourRuntime()
   /** Prison-wide mean cell grade used when a room has no entry. */
   averageCellGrade = 5
   /** Fights, injury, corpses (T4.5). */
@@ -241,6 +266,10 @@ export class InmateWorld extends ObjectWorld {
   readonly emergency = new EmergencyState()
   /** Per-tile fire intensity and smoke (T4.8). */
   readonly fire: FireGrid
+  /** Electrical cable overlay and shed branches (T5.5). */
+  readonly power: PowerGrid
+  /** Water pipe overlay and flow multipliers (T5.5). */
+  readonly water: WaterGrid
   /** Escapes, tunnels and failure accounting (T4.7). */
   readonly escapes: EscapeState
 
@@ -300,6 +329,8 @@ export class InmateWorld extends ObjectWorld {
     this.combat = combat
     this.escapes = createEscapeState()
     this.fire = new FireGrid(grid.size)
+    this.power = new PowerGrid(grid.size)
+    this.water = new WaterGrid(grid.size)
     this.settings = settings
     this.sectors = new SectorRegistry(grid.size)
     this.posts = new PostRegistry()
@@ -346,6 +377,13 @@ export class InmateWorld extends ObjectWorld {
     this.routineRuntime.hashInto(hasher)
     this.staff.hashInto(hasher)
     this.offices.hashInto(hasher)
+    this.grading.hashInto(hasher)
+    this.programs.hashInto(hasher)
+    this.grades.hashInto(hasher)
+    this.parole.hashInto(hasher)
+    this.release.hashInto(hasher)
+    this.intelligence.hashInto(hasher)
+    this.labour.hashInto(hasher)
     this.escorts.hashInto(hasher)
     this.jobs.hashInto(hasher)
     this.meals.hashInto(hasher)
@@ -384,6 +422,8 @@ export class InmateWorld extends ObjectWorld {
     this.riot.hashInto(hasher)
     this.emergency.hashInto(hasher)
     this.fire.hashInto(hasher)
+    this.power.hashInto(hasher)
+    this.water.hashInto(hasher)
     this.escapes.hashInto(hasher)
     hasher.writeUint32(this.#income)
     this.economy.hashInto(hasher)
@@ -410,6 +450,15 @@ export interface CreateInmateWorldOptions {
   readonly data: GameData
   readonly buffers?: TileGridBuffers
   readonly continuousIntake?: boolean
+  /**
+   * Directorate state to start from (T5.1). Defaults to `'none'`, matching
+   * `createGame`: research changes more than what may be built — tax rates,
+   * contract caps, routing overrides — so a scenario that silently started
+   * fully researched would be measuring a different prison than the player's.
+   * Scenarios about some other system pass `'all'` to get the tree out of the
+   * way.
+   */
+  readonly research?: 'all' | 'none'
 }
 
 export function createInmateWorld(options: CreateInmateWorldOptions): InmateWorld {
@@ -434,6 +483,8 @@ export function createInmateWorld(options: CreateInmateWorldOptions): InmateWorl
     new InmateRegistry(),
     intake,
   )
+
+  if (options.research === 'all') world.directorate.grantAll(data)
 
   world.grid.fill('outdoors', 1)
   world.meals.standingOrders.quantity = world.standingOrders.mealQuantity
@@ -776,6 +827,10 @@ function handleSetRequested(command: Command, context: SystemContext, data: Game
   }
   if (!data.securityCategories.has(category)) {
     reject(context, command, 'unknown-category')
+    return
+  }
+  if (!isUnlocked(data, context.world.directorate, 'securityCategories', category)) {
+    reject(context, command, 'locked')
     return
   }
   const def = data.securityCategories.get(category)

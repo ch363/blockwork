@@ -15,26 +15,24 @@
  * which migrations it must run, without decompressing a megabyte first. It
  * also means a payload migration never has to care about compression.
  *
- * **Placeholder state types.** Most of the systems PRD 7.4 lists do not exist
- * yet; they arrive across phases 1 to 5. Their state is typed here as opaque
- * JSON so that the save format is complete from day one and so that the ticket
- * which builds each system replaces one alias rather than the whole format.
- * Opaque does not mean unchecked: the loader still verifies that each field is
- * present and is JSON of the right broad shape, and a system that later gives
- * its state a real interface gets a migration, not a silent reinterpretation.
+ * v3 wires Phase 4 live registries (sectors, posts, standing orders, fire,
+ * riot, emergency, escapes, contraband, combat, punishments) and replaces the
+ * opaque stubs that shipped with the save skeleton.
  */
 
 import type { JsonObject } from '../core/commands'
+import type { SectorAccessMode } from '../data/schemas'
 import type { TileField } from '../world/tileGrid'
 
 /**
  * The payload schema version this build writes and migrates towards.
  *
- * v1 was the format at T0.6. v2 is identical to it and exists so the migration
- * chain has a real step in it from the start (see `migrations/`): a chain with
- * no entries is a chain nobody has ever run.
+ * v1 was the format at T0.6. v2 is identical to it (chain bootstrap). v3
+ * replaces opaque Phase 4 stubs with live registry snapshots. v4 adds the
+ * Phase 5 state: Directorate research, room grades and entitlement,
+ * programmes, parole and the release ledger.
  */
-export const CURRENT_SAVE_VERSION = 2
+export const CURRENT_SAVE_VERSION = 4
 
 /** The oldest payload version the migration chain can still bring forward. */
 export const FIRST_SUPPORTED_SAVE_VERSION = 1
@@ -132,30 +130,176 @@ export type MapSettings = JsonObject
  */
 export type SerialisedGrid = { readonly [K in TileField]: string }
 
-/** T2.4 and T2.7 replace this when inmates and staff land. */
+/** Minimal inmate / staff / object snapshot so Phase 4 id references resolve. */
 export interface SerialisedEntity extends JsonObject {
   /** Stable entity id. 0 is never a live entity. */
   readonly id: number
+  readonly kind: 'inmate' | 'staff' | 'object'
 }
 
-/** T1.3 replaces this when room detection lands. */
+/** Minimal room snapshot (id references + detection seed). */
 export interface SerialisedRoom extends JsonObject {
   readonly id: number
+  readonly defId: string
+  readonly tiles: readonly number[]
+  readonly bounds: {
+    readonly x: number
+    readonly y: number
+    readonly width: number
+    readonly height: number
+  }
+  readonly properties: Readonly<Record<string, boolean>>
 }
 
-/** T4.1 replaces this when sectors land. */
+/** One sector definition. Tile membership lives on `grid.sectorId`. */
 export interface SerialisedSector extends JsonObject {
   readonly id: number
+  readonly name: string
+  readonly colour: string
+  readonly access: SectorAccessMode
+  readonly categories: readonly string[]
 }
 
-/** T3.6: opaque until save wiring serialises `EconomyLedger`. */
-export type EconomyState = JsonObject
+/** Sector defs plus the next id allocator. */
+export interface SectorsState extends JsonObject {
+  readonly nextSectorId: number
+  readonly sectors: readonly SerialisedSector[]
+}
 
-/** T5.1 replaces this when the Directorate lands. */
-export type DirectorateState = JsonObject
+/** Prison ledger snapshot (`EconomyLedger.serialise`). */
+export interface EconomyState extends JsonObject {
+  readonly balance: number
+  readonly loanPrincipal: number
+  readonly insolvencyDeadlineTick: number | null
+  readonly insolvencyStartedTick?: number | null
+  readonly entries: readonly {
+    readonly tick: number
+    readonly category: string
+    readonly amount: number
+    readonly reason: string
+    readonly sourceEntityId: number
+  }[]
+}
 
-/** T3.7: opaque until save wiring serialises `ContractBook`. */
-export type ContractState = JsonObject
+/** Directorate research snapshot (`DirectorateState.serialise`, T5.1). */
+export interface DirectorateStateSnapshot extends JsonObject {
+  readonly completed: readonly string[]
+  readonly active: readonly {
+    readonly nodeId: string
+    readonly startedTick: number
+    /** Ticks of progress, excluding time spent paused. */
+    readonly elapsedTicks: number
+    /** `'no-administrator'` / `'no-office'`, or null while advancing. */
+    readonly pausedReason: string | null
+  }[]
+}
+
+/** Room grading and entitlement clocks (`GradingRuntime.serialise`, T5.2). */
+export interface GradingStateSnapshot extends JsonObject {
+  /** Latest published grade per room. Recomputed on the next hourly pass. */
+  readonly roomGrades: readonly { readonly roomId: number; readonly score: number }[]
+  /** Tick each inmate last earned an entitlement point. */
+  readonly lastEntitlementTick: readonly {
+    readonly inmateId: number
+    readonly tick: number
+  }[]
+  readonly averageCellGrade: number
+}
+
+/** Programme enrolment, completions and pins (`ProgramRuntime.serialise`, T5.3). */
+export interface ProgramsStateSnapshot extends JsonObject {
+  readonly enrolments: readonly {
+    readonly inmateId: number
+    readonly programId: string
+    readonly sessionsPassed: number
+    readonly sessionsMissed: number
+    readonly enrolledTick: number
+  }[]
+  readonly completions: readonly {
+    readonly inmateId: number
+    readonly programIds: readonly string[]
+  }[]
+  readonly pins: readonly {
+    readonly programId: string
+    readonly categoryId: string
+    readonly startHour: number
+  }[]
+}
+
+/** Confinement / suppression exposure ledgers (`GradesRuntime.serialise`, T5.4). */
+export interface GradesStateSnapshot extends JsonObject {
+  readonly confinement: readonly {
+    readonly inmateId: number
+    readonly isolationHours: number
+    readonly lockdownHours: number
+    readonly suppressionExposure: number
+    readonly labourHours: number
+  }[]
+}
+
+/** Parole queue and hearing budget (`ParoleRuntime.serialise`, T5.4). */
+export interface ParoleStateSnapshot extends JsonObject {
+  readonly queue: readonly {
+    readonly inmateId: number
+    readonly eligibleAtTick: number
+    readonly hearingsHeld: number
+    readonly nextHearingTick: number
+  }[]
+  readonly hearingsToday: number
+  readonly hearingDay: number
+}
+
+/** Release ledger and re-offending record (`ReleaseRuntime.serialise`, T5.4). */
+export interface ReleaseStateSnapshot extends JsonObject {
+  readonly released: readonly {
+    readonly inmateId: number
+    readonly name: string
+    readonly reason: string
+    readonly releasedTick: number
+    readonly reoffendChance: number
+    readonly rollsAtTick: number
+    readonly reoffended: boolean | null
+    readonly reoffendedTick: number
+  }[]
+  readonly lifetimeReleased: number
+  readonly lifetimeReoffended: number
+  readonly paroleReoffences: readonly number[]
+  readonly recidivismWarned: boolean
+}
+
+/** Informants and revealed intelligence (`IntelligenceRuntime.serialise`, T5.6). */
+export interface IntelligenceStateSnapshot extends JsonObject {
+  readonly informants: readonly {
+    readonly inmateId: number
+    readonly recruitedTick: number
+    readonly blown: boolean
+    readonly blownTick: number
+    readonly carelesslyHandled: boolean
+    readonly revealCount: number
+  }[]
+  readonly revealedStashIds: readonly number[]
+  readonly revealedThrowInIds: readonly number[]
+  readonly lastBlowRollDay: number
+}
+
+/** Contract book snapshot (`ContractBook.serialise`). */
+export interface ContractState extends JsonObject {
+  readonly active: readonly {
+    readonly defId: string
+    readonly acceptedTick: number
+    readonly advancePaid: number
+    readonly itemPassed: readonly boolean[]
+  }[]
+  readonly finished: readonly {
+    readonly defId: string
+    readonly lifecycle: string
+    readonly settledTick: number
+    readonly advancePaid: number
+    readonly cancellationDebit: number
+    readonly completionCredit: number
+  }[]
+  readonly revealed: readonly string[]
+}
 
 /**
  * 24 hourly Routine blocks per security category (T2.6, PRD 5.7).
@@ -166,13 +310,223 @@ export type RoutineState = {
   readonly [categoryId: string]: readonly string[]
 }
 
-/** T4.3 replaces this when Standing Orders land. */
-export type StandingOrdersState = JsonObject
+/** Live Standing Orders policy (`createDefaultStandingOrders` shape). */
+export interface StandingOrdersState extends JsonObject {
+  readonly misconduct: {
+    readonly [kind: string]: {
+      readonly punishment: string
+      readonly durationHours: number
+      readonly search: boolean
+    }
+  }
+  readonly reassignmentStrictness: string
+  readonly mealQuantity: string
+  readonly mealVariety: number
+}
 
-/** T4.1 replaces this when staff posts land. */
-export type PostState = JsonObject
+export interface SerialisedHourRange extends JsonObject {
+  readonly startHour: number
+  readonly endHour: number
+}
 
-/** T3.1 replaces this when the event log lands. */
+export interface SerialisedPost extends JsonObject {
+  readonly id: number
+  readonly name: string
+  readonly sectorId: number
+  readonly objectId: number
+  readonly staffRole: string
+  readonly count: number
+  readonly timeWindows: readonly SerialisedHourRange[]
+  readonly assigned: readonly number[]
+  readonly shortfallReason: string | null
+  readonly lastReportedTick: number
+}
+
+export interface SerialisedPatrolRoute extends JsonObject {
+  readonly id: number
+  readonly name: string
+  readonly staffRole: string
+  readonly count: number
+  readonly waypoints: readonly number[]
+  readonly timeWindows: readonly SerialisedHourRange[]
+  readonly assigned: readonly number[]
+  readonly shortfallReason: string | null
+  readonly lastReportedTick: number
+}
+
+/** Posts and patrol routes (`PostRegistry`). */
+export interface PostsState extends JsonObject {
+  readonly nextPostId: number
+  readonly nextRouteId: number
+  readonly posts: readonly SerialisedPost[]
+  readonly routes: readonly SerialisedPatrolRoute[]
+}
+
+/** @deprecated Prefer {@link PostsState}; kept for migration typing. */
+export type PostState = SerialisedPost
+
+export interface ContrabandStateSnapshot extends JsonObject {
+  readonly nextStashId: number
+  readonly nextThrowInId: number
+  readonly confiscatedCount: number
+  readonly pendingArrivalIds: readonly number[]
+  readonly pendingDeliveryLines: readonly {
+    readonly itemId: string
+    readonly units: number
+    readonly truckId: number
+  }[]
+  readonly stashes: readonly {
+    readonly id: number
+    readonly tileIndex: number
+    readonly itemId: string
+    readonly ownerInmateId: number
+  }[]
+  readonly throwIns: readonly {
+    readonly id: number
+    readonly inmateId: number
+    readonly itemId: string
+    readonly tileIndex: number
+    readonly collectTick: number
+    readonly resolved: boolean
+  }[]
+  readonly prices: readonly { readonly itemId: string; readonly price: number }[]
+}
+
+/** Sparse fire / smoke (non-zero tiles only). */
+export interface FireStateSnapshot extends JsonObject {
+  readonly size: number
+  readonly burning: readonly {
+    readonly tileIndex: number
+    readonly intensity: number
+    readonly fuel: number
+  }[]
+  readonly smoke: readonly { readonly tileIndex: number; readonly smoke: number }[]
+  readonly overloadedBranches: readonly number[]
+}
+
+export interface RiotStateSnapshot extends JsonObject {
+  readonly active: boolean
+  readonly riotingInmateIds: readonly number[]
+  readonly quietMinutes: number
+  readonly startedAtTick: number
+  readonly doorBreakProgress: readonly {
+    readonly tileIndex: number
+    readonly minutes: number
+  }[]
+}
+
+export interface EmergencyStateSnapshot extends JsonObject {
+  readonly sectorLockdowns: readonly number[]
+  readonly fullLockdown: boolean
+  readonly riotSquadActive: boolean
+  readonly riotSquadStaffIds: readonly number[]
+  readonly freeFireActive: boolean
+  readonly freeFirePenaltiesApplied: boolean
+  readonly nationalGuardActive: boolean
+  readonly nationalGuardStaffIds: readonly number[]
+  readonly playerFired: boolean
+  readonly riotFailureEnabled: boolean
+  readonly warningAtTick: number | null
+  readonly failureAtTick: number | null
+  readonly warningEmitted: boolean
+  readonly failed: boolean
+  readonly staffHealth: readonly { readonly id: number; readonly hp: number }[]
+  readonly prPenalty: number
+  readonly riotSquadLastWageTick: number
+}
+
+export interface EscapesStateSnapshot extends JsonObject {
+  readonly nextTunnelId: number
+  readonly tunnels: readonly {
+    readonly id: number
+    readonly originTile: number
+    readonly tiles: readonly number[]
+    readonly diggerIds: readonly number[]
+    readonly discovered: boolean
+    readonly progress: number
+    readonly reachedExit: boolean
+    readonly networkId: number
+  }[]
+  readonly breachedDoorTiles: readonly number[]
+  readonly pendingEscapes: readonly {
+    readonly networkId: number
+    readonly inmateIds: readonly number[]
+    readonly remainingIds: readonly number[]
+  }[]
+  readonly escapesToday: number
+  readonly escapesYesterday: number
+  readonly accountedDay: number
+  readonly warningActive: boolean
+  readonly failed: boolean
+  readonly totalEscapes: number
+}
+
+export interface CombatStateSnapshot extends JsonObject {
+  readonly nextFightId: number
+  readonly fights: readonly {
+    readonly id: number
+    readonly state: string
+    readonly startedAtTick: number
+    readonly interveningOfficerId: number
+    readonly interventionTilesRemaining: number
+    readonly participants: readonly {
+      readonly kind: string
+      readonly id: number
+      readonly nextAttackTick: number
+      readonly weaponId: string | null
+    }[]
+  }[]
+  readonly corpses: {
+    readonly nextId: number
+    readonly list: readonly {
+      readonly id: number
+      readonly agentKind: string
+      readonly agentId: number
+      readonly name: string
+      readonly tileIndex: number
+      readonly diedAtTick: number
+      readonly state: string
+      readonly hearseAtTick: number
+      readonly mortuaryJobId: number
+    }[]
+  }
+  readonly vestWearers: readonly string[]
+  readonly stunCharges: readonly { readonly id: number; readonly count: number }[]
+  readonly stunRechargeAt: readonly { readonly id: number; readonly at: number }[]
+  readonly overdoses: readonly {
+    readonly inmateId: number
+    readonly startedAtTick: number
+    readonly fatalAtTick: number
+  }[]
+  readonly clinicEscortQueued: readonly number[]
+  readonly staffHealth: readonly { readonly key: string; readonly hp: number }[]
+  readonly staffStatus: readonly { readonly key: string; readonly status: readonly string[] }[]
+  readonly staffInventory: readonly {
+    readonly key: string
+    readonly inventory: readonly string[]
+  }[]
+}
+
+export interface PunishmentsStateSnapshot extends JsonObject {
+  readonly active: readonly {
+    readonly inmateId: number
+    readonly kind: string
+    readonly sourceMisconduct: string
+    readonly phase: string
+    readonly remainingMinutes: number
+    readonly homeCellId: number
+    readonly holdRoomId: number
+    readonly destinationTile: number
+    readonly escortJobId: number
+    readonly lastMealHourKey: number
+    readonly isolationSuppressionAccrued: number
+  }[]
+  readonly agitatorBoostUntil: readonly {
+    readonly inmateId: number
+    readonly untilTick: number
+  }[]
+}
+
 export interface LogEntry extends JsonObject {
   /** The tick the entry was recorded on. */
   readonly tick: number
@@ -195,8 +549,16 @@ export type SerialisedRngState = {
   }[]
 }
 
+/** Cable / pipe overlay tiles (T5.5). Grid branch ids rebuild on the next utilities tick. */
+export interface UtilitiesStateSnapshot extends JsonObject {
+  /** Tile indices with cable present. */
+  readonly cableTiles: readonly number[]
+  /** Tile indices with pipe present. */
+  readonly pipeTiles: readonly number[]
+}
+
 /**
- * One save, exactly as PRD 7.4 specifies it.
+ * One save, exactly as PRD 7.4 specifies it, plus Phase 4 keys from v3.
  *
  * It extends `JsonObject` on purpose: a `SaveFile` is required to be plain
  * JSON with no cycles and no class instances, and the migration chain works on
@@ -215,13 +577,32 @@ export interface SaveFile extends JsonObject {
   readonly grid: SerialisedGrid
   readonly entities: readonly SerialisedEntity[]
   readonly rooms: readonly SerialisedRoom[]
-  readonly sectors: readonly SerialisedSector[]
+  readonly nextRoomId: number
+  readonly sectors: SectorsState
   readonly economy: EconomyState
-  readonly directorate: DirectorateState
-  readonly contracts: readonly ContractState[]
+  readonly directorate: DirectorateStateSnapshot
+  readonly grading: GradingStateSnapshot
+  readonly programs: ProgramsStateSnapshot
+  readonly grades: GradesStateSnapshot
+  readonly parole: ParoleStateSnapshot
+  readonly release: ReleaseStateSnapshot
+  readonly intelligence: IntelligenceStateSnapshot
+  readonly contracts: ContractState
   readonly routines: RoutineState
   readonly standingOrders: StandingOrdersState
-  readonly posts: readonly PostState[]
+  readonly posts: PostsState
+  readonly contraband: ContrabandStateSnapshot
+  readonly fire: FireStateSnapshot
+  readonly riot: RiotStateSnapshot
+  readonly emergency: EmergencyStateSnapshot
+  readonly escapes: EscapesStateSnapshot
+  readonly combat: CombatStateSnapshot
+  readonly punishments: PunishmentsStateSnapshot
+  readonly utilities: UtilitiesStateSnapshot
+  readonly dangerLevel: number
+  readonly riotActive: boolean
+  readonly lockdownActive: boolean
+  readonly misconductWindowTicks: readonly number[]
   /** Capped at `MAX_SAVED_LOG_ENTRIES`, newest kept. */
   readonly log: readonly LogEntry[]
   readonly rngState: SerialisedRngState

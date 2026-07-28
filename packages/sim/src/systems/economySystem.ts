@@ -15,6 +15,7 @@
 import { TICKS_PER_DAY } from '../core/clock'
 import type { EventSink, System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
+import { hasFeature } from '../entities/directorate'
 import {
   ECONOMY_EVENTS,
   ECONOMY_SYSTEM_NAME,
@@ -178,6 +179,26 @@ export function payInmateDaily(world: InmateWorld, events: EventSink, tick: numb
 }
 
 /**
+ * The tax rate after the Finance branch has been at it (T5.1, PRD 5.8).
+ *
+ * Tax Relief and Offshore Structure are the two nodes the player buys to make
+ * a prison solvent without building anything, so they are multipliers on the
+ * rate rather than a rebate: the saving scales with how much the prison earns,
+ * which is what makes the $50,000 second node worth it only to a large one.
+ */
+export function effectiveTaxRate(world: InmateWorld): number {
+  const economy = world.data.balance.economy
+  let rate = economy.taxRate
+  if (hasFeature(world.data, world.directorate, 'tax_relief')) {
+    rate *= economy.taxReliefRateMultiplier
+  }
+  if (hasFeature(world.data, world.directorate, 'offshore_structure')) {
+    rate *= economy.offshoreRateMultiplier
+  }
+  return rate
+}
+
+/**
  * Taxes positive income posted since the previous midnight (exclusive of the
  * opening funds and of this tax debit itself).
  */
@@ -187,7 +208,7 @@ export function applyTax(
   tick: number,
   dayStartTick: number,
 ): number {
-  const rate = world.data.balance.economy.taxRate
+  const rate = effectiveTaxRate(world)
   if (rate <= 0) return 0
 
   let taxable = 0

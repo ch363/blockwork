@@ -84,6 +84,8 @@ import { NO_DESIGNATION, NO_ROOM, RoomRegistry, failedRequirements } from '../wo
 import type { Room, RoomRequirement } from '../world/rooms'
 import { TileGrid } from '../world/tileGrid'
 import { wallLineTiles } from '../world/walls'
+import { isInmateWorld } from '../systems/intakeSystem'
+import { paintCable, paintPipe } from '../systems/utilitiesSystem'
 
 import { isJsonArray } from './commands'
 import type { Command, JsonObject, JsonValue } from './commands'
@@ -141,6 +143,8 @@ export type BuildAction =
   | { readonly kind: 'removeWall'; readonly line: BuildLine }
   | { readonly kind: 'placeDoor'; readonly tile: Tile; readonly doorType: DoorType }
   | { readonly kind: 'paintFloor'; readonly rect: Rect; readonly material: MaterialId }
+  | { readonly kind: 'paintCable'; readonly line: BuildLine }
+  | { readonly kind: 'paintPipe'; readonly line: BuildLine }
   | { readonly kind: 'demolish'; readonly rect: Rect }
   | { readonly kind: 'designateRoom'; readonly rect: Rect; readonly roomDefId: string }
   | { readonly kind: 'undesignateRoom'; readonly rect: Rect }
@@ -160,6 +164,8 @@ export const BUILD_ACTION_KINDS = [
   'removeWall',
   'placeDoor',
   'paintFloor',
+  'paintCable',
+  'paintPipe',
   'demolish',
   'designateRoom',
   'undesignateRoom',
@@ -220,6 +226,9 @@ export function actionToJson(action: BuildAction): JsonObject {
       return { kind: action.kind, tile: tileJson(action.tile), doorType: action.doorType }
     case 'paintFloor':
       return { kind: action.kind, rect: rectJson(action.rect), material: action.material }
+    case 'paintCable':
+    case 'paintPipe':
+      return { kind: action.kind, line: { ...action.line } }
     case 'demolish':
       return { kind: action.kind, rect: rectJson(action.rect) }
     case 'designateRoom':
@@ -359,6 +368,12 @@ export function actionFromJson(value: JsonValue): BuildAction | undefined {
       if (line === undefined) return undefined
       return { kind, line }
     }
+    case 'paintCable':
+    case 'paintPipe': {
+      const line = asLine(record['line'])
+      if (line === undefined) return undefined
+      return { kind, line }
+    }
     case 'placeDoor': {
       const tile = asTile(record['tile'])
       const doorType = asDoorType(record['doorType'])
@@ -454,6 +469,8 @@ export function actionTiles(world: ObjectWorld, data: GameData, action: BuildAct
       return ofRect(action.rect)
     case 'placeWall':
     case 'removeWall':
+    case 'paintCable':
+    case 'paintPipe':
       return wallLineTiles(grid, action.line)
     case 'placeDoor':
     case 'removeObjectAt':
@@ -720,6 +737,12 @@ function runAction(
       return NOTHING
     case 'paintFloor':
       paintFloor(deps, action.rect, action.material)
+      return NOTHING
+    case 'paintCable':
+      if (isInmateWorld(world)) paintCable(world, action.line)
+      return NOTHING
+    case 'paintPipe':
+      if (isInmateWorld(world)) paintPipe(world, action.line)
       return NOTHING
     case 'demolish':
       demolish(deps, action.rect)

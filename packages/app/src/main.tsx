@@ -59,8 +59,13 @@ async function boot(): Promise<void> {
   // Capacitor and Safari both fire this when the app goes to the background;
   // the worker's own catch-up clamp handles the resume, and pausing here means
   // a backgrounded prison is not silently running at 20x on someone's battery.
+  // Autosave runs on the same signal (PRD 7.4) so a killed tab still has a
+  // recent capture.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') session.setSpeed(0)
+    if (document.visibilityState === 'hidden') {
+      session.setSpeed(0)
+      void session.autosave()
+    }
   })
 }
 

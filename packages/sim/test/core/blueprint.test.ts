@@ -424,6 +424,8 @@ describe('the JSON codec', () => {
     { kind: 'removeWall', line: { x1: 1, y1: 1, x2: 5, y2: 1 } },
     { kind: 'placeDoor', tile: { x: 3, y: 1 }, doorType: 'standard' },
     { kind: 'paintFloor', rect: { x: 1, y: 2, width: 3, height: 4 }, material: FLOOR_MATERIAL },
+    { kind: 'paintCable', line: { x1: 1, y1: 1, x2: 5, y2: 1 } },
+    { kind: 'paintPipe', line: { x1: 2, y1: 2, x2: 2, y2: 6 } },
     { kind: 'demolish', rect: { x: 0, y: 0, width: 2, height: 2 } },
     { kind: 'designateRoom', rect: { x: 1, y: 1, width: 2, height: 3 }, roomDefId: 'cell' },
     { kind: 'undesignateRoom', rect: { x: 1, y: 1, width: 2, height: 3 } },

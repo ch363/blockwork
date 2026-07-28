@@ -50,6 +50,8 @@ export interface MisconductRollInput {
   readonly instigatorNearby: number
   readonly guardNearby: boolean
   readonly hasViolentTrait: boolean
+  /** Anger Management's replacement for `violentTraitMultiplier` (T5.3). */
+  readonly violentTraitMultiplierOverride?: number
   /** Extra multiplier from a temporary agitator boost (usually 1). */
   readonly agitatorBoostMultiplier: number
 }
@@ -74,7 +76,12 @@ export function computeMisconductProbability(
   const suppressionTerm = 1 - balance.suppressionFactor * suppressionNorm
   const instigatorTerm = 1 + balance.instigatorFactor * input.instigatorNearby
   const guardTerm = input.guardNearby ? balance.guardProximityMultiplier : 1
-  const violentTerm = input.hasViolentTrait ? balance.violentTraitMultiplier : 1
+  // Anger Management (T5.3) replaces the multiplier rather than removing the
+  // trait: the inmate is still violent, they have simply been taught what to
+  // do about it (PRD 5.9).
+  const violentTerm = input.hasViolentTrait
+    ? (input.violentTraitMultiplierOverride ?? balance.violentTraitMultiplier)
+    : 1
 
   const p =
     base *

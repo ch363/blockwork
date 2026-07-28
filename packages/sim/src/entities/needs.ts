@@ -400,13 +400,14 @@ export function applyNeedDischarge(
   values: Float32Array,
   index: NeedIndex,
   servedNeeds: readonly { readonly need: string }[],
+  scale = 1,
 ): void {
   assertNeedLength(values, index.size)
   for (const served of servedNeeds) {
     const needIndex = index.indexOf(served.need)
     if (needIndex < 0) continue
     const def = index.defAt(needIndex)
-    values[needIndex] = clampNeed((values[needIndex] ?? 0) - def.decayOnUse)
+    values[needIndex] = clampNeed((values[needIndex] ?? 0) - def.decayOnUse * scale)
   }
 }
 

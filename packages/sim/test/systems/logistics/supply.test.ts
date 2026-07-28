@@ -42,7 +42,14 @@ import type { Rect } from '../../../src/world/construction'
 import { initialLockState } from '../../../src/world/doors'
 import { designateRoom } from '../../../src/world/roomDetection'
 
-const DATA = loadGameData()
+const RAW_DATA = loadGameData()
+const DATA = {
+  ...RAW_DATA,
+  balance: {
+    ...RAW_DATA.balance,
+    utilities: { ...RAW_DATA.balance.utilities, utilitiesEnabled: false },
+  },
+}
 const SEED = 0xb10c_3004
 const WALL = 'brick_wall'
 const INTERVAL = truckIntervalTicks(DATA)

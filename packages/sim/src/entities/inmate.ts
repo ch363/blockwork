@@ -48,8 +48,8 @@ export interface InmateConviction {
 
 export interface InmateReputation {
   readonly id: string
-  /** Revealed by intelligence (T4.4). Starts hidden. */
-  readonly revealed: boolean
+  /** Revealed by an informant or a phone tap (T5.6). Starts hidden. */
+  revealed: boolean
 }
 
 export interface InmateAddiction {
@@ -84,7 +84,8 @@ export interface InmateComponent {
   readonly reputations: readonly InmateReputation[]
   /** Indexed by `GameData.needs` file order (T2.5). */
   readonly needs: Float32Array
-  readonly addictions: readonly InmateAddiction[]
+  /** Mutable reference: a completed treatment programme replaces the list (T5.3). */
+  addictions: readonly InmateAddiction[]
   suppression: number
   entitlement: number
   /** Assigned housing room id, or `NO_ROOM` while in the intake hall. */

@@ -1181,6 +1181,76 @@ exports[`inspector snapshots > renders the room variant 1`] = `
           </span>
         </div>
       </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Grade 
+          4
+           / 
+          10
+        </h4>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Comfort bed
+             · 1 present
+          </span>
+          <span
+            class="v bw-num"
+          >
+            +1
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Sink / mirror
+             · 1 present
+          </span>
+          <span
+            class="v bw-num"
+          >
+            +1
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Size
+             · 30 tiles, needs 16
+          </span>
+          <span
+            class="v bw-num"
+          >
+            +3
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            No window
+            
+          </span>
+          <span
+            class="v bw-num"
+          >
+            -1
+          </span>
+        </div>
+      </div>
     </div>
     <div
       class="bw-insp-foot"

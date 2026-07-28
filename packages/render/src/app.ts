@@ -10,12 +10,12 @@
  *             ├── walls     (PRD 7.6 layer 2: walls + doors)
  *             ├── objects   (PRD 7.6 layer 3)
  *             ├── agents    (PRD 7.6 layer 4)
+ *             ├── overlay   (PRD 7.6 layer 5: sectors / fire / tunnels)
  *             ├── blueprint (staged build overlay)
  *             └── grid      tile lattice and map boundary
  *
- * Layers 5 to 6 of PRD 7.6 — overlays, effects — are later tickets and are
- * deliberately not stubbed in. Selection rings and mood pins live on the
- * agents layer (T2.8) rather than waiting for the effects pass.
+ * Layer 6 of PRD 7.6 — effects — is a later ticket. Selection rings and mood
+ * pins live on the agents layer (T2.8) rather than waiting for the effects pass.
  *
  * **Why the camera is a container transform.** Nothing in a layer knows where
  * the camera is. The world container carries a scale and a translation, and
@@ -43,6 +43,8 @@ import { AgentLayer, createAgentAtlas } from './layers/agents'
 import { BlueprintLayer } from './layers/blueprint'
 import { GridLayer } from './layers/grid'
 import { ObjectLayer, createObjectAtlas } from './layers/objects'
+import { OverlayLayer } from './layers/overlay'
+import type { OverlayFireTile, OverlayMode, OverlayTunnel } from './layers/overlay'
 import { PLACEHOLDER_TERRAIN_PALETTE, TerrainLayer, createTerrainAtlas } from './layers/terrain'
 import type { TerrainTileAppearance } from './layers/terrain'
 import { WallLayer, createDoorAtlas, createWallShapeAtlas, wallPalette } from './layers/walls'
@@ -94,6 +96,7 @@ export class BlockworkRenderer {
   readonly walls: WallLayer
   readonly objects: ObjectLayer
   readonly agents: AgentLayer
+  readonly overlay: OverlayLayer
   readonly blueprint: BlueprintLayer
   readonly grid: GridLayer
   /** Map edge in tiles. */
@@ -111,6 +114,7 @@ export class BlockworkRenderer {
     walls: WallLayer,
     objects: ObjectLayer,
     agents: AgentLayer,
+    overlay: OverlayLayer,
     blueprint: BlueprintLayer,
     grid: GridLayer,
   ) {
@@ -121,6 +125,7 @@ export class BlockworkRenderer {
     this.walls = walls
     this.objects = objects
     this.agents = agents
+    this.overlay = overlay
     this.blueprint = blueprint
     this.grid = grid
 
@@ -130,6 +135,7 @@ export class BlockworkRenderer {
       walls.container,
       objects.container,
       agents.container,
+      overlay.container,
       blueprint.container,
       grid.container,
     )
@@ -195,6 +201,7 @@ export class BlockworkRenderer {
     })
     const objects = new ObjectLayer({ mapSize, atlas: createObjectAtlas() })
     const agents = new AgentLayer({ mapSize, atlas: createAgentAtlas() })
+    const overlay = new OverlayLayer({ mapSize })
     const blueprint = new BlueprintLayer({ mapSize })
     const grid = new GridLayer({ mapSize })
 
@@ -206,6 +213,7 @@ export class BlockworkRenderer {
       walls,
       objects,
       agents,
+      overlay,
       blueprint,
       grid,
     )
@@ -250,6 +258,27 @@ export class BlockworkRenderer {
   markTilesDirty(tileX: number, tileY: number, width: number, height: number): void {
     this.terrain.markDirtyRect(tileX, tileY, width, height)
     this.walls.markDirtyRect(tileX, tileY, width, height)
+    this.overlay.markDirty()
+  }
+
+  setOverlayMode(mode: OverlayMode): void {
+    this.overlay.setMode(mode)
+  }
+
+  setSectorIds(sectorIds: Uint16Array): void {
+    this.overlay.setSectorIds(sectorIds)
+  }
+
+  setSectorColours(colours: ReadonlyMap<number, number> | Readonly<Record<number, number>>): void {
+    this.overlay.setSectorColours(colours)
+  }
+
+  setFireOverlay(tiles: readonly OverlayFireTile[]): void {
+    this.overlay.setFire(tiles)
+  }
+
+  setTunnelOverlay(tunnels: readonly OverlayTunnel[]): void {
+    this.overlay.setTunnels(tunnels)
   }
 
   setWallPalette(
@@ -298,6 +327,7 @@ export class BlockworkRenderer {
     this.walls.update(this.camera)
     this.objects.update(this.camera)
     this.agents.update(this.camera)
+    this.overlay.sync(this.camera)
     this.blueprint.update(zoom)
     this.grid.update(this.camera)
   }

@@ -51,6 +51,7 @@ import type { Fnv1aHasher } from '../core/hash'
 import type { CommandHandler, EventSink, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
 import type { ObjectDef } from '../data/schemas'
+import { gatingNode, isUnlocked } from './directorate'
 import { clipRect, isValidRect, rectTiles, refreshPassabilityRect } from '../world/construction'
 import type { Rect, Tile } from '../world/construction'
 import { MaterialTable, NO_MATERIAL } from '../world/materials'
@@ -502,13 +503,16 @@ function rebindObjects(world: ObjectWorld, tiles: readonly number[]): void {
  *
  * Three cases, in order: an object that needs no power always has it; while
  * `balance.utilities.utilitiesEnabled` is false nothing is ever short; and
- * otherwise the answer comes off the grid, which T5.5 fills in and which reads
- * "no grid" everywhere until it does.
+ * otherwise the answer comes off the grid. A non-zero `powerGridId` that is
+ * currently shed (brownout) does not count as supplied.
  */
 export function suppliesPower(world: ObjectWorld, def: ObjectDef, anchorTile: number): boolean {
   if (def.needsPower <= 0) return true
   if (!world.data.balance.utilities.utilitiesEnabled) return true
-  return world.grid.getAt('powerGridId', anchorTile) !== NO_UTILITY_GRID
+  const gridId = world.grid.getAt('powerGridId', anchorTile)
+  if (gridId === NO_UTILITY_GRID) return false
+  if (isPowerBranchShed(world, gridId)) return false
+  return true
 }
 
 /** Whether an object's water demand is met. See `suppliesPower`. */
@@ -516,6 +520,12 @@ export function suppliesWater(world: ObjectWorld, def: ObjectDef, anchorTile: nu
   if (!def.needsWater) return true
   if (!world.data.balance.utilities.utilitiesEnabled) return true
   return world.grid.getAt('waterGridId', anchorTile) !== NO_UTILITY_GRID
+}
+
+function isPowerBranchShed(world: ObjectWorld, gridId: number): boolean {
+  const power = (world as { readonly power?: { isBranchShed(id: number): boolean } }).power
+  if (power === undefined) return false
+  return power.isBranchShed(gridId)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -534,6 +544,8 @@ export type ObjectRejection =
   | 'wrong-surface'
   | 'needs-room'
   | 'id-exhausted'
+  /** The object's Directorate node has not completed (T5.1). */
+  | 'locked'
   | 'wrong-world'
 
 export interface ObjectDeps {
@@ -668,6 +680,13 @@ export function placeObject(
   }
   if (rotation !== 0 && !def.rotatable) {
     reject(deps, command, 'not-rotatable', { objectDefId, rotation })
+    return undefined
+  }
+  if (!isUnlocked(deps.data, world.directorate, 'objects', objectDefId)) {
+    reject(deps, command, 'locked', {
+      objectDefId,
+      nodeId: gatingNode(deps.data, 'objects', objectDefId) ?? '',
+    })
     return undefined
   }
 

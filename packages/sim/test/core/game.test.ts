@@ -32,6 +32,7 @@ const DATA = {
   balance: {
     ...RAW_DATA.balance,
     construction: { ...RAW_DATA.balance.construction, stubMaterialDelivery: true },
+    utilities: { ...RAW_DATA.balance.utilities, utilitiesEnabled: false },
   },
 }
 const SEED = 0xb10c_9001
@@ -135,21 +136,30 @@ describe('createGame', () => {
       'deliveries',
       'cleaning',
       'laundry',
+      'labour',
       'construction',
       'rooms',
+      'utilities',
       'objects',
       'intake',
       'contraband',
       'search',
       'misconduct',
       'punishment',
+      'intelligence',
       'danger',
       'riot',
       'emergency',
       'fire',
       'escape',
+      'programs',
+      'directorate',
       'economy',
       'contracts',
+      'grading',
+      'grades',
+      'parole',
+      'release',
     ])
   })
 

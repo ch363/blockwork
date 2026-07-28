@@ -90,6 +90,7 @@ export {
   assertSaveFile,
   base64ToBytes,
   bytesToBase64,
+  captureInmateWorld,
   checksumBytes,
   compressionAvailable,
   concatBytes,
@@ -105,6 +106,7 @@ export {
   migrationSteps,
   orientBytes,
   readSaveHeader,
+  restoreInmateWorld,
   saveStateWorld,
   saveToBytes,
   serialiseGrid,
@@ -113,26 +115,39 @@ export {
   utf8Encode,
 } from './save'
 export type {
+  CaptureInmateWorldOptions,
+  CombatStateSnapshot,
+  ContrabandStateSnapshot,
   ContractState,
-  DirectorateState,
+  DirectorateStateSnapshot,
   EconomyState,
+  EmergencyStateSnapshot,
+  EscapesStateSnapshot,
+  FireStateSnapshot,
   LoadOptions,
   LogEntry,
   MapSettings,
   Migration,
   PostState,
+  PostsState,
+  PunishmentsStateSnapshot,
+  RiotStateSnapshot,
   RoutineState,
   SaveErrorCode,
   SaveFile,
   SaveHeader,
   SaveOptions,
   SaveState,
+  SectorsState,
   SerialisedEntity,
   SerialisedGrid,
+  SerialisedPatrolRoute,
+  SerialisedPost,
   SerialisedRngState,
   SerialisedRoom,
   SerialisedSector,
   StandingOrdersState,
+  UtilitiesStateSnapshot,
 } from './save'
 
 export {
@@ -1359,3 +1374,264 @@ export {
   smokeMovementMultiplier,
   smokeBlocksVisibility,
 } from './world/fireGrid'
+export { PowerGrid, NO_POWER_BRANCH } from './world/powerGrid'
+export { WaterGrid, NO_WATER_BRANCH } from './world/waterGrid'
+export {
+  UTILITIES_SYSTEM_NAME,
+  UTILITIES_SYSTEM_PERIOD,
+  UTILITIES_EVENTS,
+  createUtilitiesSystem,
+  autoRouteUtility,
+  utilityPathToLines,
+  outdoorTemperatureC,
+  paintCable,
+  paintPipe,
+  clearCable,
+  clearPipe,
+  setCableTile,
+  setPipeTile,
+  waterUseMultiplier,
+} from './systems/utilitiesSystem'
+export type {
+  UtilitiesSystemOptions,
+  UtilityRouteKind,
+  UtilityRouteResult,
+} from './systems/utilitiesSystem'
+
+/* -------------------------------------------------------------------------- */
+/* T5.1 — the Directorate                                                      */
+/* -------------------------------------------------------------------------- */
+
+export {
+  DIRECTORATE_EVENTS,
+  DirectorateState,
+  FEATURE_GATES,
+  UNLOCK_KINDS,
+  administratorStatus,
+  branchFeatureId,
+  checkStartResearch,
+  featureGatedHandlers,
+  gatedIds,
+  gatingNode,
+  hasFeature,
+  isUnlocked,
+  missingPrerequisites,
+  nodeDurationTicks,
+  researchProgress,
+} from './entities/directorate'
+export type {
+  ActiveResearch,
+  DirectorateRejection,
+  DirectorateSnapshot,
+  DirectorateWorldView,
+  FeatureGate,
+  ResearchPauseReason,
+  StartResearchCheck,
+  UnlockKind,
+} from './entities/directorate'
+export {
+  DIRECTORATE_COMMANDS,
+  DIRECTORATE_SYSTEM_NAME,
+  DIRECTORATE_SYSTEM_PERIOD,
+  advanceResearch,
+  createDirectorateSystem,
+  directorateCommandHandlers,
+} from './systems/directorateSystem'
+export type { DirectorateSystemOptions } from './systems/directorateSystem'
+
+/* -------------------------------------------------------------------------- */
+/* T5.2 — room grading and the entitlement ladder                              */
+/* -------------------------------------------------------------------------- */
+
+export {
+  GRADE_RULE_KINDS,
+  GRADING_EVENTS,
+  GRADING_SYSTEM_NAME,
+  GRADING_SYSTEM_PERIOD,
+  GradingRuntime,
+  HOUSING_ROOM_DEFS,
+  accrueEntitlement,
+  createGradingSystem,
+  entitlementMatches,
+  gradeRoom,
+  isHousingRoom,
+  reassignHousing,
+  regradeRooms,
+  regradeSectors,
+  roomGradeOf,
+  sectorGradeOf,
+} from './systems/gradingSystem'
+export type {
+  GradeLine,
+  GradeRuleKind,
+  GradingSnapshot,
+  GradingSystemOptions,
+  RoomGrade,
+} from './systems/gradingSystem'
+
+/* -------------------------------------------------------------------------- */
+/* T5.3 — programmes and reform                                                */
+/* -------------------------------------------------------------------------- */
+
+export {
+  PROGRAM_BLOCKERS,
+  PROGRAM_COMMANDS,
+  PROGRAM_EVENTS,
+  PROGRAM_RNG_STREAM,
+  PROGRAM_SYSTEM_NAME,
+  PROGRAM_SYSTEM_PERIOD,
+  ProgramRuntime,
+  WORK_BLOCKS,
+  applyProgramEffects,
+  createProgramSystem,
+  describeBlocker,
+  enrol,
+  isEligible,
+  isReferralCandidate,
+  longestWorkRun,
+  programCommandHandlers,
+  refreshSchedules,
+  runEnrolment,
+  runFitsAt,
+  sessionSuccessChance,
+  suppressedNeedFor,
+  traitMisconductMultiplierFor,
+  voluntaryOptInChance,
+} from './systems/programSystem'
+export type {
+  ProgramBlocker,
+  ProgramBlockerKind,
+  ProgramEnrolment,
+  ProgramSchedule,
+  ProgramSession,
+  ProgramSystemOptions,
+  ProgramsSnapshot,
+} from './systems/programSystem'
+
+/* -------------------------------------------------------------------------- */
+/* T5.4 — grades, parole and re-offending                                      */
+/* -------------------------------------------------------------------------- */
+
+export {
+  GRADES_EVENTS,
+  GRADES_SYSTEM_NAME,
+  GRADES_SYSTEM_PERIOD,
+  GradesRuntime,
+  accrueExposure,
+  computeGrades,
+  createGradesSystem,
+  creditLabourHours,
+  deriveReoffendChance,
+  healthGrade,
+  meanNeedOf,
+  misconductInWindow,
+  punishmentGrade,
+  reformGrade,
+  securityGrade,
+  strongestAddiction,
+} from './systems/gradesSystem'
+export type { ConfinementRecord, GradesSystemOptions } from './systems/gradesSystem'
+
+export {
+  PAROLE_EVENTS,
+  PAROLE_RNG_STREAM,
+  PAROLE_SYSTEM_NAME,
+  PAROLE_SYSTEM_PERIOD,
+  ParoleRuntime,
+  approvalChance,
+  createParoleSystem,
+  holdHearings,
+  isParoleEligible,
+  refreshQueue,
+} from './systems/paroleSystem'
+export type { ParoleRecord, ParoleSnapshot, ParoleSystemOptions } from './systems/paroleSystem'
+
+export {
+  RELEASE_EVENTS,
+  RELEASE_RNG_STREAM,
+  RELEASE_SYSTEM_NAME,
+  RELEASE_SYSTEM_PERIOD,
+  ReleaseRuntime,
+  checkRecidivismFailure,
+  createReleaseSystem,
+  dockTile,
+  releaseExpiredSentences,
+  releaseInmate,
+  rollPendingReoffences,
+  serveTime,
+} from './systems/releaseSystem'
+export type {
+  ReleaseReason,
+  ReleaseSnapshot,
+  ReleaseSystemOptions,
+  ReleasedInmate,
+} from './systems/releaseSystem'
+
+/* -------------------------------------------------------------------------- */
+/* T5.7 — prison labour and production                                         */
+/* -------------------------------------------------------------------------- */
+
+export {
+  LABOUR_COMMANDS,
+  LABOUR_EVENTS,
+  LABOUR_RNG_STREAM,
+  LABOUR_ROOMS,
+  LABOUR_SYSTEM_NAME,
+  LABOUR_SYSTEM_PERIOD,
+  LabourRuntime,
+  activeProductionLine,
+  advanceGrove,
+  advanceWorkshop,
+  applyWorkEffects,
+  assignLabour,
+  checkAssignment,
+  createLabourSystem,
+  dispatchGoods,
+  isLabourAssignment,
+  labourCommandHandlers,
+  restockCommissary,
+  runCommissary,
+  slotsFor,
+  unassignLabour,
+  workersPresent,
+} from './systems/labourSystem'
+export type {
+  AssignCheck,
+  LabourRejection,
+  LabourSnapshot,
+  LabourSystemOptions,
+} from './systems/labourSystem'
+
+/* -------------------------------------------------------------------------- */
+/* T5.6 — intelligence                                                         */
+/* -------------------------------------------------------------------------- */
+
+export {
+  INTELLIGENCE_COMMANDS,
+  INTELLIGENCE_EVENTS,
+  INTELLIGENCE_RNG_STREAM,
+  INTELLIGENCE_SYSTEM_NAME,
+  INTELLIGENCE_SYSTEM_PERIOD,
+  IntelligenceRuntime,
+  blowChance,
+  checkRecruit,
+  contrabandByRoom,
+  contrabandMarket,
+  createIntelligenceSystem,
+  informantFear,
+  informantLoyalty,
+  intelligenceCommandHandlers,
+  monitoredBoothRooms,
+  revealNearInformants,
+  rollBlowAndRetribution,
+  runPhoneMonitoring,
+} from './systems/intelligenceSystem'
+export type {
+  ContrabandPriceRow,
+  ContrabandSourceRow,
+  Informant,
+  IntelligenceSnapshot,
+  IntelligenceSystemOptions,
+  RecruitCheck,
+  RecruitRejection,
+} from './systems/intelligenceSystem'

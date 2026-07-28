@@ -42,6 +42,15 @@ import type { PostsModel, PostsTab } from './panels/Posts'
 import { StandingOrders } from './panels/StandingOrders'
 import { Emergency } from './panels/Emergency'
 import type { EmergencyModel } from './panels/Emergency'
+import { Directorate } from './panels/Directorate'
+import type {
+  DirectorateBranchId,
+  DirectorateModel,
+} from './panels/Directorate'
+import { Programs } from './panels/Programs'
+import type { ProgramsModel } from './panels/Programs'
+import { Intelligence } from './panels/Intelligence'
+import type { IntelligenceModel, IntelligenceTab } from './panels/Intelligence'
 import type {
   StandingOrdersModel,
   StandingOrdersTab,
@@ -147,6 +156,29 @@ export interface GameShellProps {
   readonly onStandingOrdersStrictness?: (strictness: StandingStrictness) => void
   readonly onStandingOrdersMealQuantity?: (quantity: StandingMealQuantity) => void
   readonly onStandingOrdersMealVariety?: (variety: number) => void
+
+  /** Null closes the Directorate panel (T5.1). */
+  readonly directorate?: DirectorateModel | null
+  readonly directorateBranch?: DirectorateBranchId | 'all'
+  readonly onDirectorateBranch?: (branch: DirectorateBranchId | 'all') => void
+  readonly onDirectorateSelect?: (nodeId: string | null) => void
+  readonly onDirectorateClose?: () => void
+  readonly onDirectorateStart?: (nodeId: string) => void
+
+  /** Null closes the Programs panel (T5.3). */
+  readonly programs?: ProgramsModel | null
+  readonly onProgramsSelect?: (programId: string | null) => void
+  readonly onProgramsClose?: () => void
+  readonly onProgramsPin?: (programId: string) => void
+  readonly onProgramsUnpin?: (programId: string) => void
+
+  /** Null closes the Intelligence panel (T5.6). */
+  readonly intelligence?: IntelligenceModel | null
+  readonly intelligenceTab?: IntelligenceTab
+  readonly onIntelligenceTab?: (tab: IntelligenceTab) => void
+  readonly onIntelligenceClose?: () => void
+  readonly onIntelligenceRecruit?: (inmateId: number) => void
+  readonly onIntelligenceFocusInformant?: (inmateId: number) => void
 
   /** A one-line instruction for the active tool, shown over the world. */
   readonly hint?: string | null
@@ -314,6 +346,38 @@ export function GameShell(props: GameShellProps): JSX.Element {
           {...(props.onStandingOrdersMealVariety === undefined
             ? {}
             : { onMealVariety: props.onStandingOrdersMealVariety })}
+        />
+
+        <Directorate
+          model={props.directorate ?? null}
+          branch={props.directorateBranch ?? 'all'}
+          onBranch={props.onDirectorateBranch ?? (() => undefined)}
+          onSelect={props.onDirectorateSelect ?? (() => undefined)}
+          onClose={props.onDirectorateClose ?? (() => undefined)}
+          {...(props.onDirectorateStart === undefined
+            ? {}
+            : { onStart: props.onDirectorateStart })}
+        />
+
+        <Programs
+          model={props.programs ?? null}
+          onSelect={props.onProgramsSelect ?? (() => undefined)}
+          onClose={props.onProgramsClose ?? (() => undefined)}
+          {...(props.onProgramsPin === undefined ? {} : { onPin: props.onProgramsPin })}
+          {...(props.onProgramsUnpin === undefined ? {} : { onUnpin: props.onProgramsUnpin })}
+        />
+
+        <Intelligence
+          model={props.intelligence ?? null}
+          tab={props.intelligenceTab ?? 'sources'}
+          onTab={props.onIntelligenceTab ?? (() => undefined)}
+          onClose={props.onIntelligenceClose ?? (() => undefined)}
+          {...(props.onIntelligenceRecruit === undefined
+            ? {}
+            : { onRecruit: props.onIntelligenceRecruit })}
+          {...(props.onIntelligenceFocusInformant === undefined
+            ? {}
+            : { onFocusInformant: props.onIntelligenceFocusInformant })}
         />
 
         <Toasts toasts={props.toasts} onTrace={props.onTrace} onDismiss={props.onDismissToast} />

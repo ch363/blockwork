@@ -61,7 +61,31 @@ describe('the migration chain (PRD 7.4)', () => {
     expect(migrated['version']).toBe(CURRENT_SAVE_VERSION)
     expect(sink.events.map((event) => event.kind)).toEqual(sink.events.map(() => 'save.migrated'))
     expect(sink.events).toHaveLength(CURRENT_SAVE_VERSION - 1)
-    expect(sink.events.map((event) => event.data)).toEqual([{ from: 1, to: 2 }])
+    expect(sink.events.map((event) => event.data)).toEqual([
+      { from: 1, to: 2 },
+      { from: 2, to: 3 },
+      { from: 3, to: 4 },
+    ])
+  })
+
+  it('defaults Phase 4 fields when migrating a bare v2 save', () => {
+    const migrated = migrateSave({ version: 2, mapSize: 16 }, 2)
+
+    expect(migrated['version']).toBe(CURRENT_SAVE_VERSION)
+    expect(migrated['sectors']).toEqual({ nextSectorId: 1, sectors: [] })
+    expect(migrated['posts']).toEqual({
+      nextPostId: 1,
+      nextRouteId: 1,
+      posts: [],
+      routes: [],
+    })
+    expect(migrated['contraband']).toMatchObject({ nextStashId: 1, stashes: [] })
+    expect(migrated['dangerLevel']).toBe(0)
+    expect(migrated['riotActive']).toBe(false)
+    expect(migrated['lockdownActive']).toBe(false)
+    expect(migrated['misconductWindowTicks']).toEqual([])
+    expect(migrated['standingOrders']).toMatchObject({ mealQuantity: 'normal' })
+    expect(migrated['directorate']).toEqual({ completed: [], active: [] })
   })
 
   it('carries fields it does not know about straight through', () => {

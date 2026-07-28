@@ -39,6 +39,8 @@ export const DATA: GameData = {
   balance: {
     ...RAW_DATA.balance,
     construction: { ...RAW_DATA.balance.construction, stubMaterialDelivery: true },
+    // Object / room tests assume free supply unless they opt into utilities.
+    utilities: { ...RAW_DATA.balance.utilities, utilitiesEnabled: false },
   },
 }
 
