@@ -77,6 +77,7 @@ import {
 import type { StandingOrdersState } from '../entities/standingOrders'
 import { createPunishmentRuntime } from '../entities/punishment'
 import type { PunishmentRuntime } from '../entities/punishment'
+import { CombatRuntime } from '../entities/health'
 
 /* -------------------------------------------------------------------------- */
 /* Policy                                                                      */
@@ -196,6 +197,8 @@ export class InmateWorld extends ObjectWorld {
   readonly cellGrades = new Map<number, number>()
   /** Prison-wide mean cell grade used when a room has no entry. */
   averageCellGrade = 5
+  /** Fights, injury, corpses (T4.5). */
+  readonly combat: CombatRuntime
   /** Sandbox / map mutators (staff needs default on). */
   readonly settings: MapRuntimeSettings
   /**
@@ -249,6 +252,7 @@ export class InmateWorld extends ObjectWorld {
     contracts: ContractBook = createContractBook(),
     morale: MoraleState = new MoraleState(),
     contraband: ContrabandState = createContrabandState(),
+    combat: CombatRuntime = new CombatRuntime(),
     settings: MapRuntimeSettings = createMapRuntimeSettings(),
   ) {
     super(grid, materials, rooms, objects, data)
@@ -273,6 +277,7 @@ export class InmateWorld extends ObjectWorld {
     this.contraband = contraband
     this.standingOrders = createDefaultStandingOrders()
     this.punishments = createPunishmentRuntime()
+    this.combat = combat
     this.settings = settings
     this.sectors = new SectorRegistry(grid.size)
     this.posts = new PostRegistry()
@@ -336,6 +341,7 @@ export class InmateWorld extends ObjectWorld {
       hasher.writeUint32(roomId)
       hasher.writeFloat64(grade)
     }
+    this.combat.hashInto(hasher)
     this.sectors.hashInto(hasher)
     this.posts.hashInto(hasher)
     hasher.writeUint32(this.settings.staffNeeds ? 1 : 0)

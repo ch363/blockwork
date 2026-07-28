@@ -66,6 +66,8 @@ export class FacilityProgress {
   staffMorale = 100
   /** Contraband items currently in circulation. */
   contrabandItems = 0
+  /** Cumulative deaths (inmates + staff) this session (T4.5). */
+  deathCount = 0
   /**
    * Optional per-room grade overrides (room entity id → score). When absent,
    * {@link evaluateRoomGrade} computes from grading rules.
@@ -118,6 +120,12 @@ export class FacilityProgress {
     this.contrabandItems = count
   }
 
+  /** Records a death incident and increments the session death counter. */
+  recordDeath(tick: number): void {
+    this.deathCount += 1
+    this.recordIncident('death', tick)
+  }
+
   setRoomGrade(roomId: number, grade: number): void {
     this.roomGradeOverride.set(roomId, grade)
   }
@@ -144,6 +152,7 @@ export class FacilityProgress {
 
     hasher.writeFloat64(this.staffMorale)
     hasher.writeUint32(this.contrabandItems)
+    hasher.writeUint32(this.deathCount)
 
     const grades = [...this.roomGradeOverride.entries()].sort((a, b) => a[0] - b[0])
     hasher.writeUint32(grades.length)

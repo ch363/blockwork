@@ -126,6 +126,7 @@ describe('createGame', () => {
       'navigation',
       'pathing',
       'movement',
+      'combat',
       'needs',
       'staffNeeds',
       'activity',
