@@ -26,7 +26,6 @@ import { isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 
 export { RiotState } from '../entities/securityState'
-export type { RiotState } from '../entities/securityState'
 
 /* -------------------------------------------------------------------------- */
 /* Events / identity                                                           */
@@ -143,19 +142,18 @@ export function createRiotSystem(options: RiotSystemOptions): System {
       }
 
       const world = context.world
-      const tick = context.clock.tick
       const rng = context.rng.stream('riot')
       const balance = data.balance.riot
 
       pruneDeadRioters(world)
 
       if (!world.riot.active) {
-        maybeTriggerRiot(world, data, index, context, rng, balance)
+        maybeTriggerRiot(world, index, context, rng, balance)
         return
       }
 
-      spreadRiot(world, data, index, context, rng, balance)
-      actRioters(world, data, index, context, rng, balance)
+      spreadRiot(world, index, context, rng, balance)
+      actRioters(world, data, context, rng, balance)
       advanceContainment(world, context, balance)
     },
   }
@@ -172,7 +170,6 @@ function pruneDeadRioters(world: InmateWorld): void {
 
 function maybeTriggerRiot(
   world: InmateWorld,
-  data: GameData,
   index: NeedIndex,
   context: SystemContext,
   rng: RngStream,
@@ -241,7 +238,6 @@ export function beginRiot(
 
 function spreadRiot(
   world: InmateWorld,
-  _data: GameData,
   index: NeedIndex,
   context: SystemContext,
   rng: RngStream,
@@ -294,7 +290,6 @@ function spreadRiot(
 function actRioters(
   world: InmateWorld,
   data: GameData,
-  _index: NeedIndex,
   context: SystemContext,
   rng: RngStream,
   balance: Balance['riot'],

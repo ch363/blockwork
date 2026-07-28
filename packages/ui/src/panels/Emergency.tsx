@@ -148,8 +148,7 @@ export function Emergency({
                     <span class="cost">{level.costLabel}</span>
                   </div>
                   <div class="rung-actions">
-                    {levelAction({
-                      level,
+                    {levelAction(level, {
                       onSectorLockdown,
                       onLiftSectorLockdown,
                       onFullLockdown,
@@ -179,26 +178,27 @@ export function Emergency({
   )
 }
 
-function levelAction(options: {
-  readonly level: EmergencyLevelModel
-  readonly onSectorLockdown?: () => void
-  readonly onLiftSectorLockdown?: () => void
-  readonly onFullLockdown?: () => void
-  readonly onLiftFullLockdown?: () => void
-  readonly onCallRiotSquad?: () => void
-  readonly onDismissRiotSquad?: () => void
-  readonly onAuthoriseFreeFire?: () => void
-  readonly onRevokeFreeFire?: () => void
-  readonly onCallNationalGuard?: () => void
-}): JSX.Element {
-  const { level } = options
+function levelAction(
+  level: EmergencyLevelModel,
+  handlers: {
+    readonly onSectorLockdown?: () => void
+    readonly onLiftSectorLockdown?: () => void
+    readonly onFullLockdown?: () => void
+    readonly onLiftFullLockdown?: () => void
+    readonly onCallRiotSquad?: () => void
+    readonly onDismissRiotSquad?: () => void
+    readonly onAuthoriseFreeFire?: () => void
+    readonly onRevokeFreeFire?: () => void
+    readonly onCallNationalGuard?: () => void
+  },
+): JSX.Element {
   switch (level.id) {
     case 'sector_lockdown':
       return level.active ? (
         <Button
           variant="ghost"
           disabled={level.disabled}
-          onClick={options.onLiftSectorLockdown}
+          onClick={handlers.onLiftSectorLockdown}
         >
           Lift
         </Button>
@@ -206,38 +206,38 @@ function levelAction(options: {
         <Button
           variant="danger"
           disabled={level.disabled}
-          onClick={options.onSectorLockdown}
+          onClick={handlers.onSectorLockdown}
         >
           Lock sector
         </Button>
       )
     case 'full_lockdown':
       return level.active ? (
-        <Button variant="ghost" onClick={options.onLiftFullLockdown}>
+        <Button variant="ghost" onClick={handlers.onLiftFullLockdown}>
           Lift
         </Button>
       ) : (
-        <Button variant="danger" onClick={options.onFullLockdown}>
+        <Button variant="danger" onClick={handlers.onFullLockdown}>
           Lock facility
         </Button>
       )
     case 'riot_squad':
       return level.active ? (
-        <Button variant="ghost" onClick={options.onDismissRiotSquad}>
+        <Button variant="ghost" onClick={handlers.onDismissRiotSquad}>
           Dismiss
         </Button>
       ) : (
-        <Button variant="danger" onClick={options.onCallRiotSquad}>
+        <Button variant="danger" onClick={handlers.onCallRiotSquad}>
           Call squad
         </Button>
       )
     case 'free_fire':
       return level.active ? (
-        <Button variant="ghost" onClick={options.onRevokeFreeFire}>
+        <Button variant="ghost" onClick={handlers.onRevokeFreeFire}>
           Revoke
         </Button>
       ) : (
-        <Button variant="danger" onClick={options.onAuthoriseFreeFire}>
+        <Button variant="danger" onClick={handlers.onAuthoriseFreeFire}>
           Authorise
         </Button>
       )
@@ -246,7 +246,7 @@ function levelAction(options: {
         <Button
           variant="danger"
           disabled={level.active || level.disabled}
-          onClick={options.onCallNationalGuard}
+          onClick={handlers.onCallNationalGuard}
         >
           {level.active ? 'Deployed' : 'Call guard'}
         </Button>
