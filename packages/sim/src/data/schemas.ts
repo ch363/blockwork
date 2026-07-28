@@ -366,6 +366,7 @@ export const balanceSchema = z.strictObject({
     misconductWindowHours: positiveCount,
     misconductScale: rate,
     armedScale: rate,
+    maxSecurityCategories: z.array(id).nonempty(),
   }),
 
   riot: def({
@@ -377,6 +378,12 @@ export const balanceSchema = z.strictObject({
     lockdownFactor: fraction,
     spreadTiles: positiveCount,
     containedMinutes: positiveCount,
+    spreadBaseProbability: fraction,
+    spreadMoodPivot: rate,
+    objectDamageHpPerMinute: rate,
+    doorBreakMinutes: positiveCount,
+    attackStaffRangeTiles: positiveCount,
+    destructiveTraitDamageMultiplier: rate,
   }),
 
   tunnels: def({
@@ -796,6 +803,22 @@ export const balanceSchema = z.strictObject({
     mortuaryJobPriority: rate,
     hearseDelayMinutes: positiveCount,
     bloodOnDamagingHit: z.boolean(),
+  }),
+
+  emergency: def({
+    sectorLockdownSuppressionPerHour: rate,
+    fullLockdownSuppressionPerHour: rate,
+    riotSquadDefId: id,
+    riotSquadCount: positiveCount,
+    riotSquadFearBoost: rate,
+    freeFireKillChancePerMinute: fraction,
+    freeFireReoffendPenalty: fraction,
+    freeFirePrPenalty: rate,
+    nationalGuardDefId: id,
+    nationalGuardCount: positiveCount,
+    nationalGuardCost: money,
+    nationalGuardFireProbability: fraction,
+    inmatesPerGuardForCoverage: positiveCount,
   }),
 
   failure: def({

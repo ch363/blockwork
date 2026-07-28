@@ -78,6 +78,11 @@ import type { StandingOrdersState } from '../entities/standingOrders'
 import { createPunishmentRuntime } from '../entities/punishment'
 import type { PunishmentRuntime } from '../entities/punishment'
 import { CombatRuntime } from '../entities/health'
+import {
+  EmergencyState,
+  MisconductWindow,
+  RiotState,
+} from '../entities/securityState'
 
 /* -------------------------------------------------------------------------- */
 /* Policy                                                                      */
@@ -216,7 +221,7 @@ export class InmateWorld extends ObjectWorld {
    */
   readonly pathingDirtyTiles = new Set<number>()
   /**
-   * Prison-wide danger 0..100. Written by SecuritySystem (T4.x); needs read it
+   * Prison-wide danger 0..100. Written by DangerSystem (T4.6); needs read it
    * to drive the `safety` need until then tests set it directly. Staff morale
    * (T3.8) contributes its PRD 5.11 term into this value.
    */
@@ -225,6 +230,12 @@ export class InmateWorld extends ObjectWorld {
   lockdownActive = false
   /** Active riot — claimed jobs abandon back to the pool (T3.2 / T4.x). */
   riotActive = false
+  /** Rolling misconduct ticks for the danger formula (T4.6; T4.4 writes). */
+  readonly misconductWindow = new MisconductWindow()
+  /** Active riot membership and door-break progress (T4.6). */
+  readonly riot = new RiotState()
+  /** Emergency ladder and riot-failure countdown (T4.6). */
+  readonly emergency = new EmergencyState()
 
   readonly #inmateContents: RoomContents
   #income = 0
@@ -358,6 +369,9 @@ export class InmateWorld extends ObjectWorld {
     hasher.writeFloat64(this.dangerLevel)
     hasher.writeUint32(this.lockdownActive ? 1 : 0)
     hasher.writeUint32(this.riotActive ? 1 : 0)
+    this.misconductWindow.hashInto(hasher)
+    this.riot.hashInto(hasher)
+    this.emergency.hashInto(hasher)
     hasher.writeUint32(this.#income)
     this.economy.hashInto(hasher)
     this.contracts.hashInto(hasher)

@@ -157,6 +157,7 @@ export function commitMisconduct(options: CommitMisconductOptions): MisconductRe
 
   // Rap sheet — mutate the array in place (typed as mutable on the component).
   ;(entity.inmate.misconductLog as MisconductRecord[]).push(record)
+  world.misconductWindow.record(tick)
 
   entity.inmate.entitlement = applyEntitlementOnMisconduct(
     entity.inmate.entitlement,

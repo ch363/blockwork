@@ -1301,3 +1301,38 @@ export {
   snapshotTile,
 } from './core/undo'
 export type { BlueprintCommands, BlueprintRejection, CommitRecord, UndoEntry } from './core/undo'
+
+export {
+  DANGER_SYSTEM_NAME,
+  DANGER_SYSTEM_PERIOD,
+  DANGER_EVENTS,
+  createDangerSystem,
+  computeDanger,
+  clampDanger,
+  dangerComponents,
+  inmateHasCriticalNeed,
+} from './systems/dangerSystem'
+export type { DangerInputs, DangerSystemOptions } from './systems/dangerSystem'
+export { MisconductWindow, RiotState, EmergencyState } from './entities/securityState'
+export {
+  RIOT_SYSTEM_NAME,
+  RIOT_SYSTEM_PERIOD,
+  RIOT_EVENTS,
+  createRiotSystem,
+  beginRiot,
+  markRioting,
+  riotTriggerProbability,
+  riotSpreadProbability,
+  computeInmateMood,
+} from './systems/riotSystem'
+export type { RiotSystemOptions } from './systems/riotSystem'
+export {
+  EMERGENCY_SYSTEM_NAME,
+  createEmergencySystem,
+  emergencyCommandHandlers,
+  EMERGENCY_EVENTS,
+  EMERGENCY_COMMANDS,
+} from './systems/emergencySystem'
+export type { EmergencySystemOptions } from './systems/emergencySystem'
+export { requestMeleeAttack, STUB_MELEE_DAMAGE } from './entities/combat'
+export type { CombatActorRef, MeleeAttackResult, CombatActorKind } from './entities/combat'

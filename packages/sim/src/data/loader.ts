@@ -584,6 +584,25 @@ function checkBalance(
     )
   }
 
+  
+  const staffTargetEmergency: Target = { file: 'staff', has: (id) => r.staff.has(id) }
+  issues.ref(
+    'balance',
+    ['emergency', 'riotSquadDefId'],
+    'emergency.riotSquadDefId',
+    balance.emergency.riotSquadDefId,
+    staffTargetEmergency,
+    'staff',
+  )
+  issues.ref(
+    'balance',
+    ['emergency', 'nationalGuardDefId'],
+    'emergency.nationalGuardDefId',
+    balance.emergency.nationalGuardDefId,
+    staffTargetEmergency,
+    'staff',
+  )
+
   const kitchen = balance.kitchen
   if (kitchen.defaultMealVariety > kitchen.maxMealVariety) {
     issues.add(

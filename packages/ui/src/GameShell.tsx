@@ -40,6 +40,8 @@ import type { TraceFixModel, TraceModel, TraceNodeModel } from './panels/Trace'
 import { Posts } from './panels/Posts'
 import type { PostsModel, PostsTab } from './panels/Posts'
 import { StandingOrders } from './panels/StandingOrders'
+import { Emergency } from './panels/Emergency'
+import type { EmergencyModel } from './panels/Emergency'
 import type {
   StandingOrdersModel,
   StandingOrdersTab,
@@ -111,6 +113,26 @@ export interface GameShellProps {
   readonly onPostsHireSuggested?: () => void
   readonly onPostsConfigureSector?: (id: number) => void
 
+  /** Null closes the Emergency panel. */
+  readonly emergency?: EmergencyModel | null
+  readonly onEmergencyClose?: () => void
+  readonly onEmergencySectorLockdown?: () => void
+  readonly onEmergencyLiftSectorLockdown?: () => void
+  readonly onEmergencyFullLockdown?: () => void
+  readonly onEmergencyLiftFullLockdown?: () => void
+  readonly onEmergencyCallRiotSquad?: () => void
+  readonly onEmergencyDismissRiotSquad?: () => void
+  readonly onEmergencyAuthoriseFreeFire?: () => void
+  readonly onEmergencyRevokeFreeFire?: () => void
+  readonly onEmergencyCallNationalGuard?: () => void
+
+  readonly onUndo: () => void
+  readonly onRedo: () => void
+  readonly onAlerts: () => void
+  readonly onMenu: () => void
+  readonly canUndo?: boolean
+  readonly canRedo?: boolean
+
   /** Null closes the Standing Orders panel. */
   readonly standingOrders?: StandingOrdersModel | null
   readonly standingOrdersTab?: StandingOrdersTab
@@ -125,13 +147,6 @@ export interface GameShellProps {
   readonly onStandingOrdersStrictness?: (strictness: StandingStrictness) => void
   readonly onStandingOrdersMealQuantity?: (quantity: StandingMealQuantity) => void
   readonly onStandingOrdersMealVariety?: (variety: number) => void
-
-  readonly onUndo: () => void
-  readonly onRedo: () => void
-  readonly onAlerts: () => void
-  readonly onMenu: () => void
-  readonly canUndo?: boolean
-  readonly canRedo?: boolean
 
   /** A one-line instruction for the active tool, shown over the world. */
   readonly hint?: string | null
@@ -243,6 +258,37 @@ export function GameShell(props: GameShellProps): JSX.Element {
           {...(props.onPostsConfigureSector === undefined
             ? {}
             : { onConfigureSector: props.onPostsConfigureSector })}
+        />
+        <Emergency
+          model={props.emergency ?? null}
+          onClose={props.onEmergencyClose ?? (() => undefined)}
+          {...(props.onEmergencySectorLockdown === undefined
+            ? {}
+            : { onSectorLockdown: props.onEmergencySectorLockdown })}
+          {...(props.onEmergencyLiftSectorLockdown === undefined
+            ? {}
+            : { onLiftSectorLockdown: props.onEmergencyLiftSectorLockdown })}
+          {...(props.onEmergencyFullLockdown === undefined
+            ? {}
+            : { onFullLockdown: props.onEmergencyFullLockdown })}
+          {...(props.onEmergencyLiftFullLockdown === undefined
+            ? {}
+            : { onLiftFullLockdown: props.onEmergencyLiftFullLockdown })}
+          {...(props.onEmergencyCallRiotSquad === undefined
+            ? {}
+            : { onCallRiotSquad: props.onEmergencyCallRiotSquad })}
+          {...(props.onEmergencyDismissRiotSquad === undefined
+            ? {}
+            : { onDismissRiotSquad: props.onEmergencyDismissRiotSquad })}
+          {...(props.onEmergencyAuthoriseFreeFire === undefined
+            ? {}
+            : { onAuthoriseFreeFire: props.onEmergencyAuthoriseFreeFire })}
+          {...(props.onEmergencyRevokeFreeFire === undefined
+            ? {}
+            : { onRevokeFreeFire: props.onEmergencyRevokeFreeFire })}
+          {...(props.onEmergencyCallNationalGuard === undefined
+            ? {}
+            : { onCallNationalGuard: props.onEmergencyCallNationalGuard })}
         />
 
         <StandingOrders

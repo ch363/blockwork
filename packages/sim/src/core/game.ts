@@ -79,6 +79,9 @@ import { createEconomySystem } from '../systems/economySystem'
 import { createContractSystem, contractCommandHandlers } from '../systems/contractSystem'
 import { createContrabandSystem } from '../systems/contrabandSystem'
 import { createSearchSystem, searchCommandHandlers } from '../systems/searchSystem'
+import { createDangerSystem } from '../systems/dangerSystem'
+import { createRiotSystem } from '../systems/riotSystem'
+import { createEmergencySystem, emergencyCommandHandlers } from '../systems/emergencySystem'
 import { createMisconductSystem } from '../systems/misconductSystem'
 import { createPunishmentSystem } from '../systems/punishmentSystem'
 import type { GameData } from '../data/loader'
@@ -218,7 +221,8 @@ export function createGame(options: GameOptions): Game {
   // band with movement (slot 13); needs + staff needs are slot 6; activity is
   // slot 7; logistics (meals, supply, deliveries, cleaning, laundry) is slot 8;
   // construction is slot 9; Utilities (slot 10) not yet present; Contraband is
-  // slot 11 after intake; search / misconduct / punishment are security (slot 12).
+  // slot 11 after intake; search / misconduct / punishment / danger / riot /
+  // emergency are security (slot 12).
   // Supply runs before deliveries so new orders land in
   // the pending queue in time for the same-minute truck schedule check.
   const systems: readonly System[] = [
@@ -250,6 +254,9 @@ export function createGame(options: GameOptions): Game {
     createSearchSystem({ data }),
     createMisconductSystem({ data }),
     createPunishmentSystem({ data }),
+    createDangerSystem({ data }),
+    createRiotSystem({ data }),
+    createEmergencySystem({ data }),
     createEconomySystem({ data }),
     createContractSystem({ data }),
   ]
@@ -271,6 +278,7 @@ export function createGame(options: GameOptions): Game {
       ...sectorCommandHandlers(data),
       ...postCommandHandlers(data),
       ...searchCommandHandlers(data),
+      ...emergencyCommandHandlers(data),
     },
     ...(options.events === undefined ? {} : { events: options.events }),
   })

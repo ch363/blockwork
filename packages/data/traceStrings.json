@@ -109,6 +109,36 @@
       "title": "Standing Orders applied for {misconduct}",
       "detail": "Punishment {punishment} for {durationHours} hours. Search trigger {search}.",
       "meta": "Inmate {inmateId}"
+    },
+    "danger.recomputed": {
+      "title": "Danger level is {danger}",
+      "detail": "Critical needs {criticalNeeds}, misconduct {misconduct}, armed {armedInmates}, morale {staffMorale}, coverage {guardCoverage}, max-sec {maxSecurityShare}.",
+      "meta": "Population {population}"
+    },
+    "riot.started": {
+      "title": "Riot started \u2014 inmate {inmateId}",
+      "detail": "Danger was {danger} across a population of {population}.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "riot.contained": {
+      "title": "Riot contained",
+      "detail": "No rioting inmates for {quietMinutes} continuous minutes.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "emergency.riotSquadCalled": {
+      "title": "Riot squad deployed",
+      "detail": "{staffIds} units on site at ${hourlyWage}/hour. Fear boost {fearBoost}.",
+      "meta": "Level {level}"
+    },
+    "emergency.nationalGuardCalled": {
+      "title": "National guard deployed",
+      "detail": "Cost ${cost}. Player dismissed: {playerFired}.",
+      "meta": "Level {level}"
+    },
+    "emergency.playerFired": {
+      "title": "You have been dismissed",
+      "detail": "Reason: {reason}.",
+      "meta": "Day {day} \u00b7 {time}"
     }
   }
 }

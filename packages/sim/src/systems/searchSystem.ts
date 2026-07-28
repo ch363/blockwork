@@ -31,7 +31,7 @@ import { idx } from '../world/coords'
 
 import { isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
-import type { MealQuantity, MealStandingOrders } from './logistics/mealChain'
+import type { MealQuantity } from './logistics/mealChain'
 import { isMealQuantity } from './logistics/mealChain'
 
 function uniqueStashTiles(stashes: readonly { tileIndex: number }[]): number[] {

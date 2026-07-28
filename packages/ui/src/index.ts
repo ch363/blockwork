@@ -104,5 +104,8 @@ export type {
   UnfilledReasonLabel,
 } from './panels/Posts'
 
+export { Emergency } from './panels/Emergency'
+export type { EmergencyLevelId, EmergencyLevelModel, EmergencyModel, EmergencyProps } from './panels/Emergency'
+
 export { BlueprintBar, formatCost, issueSentence, plural } from './panels/BlueprintBar'
 export type { BlueprintBarProps } from './panels/BlueprintBar'
