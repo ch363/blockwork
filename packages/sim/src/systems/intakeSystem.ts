@@ -64,6 +64,12 @@ import type { ContractBook } from '../entities/contracts'
 import { MoraleState } from '../entities/morale'
 import { InmateAgentStore } from './inmateAgents'
 import { PostRegistry } from './postSystem'
+import { ContrabandStub } from './contrabandStub'
+import {
+  createStandingOrdersPolicy,
+  hashStandingOrders,
+} from './searchSystem'
+import type { StandingOrdersPolicy } from './searchSystem'
 import { MealLogistics } from './logistics/mealChain'
 import { SupplyLogistics } from './logistics/supply'
 import { DeliverySchedule } from './logistics/deliveries'
@@ -175,6 +181,12 @@ export class InmateWorld extends ObjectWorld {
   readonly contracts: ContractBook
   /** Prison-wide staff morale and strike state (T3.8). */
   readonly morale: MoraleState
+  /** Carried / stashed contraband (T4.2 stub surface for T4.3 search). */
+  readonly contraband: ContrabandStub
+  /** Misconduct / search / meal policy (T4.3). */
+  readonly standingOrders: StandingOrdersPolicy
+  /** Inmates already intake-searched this stay in the hall. */
+  readonly intakeSearchedInmateIds = new Set<number>()
   /** Sandbox / map mutators (staff needs default on). */
   readonly settings: MapRuntimeSettings
   /**
@@ -227,6 +239,8 @@ export class InmateWorld extends ObjectWorld {
     economy: EconomyLedger = createEconomyLedger(data),
     contracts: ContractBook = createContractBook(),
     morale: MoraleState = new MoraleState(),
+    contraband: ContrabandStub = new ContrabandStub(),
+    standingOrders: StandingOrdersPolicy | undefined = undefined,
     settings: MapRuntimeSettings = createMapRuntimeSettings(),
   ) {
     super(grid, materials, rooms, objects, data)
@@ -248,6 +262,8 @@ export class InmateWorld extends ObjectWorld {
     this.economy = economy
     this.contracts = contracts
     this.morale = morale
+    this.contraband = contraband
+    this.standingOrders = standingOrders ?? createStandingOrdersPolicy(data)
     this.settings = settings
     this.sectors = new SectorRegistry(grid.size)
     this.posts = new PostRegistry()
@@ -301,6 +317,8 @@ export class InmateWorld extends ObjectWorld {
     this.laundry.hashInto(hasher)
     this.fog.hashInto(hasher)
     this.morale.hashInto(hasher)
+    this.contraband.hashInto(hasher)
+    hashStandingOrders(this.standingOrders, hasher)
     this.sectors.hashInto(hasher)
     this.posts.hashInto(hasher)
     hasher.writeUint32(this.settings.staffNeeds ? 1 : 0)
@@ -323,6 +341,10 @@ export class InmateWorld extends ObjectWorld {
     for (const [category, count] of requests) {
       hasher.writeString(category)
       hasher.writeUint32(count)
+    }
+    hasher.writeUint32(this.intakeSearchedInmateIds.size)
+    for (const id of [...this.intakeSearchedInmateIds].sort((a, b) => a - b)) {
+      hasher.writeUint32(id)
     }
   }
 }

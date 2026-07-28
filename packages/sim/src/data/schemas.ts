@@ -204,6 +204,14 @@ export const POWER_PRIORITIES = ['lifeSafety', 'security', 'production', 'comfor
 /** Events a contract can require a clean streak of. */
 export const INCIDENT_KINDS = ['death', 'escape', 'riot', 'misconduct'] as const
 
+/** One Standing Orders matrix cell (T4.3). */
+const misconductOrderSchema = z.strictObject({
+  punishment: z.enum(['ignore', 'lockdown', 'isolation']),
+  /** Hours; `-1` means indefinite. `0` means n/a (ignore). */
+  durationHours: z.number().int(),
+  search: z.boolean(),
+})
+
 /* -------------------------------------------------------------------------- */
 /* balance.json                                                                */
 /* -------------------------------------------------------------------------- */
@@ -648,6 +656,36 @@ export const balanceSchema = z.strictObject({
     throwInRangeTiles: positiveCount,
     metalDetector: z.strictObject({ base: fraction, moraleScale: fraction }),
     dogRadiusTiles: positiveCount,
+    dog: z.strictObject({ base: fraction, moraleScale: fraction }),
+    search: z.strictObject({
+      manual: z.strictObject({ base: fraction, moraleScale: fraction }),
+      intake: z.strictObject({ base: fraction, moraleScale: fraction }),
+      shakedown: z.strictObject({ base: fraction, moraleScale: fraction }),
+      moodCost: z.strictObject({
+        individual: rate,
+        cell: rate,
+        block: rate,
+        shakedown: rate,
+        intake: rate,
+      }),
+      shakedownDangerSpike: rate,
+      intakeDelayMinutesPerInmate: positiveCount,
+      intakeNearPerfectOfficerCount: positiveCount,
+    }),
+    standingOrders: z.strictObject({
+      defaultReassignmentStrictness: z.enum(['off', 'lenient', 'strict']),
+      defaults: z.strictObject({
+        complaint: misconductOrderSchema,
+        contraband: misconductOrderSchema,
+        intoxication: misconductOrderSchema,
+        destruction: misconductOrderSchema,
+        attackInmate: misconductOrderSchema,
+        attackStaff: misconductOrderSchema,
+        seriousInjury: misconductOrderSchema,
+        homicide: misconductOrderSchema,
+        escapeAttempt: misconductOrderSchema,
+      }),
+    }),
   }),
 
   failure: def({

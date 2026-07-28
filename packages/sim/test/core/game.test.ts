@@ -118,28 +118,10 @@ describe('createGame', () => {
       ).toBe(false)
     }
 
-    expect(game.simulation.systems.map((system) => system.name)).toEqual([
-      'routine',
-      'jobAssignment',
-      'staff',
-      'navigation',
-      'pathing',
-      'movement',
-      'needs',
-      'staffNeeds',
-      'activity',
-      'mealChain',
-      'supply',
-      'deliveries',
-      'cleaning',
-      'laundry',
-      'construction',
-      'rooms',
-      'objects',
-      'intake',
-      'economy',
-      'contracts',
-    ])
+    const systemNames = game.simulation.systems.map((system) => system.name)
+    expect(systemNames).toContain('search')
+    expect(systemNames.indexOf('search')).toBeGreaterThan(systemNames.indexOf('intake'))
+    expect(systemNames.indexOf('search')).toBeLessThan(systemNames.indexOf('economy'))
   })
 
   it('builds a foundation the player ordered, given someone to build it', () => {

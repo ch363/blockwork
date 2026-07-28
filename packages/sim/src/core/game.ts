@@ -75,6 +75,7 @@ import { createPathingSystem } from '../systems/pathingSystem'
 import { createMovementSystem } from '../systems/movementSystem'
 import { createEconomySystem } from '../systems/economySystem'
 import { createContractSystem, contractCommandHandlers } from '../systems/contractSystem'
+import { createSearchSystem, searchCommandHandlers } from '../systems/searchSystem'
 import type { GameData } from '../data/loader'
 
 import { blueprintCommandHandlers } from './undo'
@@ -212,7 +213,8 @@ export function createGame(options: GameOptions): Game {
   // slot 6; activity is slot 7; logistics (meals, supply, deliveries, cleaning,
   // laundry) is slot 8; construction is slot 9. Supply runs before deliveries
   // so new orders land in the pending queue in time for the same-minute truck
-  // schedule check.
+  // schedule check. Search / Standing Orders sit in the Security slot (12),
+  // after intake so arrivals are in the hall before the intake search runs.
   const systems: readonly System[] = [
     createRoutineSystem({ data }),
     createJobSystem({ data }),
@@ -236,6 +238,7 @@ export function createGame(options: GameOptions): Game {
     createRoomSystem({ data }),
     createObjectSystem({ data }),
     createIntakeSystem({ data }),
+    createSearchSystem({ data }),
     createEconomySystem({ data }),
     createContractSystem({ data }),
   ]
@@ -256,6 +259,7 @@ export function createGame(options: GameOptions): Game {
       ...contractCommandHandlers(data),
       ...sectorCommandHandlers(data),
       ...postCommandHandlers(data),
+      ...searchCommandHandlers(data),
     },
     ...(options.events === undefined ? {} : { events: options.events }),
   })

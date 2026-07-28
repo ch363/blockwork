@@ -666,6 +666,51 @@ export type {
   UnfilledReason,
 } from './systems/postSystem'
 
+export { ContrabandStub } from './systems/contrabandStub'
+export type { ContrabandStash } from './systems/contrabandStub'
+
+export {
+  MISCONDUCT_KINDS,
+  PUNISHMENT_KINDS,
+  REASSIGNMENT_STRICTNESS,
+  SEARCH_COMMANDS,
+  SEARCH_EVENTS,
+  SEARCH_KINDS,
+  SEARCH_SYSTEM_NAME,
+  SEARCH_SYSTEM_PERIOD,
+  applyStandingOrder,
+  applyStandingOrderForMisconduct,
+  compoundDetectionChance,
+  countOfficersInRoom,
+  createSearchSystem,
+  createStandingOrdersPolicy,
+  detectionChance,
+  hashStandingOrders,
+  intakeDelayTicks,
+  isMisconductKind,
+  isPunishmentKind,
+  isReassignmentStrictness,
+  isSearchKind,
+  performSearch,
+  rollDogDetection,
+  rollMetalDetectorPass,
+  searchCommandHandlers,
+  searchMoodCost,
+} from './systems/searchSystem'
+export type {
+  DetectionCurve,
+  MisconductKind,
+  MisconductStandingOrder,
+  PassiveDetectOptions,
+  PerformSearchOptions,
+  PunishmentKind,
+  ReassignmentStrictness,
+  SearchKind,
+  SearchResult,
+  SearchSystemOptions,
+  StandingOrdersPolicy,
+} from './systems/searchSystem'
+
 export {
   MoraleState,
   MORALE_EVENTS,
