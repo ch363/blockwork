@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blockwork - UI Mockups &amp; Visual Spec</title>
+<style>
+/* ==========================================================================
+   BLOCKWORK DESIGN TOKENS
+   This block is the source of truth. Extract verbatim into
+   packages/ui/src/theme/tokens.ts. Do not invent values elsewhere.
+   ========================================================================== */
+:root{
+  /* --- surfaces --- */
+  --bg-void:        #0D1015;   /* behind everything, letterbox */
+  --bg-app:         #12161C;   /* app background */
+  --surface-1:      #1A1F27;   /* panels */
+  --surface-2:      #222834;   /* cards, rows */
+  --surface-3:      #2C3441;   /* raised, hover */
+  --surface-4:      #384252;   /* pressed, active chip */
+  --border-subtle:  #2A313D;
+  --border:         #39424F;
+  --border-strong:  #4B5666;
+
+  /* --- text --- */
+  --text-hi:        #E9EDF3;
+  --text:           #C4CCD8;
+  --text-dim:       #8D98A8;
+  --text-faint:     #626D7C;
+  --text-on-accent: #14181E;
+
+  /* --- brand / semantic --- */
+  --accent:         #F0A93B;   /* sodium light amber. primary action */
+  --accent-press:   #D2902A;
+  --accent-soft:    #F0A93B26;
+  --info:           #4C9BE8;
+  --info-soft:      #4C9BE826;
+  --ok:             #4FB477;
+  --ok-soft:        #4FB47726;
+  --warn:           #E8A33D;
+  --warn-soft:      #E8A33D26;
+  --danger:         #E05C5C;
+  --danger-soft:    #E05C5C26;
+  --research:       #9B7BD4;
+
+  /* --- inmate security categories (also used for uniform tint) --- */
+  --cat-min:        #8B93A0;
+  --cat-med:        #E08B3D;
+  --cat-max:        #D95151;
+  --cat-supermax:   #9B4DCA;
+  --cat-protective: #4C9BE8;
+  --cat-condemned:  #1D222A;
+
+  /* --- need severity bands --- */
+  --need-ok:        #4FB477;
+  --need-medium:    #D6C24A;
+  --need-high:      #E8A33D;
+  --need-critical:  #E05C5C;
+  --need-active:    #4C9BE8;
+
+  /* --- world / terrain (renderer must use these) --- */
+  --terrain-grass:  #3A5040;
+  --terrain-mud:    #4A4034;
+  --terrain-road:   #2F343B;
+  --terrain-paving: #3F4550;
+  --floor-concrete: #4A5261;
+  --floor-tile:     #58616F;
+  --floor-wood:     #6A5844;
+  --floor-track:    #6B4B3C;
+  --wall-interior:  #757E8D;
+  --wall-shadow:    #4C5462;
+  --wall-perimeter: #5A6270;
+  --fence:          #6E7A88;
+  --door:           #A9805A;
+  --door-secure:    #7E8B9B;
+
+  /* --- spacing scale (4pt base) --- */
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
+  --s5: 20px; --s6: 24px; --s7: 32px; --s8: 40px; --s9: 56px;
+
+  /* --- radii --- */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+
+  /* --- elevation --- */
+  --e1: 0 1px 2px rgba(0,0,0,.35);
+  --e2: 0 4px 14px rgba(0,0,0,.40);
+  --e3: 0 12px 36px rgba(0,0,0,.50);
+
+  /* --- type scale (pt on iPad, px 1:1 here) --- */
+  --f-micro: 10px; --f-cap: 11px; --f-sm: 13px; --f-body: 15px;
+  --f-lg: 17px;    --f-xl: 20px;  --f-2xl: 28px; --f-3xl: 34px;
+
+  /* --- layout constants --- */
+  --topbar-h: 56px;
+  --dock-h: 88px;
+  --tray-h: 92px;
+  --inspector-w: 360px;
+  --hit-min: 44px;   /* NEVER go below this for any interactive element */
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-void);color:var(--text);
+  font:400 var(--f-body)/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;}
+body{padding:var(--s6) var(--s6) var(--s9);}
+h1,h2,h3{color:var(--text-hi);font-weight:600;letter-spacing:-.01em}
+code,.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:var(--f-cap)}
+
+/* ---------- documentation chrome (NOT part of the game UI) ---------- */
+.doc-head{max-width:1240px;margin:0 auto var(--s7)}
+.doc-head h1{font-size:var(--f-3xl);margin-bottom:var(--s2)}
+.doc-head p{color:var(--text-dim);max-width:70ch}
+.doc-nav{max-width:1240px;margin:0 auto var(--s6);display:flex;flex-wrap:wrap;gap:var(--s2)}
+.doc-nav a{display:inline-flex;align-items:center;height:36px;padding:0 var(--s3);
+  background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-pill);
+  color:var(--text);text-decoration:none;font-size:var(--f-sm)}
+.doc-nav a:hover{background:var(--surface-3);color:var(--text-hi)}
+section.doc{max-width:1240px;margin:0 auto var(--s9)}
+section.doc>h2{font-size:var(--f-2xl);margin-bottom:var(--s2)}
+section.doc>.note{color:var(--text-dim);font-size:var(--f-sm);margin-bottom:var(--s4);max-width:80ch}
+.frame{background:var(--bg-app);border:1px solid var(--border);border-radius:var(--r-lg);
+  overflow:hidden;box-shadow:var(--e3)}
+.frame-label{display:flex;justify-content:space-between;align-items:center;
+  padding:var(--s2) var(--s3);background:var(--surface-1);border-bottom:1px solid var(--border);
+  font-size:var(--f-cap);color:var(--text-faint);letter-spacing:.06em;text-transform:uppercase}
+
+/* ==========================================================================
+   GAME SHELL
+   ========================================================================== */
+.device{width:1194px;height:834px;position:relative;background:var(--bg-app);
+  display:flex;flex-direction:column;overflow:hidden;user-select:none}
+
+/* ---------- top bar ---------- */
+.topbar{height:var(--topbar-h);flex:0 0 var(--topbar-h);display:flex;align-items:center;
+  gap:var(--s3);padding:0 var(--s3);background:var(--surface-1);
+  border-bottom:1px solid var(--border);z-index:30}
+.speed{display:flex;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--r-md);overflow:hidden;height:40px}
+.speed button{width:44px;height:38px;background:transparent;border:0;color:var(--text-dim);
+  font:600 var(--f-sm)/1 inherit;cursor:pointer;display:grid;place-items:center}
+.speed button.on{background:var(--accent);color:var(--text-on-accent)}
+.clock{display:flex;flex-direction:column;line-height:1.15;min-width:104px}
+.clock .t{font:600 var(--f-lg)/1.1 ui-monospace,"SF Mono",Menlo,monospace;color:var(--text-hi);
+  font-variant-numeric:tabular-nums}
+.clock .d{font-size:var(--f-cap);color:var(--text-faint)}
+.stat{display:flex;flex-direction:column;line-height:1.15;padding:0 var(--s3);
+  border-left:1px solid var(--border-subtle);min-width:120px}
+.stat .k{font-size:var(--f-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em}
+.stat .v{font:600 var(--f-lg)/1.1 inherit;color:var(--text-hi);font-variant-numeric:tabular-nums}
+.stat .v.neg{color:var(--danger)} .stat .v.pos{color:var(--ok)}
+.stat .sub{font-size:var(--f-cap);color:var(--text-dim)}
+.spacer{flex:1}
+.danger-gauge{display:flex;flex-direction:column;gap:4px;width:150px}
+.danger-gauge .row{display:flex;justify-content:space-between;font-size:var(--f-micro);
+  color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em}
+.danger-gauge .row b{color:var(--warn);font-size:var(--f-cap)}
+.bar{height:6px;background:var(--surface-3);border-radius:var(--r-pill);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:var(--r-pill)}
+.iconbtn{width:44px;height:44px;display:grid;place-items:center;background:var(--surface-2);
+  border:1px solid var(--border);border-radius:var(--r-md);color:var(--text);cursor:pointer;position:relative}
+.iconbtn:hover{background:var(--surface-3)}
+.iconbtn .badge{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;padding:0 5px;
+  background:var(--danger);color:#fff;border-radius:var(--r-pill);
+  font:700 var(--f-micro)/20px inherit;text-align:center;border:2px solid var(--surface-1)}
+
+/* ---------- stage ---------- */
+.stage{flex:1;position:relative;overflow:hidden;background:var(--terrain-grass)}
+#world,#world2{position:absolute;inset:0;width:100%;height:100%}
+
+/* selection + world annotations */
+.worldpin{position:absolute;transform:translate(-50%,-100%);pointer-events:none}
+.worldpin .bubble{background:var(--surface-1);border:1px solid var(--border-strong);
+  border-radius:var(--r-md);padding:6px 10px;font-size:var(--f-cap);color:var(--text-hi);
+  box-shadow:var(--e2);white-space:nowrap}
+.worldpin .stem{width:2px;height:14px;background:var(--border-strong);margin:0 auto}
+.selring{position:absolute;border:2px solid var(--accent);border-radius:50%;
+  box-shadow:0 0 0 3px rgba(240,169,59,.18);pointer-events:none;transform:translate(-50%,-50%)}
+
+/* overlay legend chip */
+.legend{position:absolute;left:var(--s4);bottom:var(--s4);background:rgba(26,31,39,.94);
+  border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3);
+  backdrop-filter:blur(12px);box-shadow:var(--e2);min-width:190px}
+.legend h4{font-size:var(--f-cap);text-transform:uppercase;letter-spacing:.07em;
+  color:var(--text-faint);margin-bottom:var(--s2);font-weight:600}
+.legend .lrow{display:flex;align-items:center;gap:var(--s2);font-size:var(--f-sm);padding:2px 0}
+.legend .sw{width:14px;height:14px;border-radius:3px;flex:0 0 14px}
+
+/* toast */
+.toasts{position:absolute;top:var(--s3);left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;gap:var(--s2);z-index:25;width:520px}
+.toast{display:flex;align-items:center;gap:var(--s3);padding:var(--s3);border-radius:var(--r-md);
+  background:rgba(26,31,39,.96);border:1px solid var(--border);box-shadow:var(--e2);backdrop-filter:blur(12px)}
+.toast.crit{border-color:var(--danger);background:linear-gradient(90deg,var(--danger-soft),rgba(26,31,39,.96) 42%)}
+.toast.warn{border-color:var(--warn)}
+.toast .ico{width:32px;height:32px;border-radius:var(--r-sm);display:grid;place-items:center;
+  font-size:16px;flex:0 0 32px}
+.toast.crit .ico{background:var(--danger-soft);color:var(--danger)}
+.toast.warn .ico{background:var(--warn-soft);color:var(--warn)}
+.toast .txt{flex:1;min-width:0}
+.toast .txt b{display:block;color:var(--text-hi);font-size:var(--f-sm);font-weight:600}
+.toast .txt span{font-size:var(--f-cap);color:var(--text-dim)}
+.toast .act{height:32px;padding:0 var(--s3);border-radius:var(--r-sm);border:1px solid var(--border-strong);
+  background:var(--surface-3);color:var(--text-hi);font-size:var(--f-cap);font-weight:600;cursor:pointer}
+
+/* ---------- dock ---------- */
+.dock{height:var(--dock-h);flex:0 0 var(--dock-h);display:flex;align-items:center;gap:var(--s2);
+  padding:0 var(--s3);background:var(--surface-1);border-top:1px solid var(--border);z-index:30}
+.tool{width:76px;height:68px;border-radius:var(--r-md);background:var(--surface-2);
+  border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;cursor:pointer;color:var(--text-dim)}
+.tool:hover{background:var(--surface-3);color:var(--text)}
+.tool.on{background:var(--accent);border-color:var(--accent);color:var(--text-on-accent)}
+.tool.on .gl{opacity:1}
+.tool .gl{font-size:22px;line-height:1;opacity:.9}
+.tool .lb{font-size:var(--f-micro);font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.tool.danger{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+
+/* secondary tray above dock */
+.tray{position:absolute;left:0;right:var(--inspector-w);bottom:0;height:var(--tray-h);
+  background:rgba(26,31,39,.97);border-top:1px solid var(--border);backdrop-filter:blur(14px);
+  display:flex;align-items:center;gap:var(--s2);padding:0 var(--s3);overflow-x:auto;z-index:20}
+.tray.full{right:0}
+.chip{flex:0 0 auto;min-width:96px;height:68px;border-radius:var(--r-md);background:var(--surface-2);
+  border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px;cursor:pointer;padding:0 var(--s2)}
+.chip:hover{background:var(--surface-3)}
+.chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.chip .g{font-size:20px}
+.chip .n{font-size:var(--f-cap);color:var(--text);font-weight:600}
+.chip .c{font-size:var(--f-micro);color:var(--text-faint)}
+.tray-group{flex:0 0 auto;display:flex;align-items:center;gap:var(--s2);padding-right:var(--s3);
+  margin-right:var(--s1);border-right:1px solid var(--border-subtle)}
+.tray-group-label{writing-mode:vertical-rl;transform:rotate(180deg);font-size:var(--f-micro);
+  text-transform:uppercase;letter-spacing:.1em;color:var(--text-faint)}
+
+/* ---------- inspector ---------- */
+.inspector{position:absolute;top:var(--topbar-h);right:0;bottom:0;width:var(--inspector-w);
+  background:var(--surface-1);border-left:1px solid var(--border);display:flex;
+  flex-direction:column;z-index:24;box-shadow:-8px 0 28px rgba(0,0,0,.35)}
+.insp-head{padding:var(--s3);border-bottom:1px solid var(--border);display:flex;gap:var(--s3);align-items:flex-start}
+.avatar{width:56px;height:56px;border-radius:var(--r-md);flex:0 0 56px;position:relative;
+  background:var(--surface-3);display:grid;place-items:center;font-size:26px;overflow:hidden}
+.avatar .catbar{position:absolute;left:0;right:0;bottom:0;height:6px}
+.insp-head .who{flex:1;min-width:0}
+.insp-head .who h3{font-size:var(--f-lg);line-height:1.2}
+.insp-head .who .sub{font-size:var(--f-cap);color:var(--text-faint);margin-top:2px}
+.insp-close{width:32px;height:32px;border-radius:var(--r-sm);background:var(--surface-2);
+  border:1px solid var(--border);color:var(--text-dim);display:grid;place-items:center;cursor:pointer}
+.tabs{display:flex;gap:2px;padding:var(--s2) var(--s3) 0;border-bottom:1px solid var(--border)}
+.tabs button{flex:1;height:40px;background:transparent;border:0;border-bottom:2px solid transparent;
+  color:var(--text-faint);font:600 var(--f-sm)/1 inherit;cursor:pointer}
+.tabs button.on{color:var(--text-hi);border-bottom-color:var(--accent)}
+.insp-body{flex:1;overflow:auto;padding:var(--s3);display:flex;flex-direction:column;gap:var(--s4)}
+.insp-foot{padding:var(--s3);border-top:1px solid var(--border);display:grid;
+  grid-template-columns:1fr 1fr;gap:var(--s2)}
+
+.block h4{font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.09em;
+  color:var(--text-faint);margin-bottom:var(--s2);font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:var(--r-pill);
+  font-size:var(--f-cap);font-weight:600;background:var(--surface-3);color:var(--text);border:1px solid var(--border)}
+.pill.cat{color:var(--text-on-accent)}
+.pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.pill.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.pill.bad{background:var(--danger-soft);color:var(--danger);border-color:transparent}
+.pill.info{background:var(--info-soft);color:var(--info);border-color:transparent}
+.pill.ghost{background:transparent;color:var(--text-faint);border-style:dashed}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+
+.sentence{background:var(--surface-2);border:1px solid var(--border-subtle);border-radius:var(--r-md);padding:var(--s3)}
+.sentence .row{display:flex;justify-content:space-between;font-size:var(--f-cap);color:var(--text-dim);margin-bottom:6px}
+.sentence .row b{color:var(--text-hi)}
+.track{height:8px;background:var(--surface-4);border-radius:var(--r-pill);overflow:hidden;position:relative}
+.track i{position:absolute;left:0;top:0;bottom:0;background:var(--info);border-radius:var(--r-pill)}
+.track .mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--accent)}
+
+.need{display:grid;grid-template-columns:78px 1fr 34px;align-items:center;gap:var(--s2);
+  padding:5px 6px;border-radius:var(--r-sm);cursor:pointer}
+.need:hover{background:var(--surface-2)}
+.need .nm{font-size:var(--f-cap);color:var(--text-dim);text-transform:capitalize}
+.need .vv{font-size:var(--f-cap);color:var(--text-faint);text-align:right;font-variant-numeric:tabular-nums}
+.need.crit .nm{color:var(--danger);font-weight:600} .need.crit .vv{color:var(--danger)}
+
+.kv{display:grid;grid-template-columns:1fr auto;gap:var(--s2);padding:7px 0;
+  border-bottom:1px solid var(--border-subtle);font-size:var(--f-sm)}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--text-dim)} .kv .v{color:var(--text-hi);font-weight:600}
+
+.grades{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s2)}
+.grade{background:var(--surface-2);border:1px solid var(--border-subtle);border-radius:var(--r-sm);padding:var(--s2)}
+.grade .g-k{font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.07em;color:var(--text-faint)}
+.grade .g-v{font:700 var(--f-xl)/1.2 inherit;color:var(--text-hi)}
+.grade .g-b{height:4px;border-radius:var(--r-pill);background:var(--surface-4);margin-top:5px;overflow:hidden}
+.grade .g-b i{display:block;height:100%}
+
+.btn{height:44px;border-radius:var(--r-md);border:1px solid var(--border-strong);
+  background:var(--surface-3);color:var(--text-hi);font:600 var(--f-sm)/1 inherit;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:hover{background:var(--surface-4)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--text-on-accent)}
+.btn.primary:hover{background:var(--accent-press)}
+.btn.danger{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.btn.ghost{background:transparent}
+.btn.sm{height:32px;padding:0 var(--s3);font-size:var(--f-cap)}
+
+/* ---------- blueprint bar ---------- */
+.bpbar{position:absolute;left:var(--s4);right:calc(var(--inspector-w) + var(--s4));
+  bottom:calc(var(--tray-h) + var(--s3));background:rgba(26,31,39,.97);border:1px solid var(--info);
+  border-radius:var(--r-lg);box-shadow:var(--e3);backdrop-filter:blur(14px);overflow:hidden;z-index:22}
+.bpbar .bp-top{display:flex;align-items:center;gap:var(--s4);padding:var(--s3)}
+.bp-metric{display:flex;flex-direction:column;min-width:96px}
+.bp-metric .k{font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint)}
+.bp-metric .v{font:700 var(--f-xl)/1.15 inherit;color:var(--text-hi);font-variant-numeric:tabular-nums}
+.bp-metric .v.bad{color:var(--danger)}
+.bp-issues{border-top:1px solid var(--border);background:var(--surface-1);max-height:132px;overflow:auto}
+.issue{display:flex;align-items:center;gap:var(--s3);padding:9px var(--s3);
+  border-bottom:1px solid var(--border-subtle);cursor:pointer;font-size:var(--f-sm)}
+.issue:hover{background:var(--surface-2)}
+.issue .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+.issue .t{flex:1;color:var(--text)}
+.issue .go{font-size:var(--f-cap);color:var(--info);font-weight:600}
+
+/* ---------- generic panel (full-screen modal panels) ---------- */
+.panel{position:absolute;inset:var(--topbar-h) 0 0 0;background:var(--bg-app);display:flex;flex-direction:column;z-index:26}
+.panel-head{height:60px;flex:0 0 60px;display:flex;align-items:center;gap:var(--s3);
+  padding:0 var(--s4);border-bottom:1px solid var(--border);background:var(--surface-1)}
+.panel-head h2{font-size:var(--f-xl)}
+.panel-head .sub{font-size:var(--f-cap);color:var(--text-faint)}
+.panel-body{flex:1;overflow:auto;padding:var(--s4)}
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--r-md);overflow:hidden;height:36px}
+.seg button{padding:0 var(--s3);height:34px;background:transparent;border:0;color:var(--text-dim);
+  font:600 var(--f-cap)/1 inherit;cursor:pointer}
+.seg button.on{background:var(--surface-4);color:var(--text-hi)}
+
+/* ---------- routine editor ---------- */
+.routine{display:grid;grid-template-columns:120px 1fr;gap:var(--s3);align-items:center;margin-bottom:var(--s2)}
+.routine .cat{font-size:var(--f-sm);font-weight:600;color:var(--text-hi);display:flex;align-items:center;gap:6px}
+.routine .cat i{width:10px;height:10px;border-radius:3px;display:block}
+.hours{display:grid;grid-template-columns:repeat(24,1fr);gap:2px}
+.hr{height:44px;border-radius:4px;display:grid;place-items:center;font-size:var(--f-micro);
+  color:rgba(255,255,255,.68);font-weight:700;cursor:pointer;border:1px solid transparent}
+.hr:hover{border-color:var(--text-hi)}
+.hourscale{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin-left:132px;margin-bottom:5px}
+.hourscale span{font-size:var(--f-micro);color:var(--text-faint);text-align:center}
+.blk-sleep   {background:#3B4A6B}
+.blk-meal    {background:#7A5A2E}
+.blk-yard    {background:#3F6144}
+.blk-wash    {background:#2F5C68}
+.blk-free    {background:#4A5261}
+.blk-work    {background:#6B4F73}
+.blk-lockup  {background:#5C3A3A}
+.conflict{margin-top:var(--s4);border:1px solid var(--warn);background:var(--warn-soft);
+  border-radius:var(--r-md);padding:var(--s3)}
+.conflict h4{color:var(--warn);font-size:var(--f-sm);margin-bottom:var(--s2);font-weight:700}
+.conflict li{font-size:var(--f-sm);color:var(--text);margin-left:18px;padding:2px 0}
+
+/* ---------- posts / deployment ---------- */
+.two-col{display:grid;grid-template-columns:1fr 400px;gap:var(--s4);height:100%}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.card>header{padding:var(--s3);border-bottom:1px solid var(--border);display:flex;
+  justify-content:space-between;align-items:center}
+.card>header h3{font-size:var(--f-body)}
+.card .card-body{padding:var(--s3)}
+.postrow{display:grid;grid-template-columns:1fr auto auto;gap:var(--s3);align-items:center;
+  padding:var(--s3);border-bottom:1px solid var(--border-subtle)}
+.postrow:last-child{border-bottom:0}
+.postrow .pn{font-size:var(--f-sm);color:var(--text-hi);font-weight:600}
+.postrow .pd{font-size:var(--f-cap);color:var(--text-faint);margin-top:2px}
+.staffing{display:flex;align-items:center;gap:5px}
+.dotfill{width:11px;height:11px;border-radius:50%;background:var(--ok)}
+.dotempty{width:11px;height:11px;border-radius:50%;background:var(--surface-4);
+  border:1px dashed var(--danger)}
+
+/* ---------- flow (logistics) ---------- */
+.flow{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:var(--s4) 0}
+.stage-node{flex:0 0 172px;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:var(--s3);position:relative}
+.stage-node.bottleneck{border-color:var(--danger);background:linear-gradient(180deg,var(--danger-soft),var(--surface-2))}
+.stage-node h5{font-size:var(--f-sm);color:var(--text-hi);margin-bottom:var(--s1)}
+.stage-node .rate{font:700 var(--f-xl)/1.2 inherit;color:var(--text-hi);font-variant-numeric:tabular-nums}
+.stage-node.bottleneck .rate{color:var(--danger)}
+.stage-node .unit{font-size:var(--f-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em}
+.stage-node .meta{font-size:var(--f-cap);color:var(--text-dim);margin-top:var(--s2)}
+.arrow{flex:0 0 40px;display:grid;place-items:center;color:var(--text-faint);font-size:20px}
+
+/* ---------- directorate node graph ---------- */
+.tree{position:relative;height:520px;background:
+   radial-gradient(circle at 22% 26%, rgba(155,123,212,.08), transparent 46%),
+   linear-gradient(var(--bg-app),var(--bg-app));
+  border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.node{position:absolute;width:168px;padding:var(--s3);border-radius:var(--r-md);
+  background:var(--surface-2);border:1px solid var(--border);cursor:pointer}
+.node:hover{background:var(--surface-3)}
+.node.done{border-color:var(--ok);background:linear-gradient(180deg,var(--ok-soft),var(--surface-2))}
+.node.active{border-color:var(--research);background:linear-gradient(180deg,rgba(155,123,212,.18),var(--surface-2))}
+.node.locked{opacity:.5}
+.node .nt{font-size:var(--f-sm);font-weight:600;color:var(--text-hi)}
+.node .nc{font-size:var(--f-cap);color:var(--text-faint);margin-top:3px;font-variant-numeric:tabular-nums}
+.node .np{height:4px;background:var(--surface-4);border-radius:var(--r-pill);margin-top:var(--s2);overflow:hidden}
+.node .np i{display:block;height:100%;background:var(--research)}
+.node .tick{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;
+  background:var(--ok);color:#0D1015;display:grid;place-items:center;font-size:12px;font-weight:800;
+  border:2px solid var(--bg-app)}
+
+/* ---------- trace ---------- */
+.trace{max-width:640px}
+.tnode{display:grid;grid-template-columns:32px 1fr;gap:var(--s3);position:relative;padding-bottom:var(--s4)}
+.tnode:last-child{padding-bottom:0}
+.tnode .rail{display:flex;flex-direction:column;align-items:center}
+.tnode .knob{width:24px;height:24px;border-radius:50%;background:var(--surface-3);
+  border:2px solid var(--border-strong);display:grid;place-items:center;font-size:11px;color:var(--text-dim)}
+.tnode.first .knob{background:var(--danger);border-color:var(--danger);color:#fff}
+.tnode .line{flex:1;width:2px;background:var(--border);margin-top:4px}
+.tnode:last-child .line{display:none}
+.tcard{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:var(--s3);cursor:pointer}
+.tcard:hover{background:var(--surface-3);border-color:var(--border-strong)}
+.tcard .th{font-size:var(--f-sm);color:var(--text-hi);font-weight:600}
+.tcard .tm{font-size:var(--f-cap);color:var(--text-dim);margin-top:4px}
+.tcard .tt{font-size:var(--f-micro);color:var(--text-faint);margin-top:6px;
+  text-transform:uppercase;letter-spacing:.07em}
+.fixes{display:flex;gap:var(--s2);margin-top:var(--s4);flex-wrap:wrap}
+
+/* ---------- reports ---------- */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3)}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s3)}
+.metric{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3)}
+.metric .k{font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint)}
+.metric .v{font:700 var(--f-2xl)/1.15 inherit;color:var(--text-hi);margin-top:4px;font-variant-numeric:tabular-nums}
+.metric .d{font-size:var(--f-cap);color:var(--text-dim);margin-top:2px}
+.needbar-row{display:grid;grid-template-columns:96px 1fr 56px;gap:var(--s3);align-items:center;
+  padding:7px 8px;border-radius:var(--r-sm);cursor:pointer}
+.needbar-row:hover{background:var(--surface-2)}
+.stackbar{height:16px;border-radius:4px;overflow:hidden;display:flex;background:var(--surface-3)}
+.stackbar i{display:block;height:100%}
+.tbl{width:100%;border-collapse:collapse;font-size:var(--f-sm)}
+.tbl th{text-align:left;font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.08em;
+  color:var(--text-faint);padding:var(--s2);border-bottom:1px solid var(--border);font-weight:700}
+.tbl td{padding:10px var(--s2);border-bottom:1px solid var(--border-subtle);color:var(--text)}
+.tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tr:hover td{background:var(--surface-2)}
+
+/* ---------- standing orders matrix ---------- */
+.matrix{width:100%;border-collapse:separate;border-spacing:0}
+.matrix th{font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);
+  padding:var(--s2);text-align:center;font-weight:700}
+.matrix th:first-child{text-align:left}
+.matrix td{padding:6px var(--s1);border-top:1px solid var(--border-subtle)}
+.matrix td:first-child{font-size:var(--f-sm);color:var(--text-hi)}
+.radio-seg{display:flex;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--r-sm);overflow:hidden;height:36px}
+.radio-seg button{flex:1;background:transparent;border:0;color:var(--text-faint);
+  font:600 var(--f-micro)/1 inherit;cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
+.radio-seg button.on{background:var(--surface-4);color:var(--text-hi)}
+.radio-seg button.on.bad{background:var(--danger-soft);color:var(--danger)}
+.radio-seg button.on.warn{background:var(--warn-soft);color:var(--warn)}
+
+/* ---------- token swatch grid (doc only) ---------- */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--s2)}
+.sw-card{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden}
+.sw-card .fill{height:56px}
+.sw-card .meta{padding:var(--s2)}
+.sw-card .nm{font-size:var(--f-cap);color:var(--text-hi);font-weight:600}
+.sw-card .hx{font-size:var(--f-micro);color:var(--text-faint);font-family:ui-monospace,Menlo,monospace}
+.typerow{display:flex;align-items:baseline;gap:var(--s4);padding:var(--s2) 0;border-bottom:1px solid var(--border-subtle)}
+.typerow .tag{width:120px;font-size:var(--f-micro);color:var(--text-faint);
+  font-family:ui-monospace,Menlo,monospace;text-transform:none}
+</style>
+</head>
+<body>
+
+<div class="doc-head">
+  <h1>Blockwork - UI Mockups and Visual Spec</h1>
+  <p>High fidelity reference for the implementing agents. The <code>:root</code> block at the top of this
+  file's stylesheet is the design token source of truth and should be extracted verbatim into
+  <code>packages/ui/src/theme/tokens.ts</code>. Every screen below is drawn at the iPad landscape
+  reference size of 1194 x 834 points. Do not invent colours, spacing or type sizes anywhere else.</p>
+</div>
+
+<div class="doc-nav">
+  <a href="#tokens">Design tokens</a>
+  <a href="#world">1. World view</a>
+  <a href="#build">2. Build / blueprint</a>
+  <a href="#trace">3. Trace panel</a>
+  <a href="#routine">4. Routine editor</a>
+  <a href="#posts">5. Posts / deployment</a>
+  <a href="#flow">6. Flow / logistics</a>
+  <a href="#directorate">7. Directorate</a>
+  <a href="#reports">8. Reports</a>
+  <a href="#orders">9. Standing Orders</a>
+</div>
+
+<!-- ======================================================================
+     TOKENS
+     ====================================================================== -->
+<section class="doc" id="tokens">
+  <h2>Design tokens</h2>
+  <p class="note">Extract into <code>tokens.ts</code>. Terrain colours are consumed by the PixiJS renderer,
+  not by CSS, but they live here so there is one palette.</p>
+
+  <h3 style="margin:var(--s4) 0 var(--s2);font-size:var(--f-body)">Surfaces and text</h3>
+  <div class="swatches" id="sw-surface"></div>
+
+  <h3 style="margin:var(--s5) 0 var(--s2);font-size:var(--f-body)">Semantic</h3>
+  <div class="swatches" id="sw-semantic"></div>
+
+  <h3 style="margin:var(--s5) 0 var(--s2);font-size:var(--f-body)">Security categories</h3>
+  <div class="swatches" id="sw-cat"></div>
+
+  <h3 style="margin:var(--s5) 0 var(--s2);font-size:var(--f-body)">Terrain and world</h3>
+  <div class="swatches" id="sw-terrain"></div>
+
+  <h3 style="margin:var(--s5) 0 var(--s2);font-size:var(--f-body)">Type scale</h3>
+  <div class="frame" style="padding:var(--s4)">
+    <div class="typerow"><span class="tag">--f-3xl 34</span><span style="font-size:34px;font-weight:600;color:var(--text-hi)">Screen title</span></div>
+    <div class="typerow"><span class="tag">--f-2xl 28</span><span style="font-size:28px;font-weight:600;color:var(--text-hi)">Panel title</span></div>
+    <div class="typerow"><span class="tag">--f-xl 20</span><span style="font-size:20px;font-weight:600;color:var(--text-hi)">Section heading, big numbers</span></div>
+    <div class="typerow"><span class="tag">--f-lg 17</span><span style="font-size:17px;color:var(--text-hi)">Inspector name, top bar values</span></div>
+    <div class="typerow"><span class="tag">--f-body 15</span><span style="font-size:15px">Body copy, list rows</span></div>
+    <div class="typerow"><span class="tag">--f-sm 13</span><span style="font-size:13px">Dense rows, table cells, buttons</span></div>
+    <div class="typerow"><span class="tag">--f-cap 11</span><span style="font-size:11px;color:var(--text-dim)">Captions, metadata, chips</span></div>
+    <div class="typerow"><span class="tag">--f-micro 10</span><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint)">Field labels, all caps only</span></div>
+  </div>
+
+  <h3 style="margin:var(--s5) 0 var(--s2);font-size:var(--f-body)">Hard rules</h3>
+  <div class="frame" style="padding:var(--s4);font-size:var(--f-sm);line-height:1.7">
+    <div>1. Minimum interactive hit target is <b style="color:var(--accent)">44 x 44 points</b>. No exceptions in primary UI.</div>
+    <div>2. Never encode meaning in hue alone. Pair every colour signal with a shape, icon or value.</div>
+    <div>3. All numeric readouts use <code>font-variant-numeric: tabular-nums</code>.</div>
+    <div>4. The world view is never covered by persistent UI except the inspector, which overlays and does not resize it.</div>
+    <div>5. Every <code>warn</code> or <code>critical</code> notification is tappable and opens the Trace panel.</div>
+    <div>6. Panels slide from the right and are dismissible by swipe. Modals are avoided entirely.</div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     1. WORLD VIEW
+     ====================================================================== -->
+<section class="doc" id="world">
+  <h2>1. World view with inmate inspector</h2>
+  <p class="note">The default screen. Top bar, world, tool dock, inspector open on a selected inmate.
+  Note the mood pins over agents, the critical-need styling in the inspector, and the tappable
+  critical toast which routes to the Trace panel.</p>
+
+  <div class="frame">
+    <div class="frame-label"><span>Screen 1 &middot; World view + inmate inspector</span><span>1194 x 834 &middot; iPad landscape</span></div>
+    <div class="device">
+
+      <!-- TOP BAR -->
+      <div class="topbar">
+        <div class="speed">
+          <button title="Pause">&#10074;&#10074;</button>
+          <button class="on">1x</button>
+          <button>2x</button>
+          <button>5x</button>
+          <button>20x</button>
+        </div>
+        <div class="clock"><span class="t">14:20</span><span class="d">Day 27 &middot; Spring</span></div>
+        <div class="stat">
+          <span class="k">Balance</span>
+          <span class="v pos">$84,120</span>
+          <span class="sub">+$1,840 / day</span>
+        </div>
+        <div class="stat">
+          <span class="k">Population</span>
+          <span class="v">186 <span style="color:var(--text-faint);font-weight:400;font-size:var(--f-cap)">/ 208</span></span>
+          <span class="sub">14 arriving 16:00</span>
+        </div>
+        <div class="stat">
+          <span class="k">Re-offending</span>
+          <span class="v" style="color:var(--warn)">41%</span>
+          <span class="sub">&#9660; 3% this week</span>
+        </div>
+        <div class="spacer"></div>
+        <div class="danger-gauge">
+          <div class="row"><span>Danger</span><b>62 Elevated</b></div>
+          <div class="bar"><i style="width:62%;background:linear-gradient(90deg,var(--warn),var(--danger))"></i></div>
+        </div>
+        <div class="iconbtn" title="Alerts">&#9873;<span class="badge">3</span></div>
+        <div class="iconbtn" title="Menu">&#9776;</div>
+      </div>
+
+      <!-- STAGE -->
+      <div class="stage">
+        <canvas id="world" width="1668" height="1380"></canvas>
+
+        <!-- mood pins -->
+        <div class="worldpin" style="left:44%;top:34%">
+          <div class="bubble" style="border-color:var(--danger);color:var(--danger)">&#9888; Hungry</div>
+          <div class="stem"></div>
+        </div>
+        <div class="worldpin" style="left:62%;top:56%">
+          <div class="bubble">&#128274; Escorted</div>
+          <div class="stem"></div>
+        </div>
+        <div class="selring" style="left:31.5%;top:44.5%;width:34px;height:34px"></div>
+
+        <!-- toasts -->
+        <div class="toasts">
+          <div class="toast crit">
+            <div class="ico">&#9888;</div>
+            <div class="txt">
+              <b>Inmate 4471 is starving</b>
+              <span>Missed 3 consecutive meal blocks in West Hall</span>
+            </div>
+            <button class="act">Show cause</button>
+          </div>
+          <div class="toast warn">
+            <div class="ico">&#9889;</div>
+            <div class="txt">
+              <b>Grid B browned out</b>
+              <span>Demand 4,200W exceeds capacity 3,600W. Comfort branch shed.</span>
+            </div>
+            <button class="act">Show cause</button>
+          </div>
+        </div>
+
+        <!-- legend -->
+        <div class="legend">
+          <h4>Overlay &middot; Sectors</h4>
+          <div class="lrow"><i class="sw" style="background:var(--cat-min)"></i> Minimum &middot; B Wing</div>
+          <div class="lrow"><i class="sw" style="background:var(--cat-med)"></i> Medium &middot; A Wing</div>
+          <div class="lrow"><i class="sw" style="background:var(--cat-max)"></i> Maximum &middot; C Wing</div>
+          <div class="lrow"><i class="sw" style="background:var(--info)"></i> Staff only</div>
+          <div class="lrow"><i class="sw" style="background:var(--surface-4)"></i> Shared</div>
+        </div>
+
+        <!-- INSPECTOR -->
+        <aside class="inspector">
+          <div class="insp-head">
+            <div class="avatar">&#128100;<i class="catbar" style="background:var(--cat-max)"></i></div>
+            <div class="who">
+              <h3>Delroy Ashworth</h3>
+              <div class="sub">Inmate 4471 &middot; 34 &middot; intake day 11</div>
+              <div class="pills" style="margin-top:7px">
+                <span class="pill cat" style="background:var(--cat-max)">Maximum</span>
+                <span class="pill bad">3 critical needs</span>
+              </div>
+            </div>
+            <div class="insp-close">&#10005;</div>
+          </div>
+
+          <div class="tabs">
+            <button class="on">Status</button>
+            <button>Record</button>
+            <button>Grades</button>
+          </div>
+
+          <div class="insp-body">
+
+            <div class="block">
+              <h4>Sentence</h4>
+              <div class="sentence">
+                <div class="row"><span>Served 2y 4m</span><b>of 18y</b></div>
+                <div class="track">
+                  <i style="width:13%"></i>
+                  <span class="mark" style="left:50%" title="parole eligible"></span>
+                </div>
+                <div class="row" style="margin:6px 0 0"><span>Parole eligible</span><b>day 341</b></div>
+              </div>
+            </div>
+
+            <div class="block">
+              <h4>Needs &middot; tap to trace</h4>
+              <div class="need crit"><span class="nm">Food</span>
+                <div class="bar"><i style="width:97%;background:var(--need-critical)"></i></div><span class="vv">97</span></div>
+              <div class="need crit"><span class="nm">Safety</span>
+                <div class="bar"><i style="width:91%;background:var(--need-critical)"></i></div><span class="vv">91</span></div>
+              <div class="need crit"><span class="nm">Hygiene</span>
+                <div class="bar"><i style="width:89%;background:var(--need-critical)"></i></div><span class="vv">89</span></div>
+              <div class="need"><span class="nm">Freedom</span>
+                <div class="bar"><i style="width:72%;background:var(--need-high)"></i></div><span class="vv">72</span></div>
+              <div class="need"><span class="nm">Recreation</span>
+                <div class="bar"><i style="width:54%;background:var(--need-medium)"></i></div><span class="vv">54</span></div>
+              <div class="need"><span class="nm">Sleep</span>
+                <div class="bar"><i style="width:41%;background:var(--need-medium)"></i></div><span class="vv">41</span></div>
+              <div class="need"><span class="nm">Comfort</span>
+                <div class="bar"><i style="width:38%;background:var(--need-ok)"></i></div><span class="vv">38</span></div>
+              <div class="need"><span class="nm">Bladder</span>
+                <div class="bar"><i style="width:22%;background:var(--need-active)"></i></div><span class="vv">22</span></div>
+              <div style="text-align:center;padding-top:6px">
+                <button class="btn sm ghost">Show all 18 needs</button>
+              </div>
+            </div>
+
+            <div class="block">
+              <h4>Known reputation</h4>
+              <div class="pills">
+                <span class="pill bad">Very deadly</span>
+                <span class="pill bad">Agitator</span>
+                <span class="pill warn">Unstable</span>
+                <span class="pill ghost">2 unknown</span>
+              </div>
+            </div>
+
+            <div class="block">
+              <h4>Current</h4>
+              <div class="kv"><span class="k">Activity</span><span class="v">Queueing &middot; West Hall</span></div>
+              <div class="kv"><span class="k">Cell</span><span class="v">A-14 &middot; grade 3 / 6</span></div>
+              <div class="kv"><span class="k">Entitlement</span><span class="v">6</span></div>
+              <div class="kv"><span class="k">Suppression</span><span class="v" style="color:var(--warn)">44</span></div>
+              <div class="kv"><span class="k">Work</span><span class="v" style="color:var(--text-faint)">Unassigned</span></div>
+              <div class="kv"><span class="k">Programme</span><span class="v" style="color:var(--text-faint)">None</span></div>
+            </div>
+
+            <div class="block">
+              <h4>Grades</h4>
+              <div class="grades">
+                <div class="grade"><div class="g-k">Punishment</div><div class="g-v">C</div>
+                  <div class="g-b"><i style="width:48%;background:var(--warn)"></i></div></div>
+                <div class="grade"><div class="g-k">Reform</div><div class="g-v">E</div>
+                  <div class="g-b"><i style="width:18%;background:var(--danger)"></i></div></div>
+                <div class="grade"><div class="g-k">Security</div><div class="g-v">D</div>
+                  <div class="g-b"><i style="width:32%;background:var(--danger)"></i></div></div>
+                <div class="grade"><div class="g-k">Health</div><div class="g-v">D</div>
+                  <div class="g-b"><i style="width:35%;background:var(--warn)"></i></div></div>
+              </div>
+              <div class="kv" style="margin-top:var(--s2)">
+                <span class="k">Estimated re-offending</span><span class="v" style="color:var(--danger)">74%</span>
+              </div>
+            </div>
+
+            <div class="block">
+              <h4>Recent misconduct</h4>
+              <div class="kv"><span class="k">Day 26 &middot; Contraband (shank)</span><span class="v">Isolation 6h</span></div>
+              <div class="kv"><span class="k">Day 24 &middot; Attacked inmate</span><span class="v">Isolation 12h</span></div>
+              <div class="kv"><span class="k">Day 19 &middot; Destruction</span><span class="v">Lockdown 4h</span></div>
+            </div>
+          </div>
+
+          <div class="insp-foot">
+            <button class="btn">Search</button>
+            <button class="btn">Reclassify</button>
+            <button class="btn danger">Isolation 24h</button>
+            <button class="btn primary">Protective</button>
+          </div>
+        </aside>
+      </div>
+
+      <!-- DOCK -->
+      <div class="dock">
+        <div class="tool"><span class="gl">&#9974;</span><span class="lb">Build</span></div>
+        <div class="tool"><span class="gl">&#9635;</span><span class="lb">Rooms</span></div>
+        <div class="tool"><span class="gl">&#128712;</span><span class="lb">Objects</span></div>
+        <div class="tool"><span class="gl">&#9889;</span><span class="lb">Utilities</span></div>
+        <div class="tool"><span class="gl">&#128100;</span><span class="lb">Staff</span></div>
+        <div class="tool"><span class="gl">&#9678;</span><span class="lb">Posts</span></div>
+        <div class="tool"><span class="gl">&#8644;</span><span class="lb">Flow</span></div>
+        <div class="tool"><span class="gl">&#9998;</span><span class="lb">Plan</span></div>
+        <div class="tool"><span class="gl">&#128202;</span><span class="lb">Reports</span></div>
+        <div class="spacer"></div>
+        <div class="tool"><span class="gl">&#9781;</span><span class="lb">Overlay</span></div>
+        <div class="tool danger"><span class="gl">&#9873;</span><span class="lb">Emergency</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     2. BUILD / BLUEPRINT
+     ====================================================================== -->
+<section class="doc" id="build">
+  <h2>2. Build mode with blueprint bar</h2>
+  <p class="note">Blueprint layer draws in <code>--info</code> blue wireframe. Nothing is charged until
+  Commit. Invalid items are listed and tapping one pans the camera to it. Two finger tap undoes the
+  last stroke. This is the flagship building UX from PRD section 3.2.</p>
+
+  <div class="frame">
+    <div class="frame-label"><span>Screen 2 &middot; Build mode, rooms palette open</span><span>1194 x 834</span></div>
+    <div class="device">
+      <div class="topbar">
+        <div class="speed">
+          <button class="on" title="Paused">&#10074;&#10074;</button>
+          <button>1x</button><button>2x</button><button>5x</button><button>20x</button>
+        </div>
+        <div class="clock"><span class="t">14:20</span><span class="d">Day 27 &middot; Paused</span></div>
+        <div class="stat"><span class="k">Balance</span><span class="v pos">$84,120</span>
+          <span class="sub">after commit: $61,690</span></div>
+        <div class="spacer"></div>
+        <div class="danger-gauge">
+          <div class="row"><span>Danger</span><b>62 Elevated</b></div>
+          <div class="bar"><i style="width:62%;background:linear-gradient(90deg,var(--warn),var(--danger))"></i></div>
+        </div>
+        <div class="iconbtn">&#8630;</div>
+        <div class="iconbtn">&#8631;</div>
+        <div class="iconbtn">&#9776;</div>
+      </div>
+
+      <div class="stage">
+        <canvas id="world2" width="1668" height="1380"></canvas>
+
+        <!-- blueprint bar -->
+        <div class="bpbar">
+          <div class="bp-top">
+            <div class="bp-metric"><span class="k">Blueprint cost</span><span class="v">$22,430</span></div>
+            <div class="bp-metric"><span class="k">Tiles</span><span class="v">418</span></div>
+            <div class="bp-metric"><span class="k">Objects</span><span class="v">64</span></div>
+            <div class="bp-metric"><span class="k">Issues</span><span class="v bad">3</span></div>
+            <div class="spacer"></div>
+            <button class="btn ghost">Discard</button>
+            <button class="btn">Save as template</button>
+            <button class="btn primary" style="padding:0 var(--s5)">Commit build</button>
+          </div>
+          <div class="bp-issues">
+            <div class="issue"><i class="dot" style="background:var(--danger)"></i>
+              <span class="t"><b>3 cells</b> have no toilet &middot; C-07, C-08, C-09</span><span class="go">Go &rsaquo;</span></div>
+            <div class="issue"><i class="dot" style="background:var(--danger)"></i>
+              <span class="t"><b>Washroom</b> is not connected to a water grid</span><span class="go">Go &rsaquo;</span></div>
+            <div class="issue"><i class="dot" style="background:var(--warn)"></i>
+              <span class="t"><b>C Wing corridor</b> has no route to the mess hall for maximum security</span><span class="go">Go &rsaquo;</span></div>
+          </div>
+        </div>
+
+        <!-- rooms tray -->
+        <div class="tray full">
+          <div class="tray-group">
+            <span class="tray-group-label">Housing</span>
+            <div class="chip on"><span class="g">&#128716;</span><span class="n">Cell</span><span class="c">2x3 min</span></div>
+            <div class="chip"><span class="g">&#128715;</span><span class="n">Dormitory</span><span class="c">2x3 min</span></div>
+            <div class="chip"><span class="g">&#128274;</span><span class="n">Isolation</span><span class="c">any</span></div>
+            <div class="chip"><span class="g">&#9974;</span><span class="n">Holding pen</span><span class="c">5x5 min</span></div>
+          </div>
+          <div class="tray-group">
+            <span class="tray-group-label">Activity</span>
+            <div class="chip"><span class="g">&#127869;</span><span class="n">Mess hall</span><span class="c">graded</span></div>
+            <div class="chip"><span class="g">&#128703;</span><span class="n">Washroom</span><span class="c">water</span></div>
+            <div class="chip"><span class="g">&#127939;</span><span class="n">Yard</span><span class="c">graded</span></div>
+            <div class="chip"><span class="g">&#127918;</span><span class="n">Dayroom</span><span class="c">graded</span></div>
+            <div class="chip"><span class="g">&#128218;</span><span class="n">Library</span><span class="c">5x5 min</span></div>
+            <div class="chip"><span class="g">&#127891;</span><span class="n">Classroom</span><span class="c">graded</span></div>
+          </div>
+          <div class="tray-group">
+            <span class="tray-group-label">Production</span>
+            <div class="chip"><span class="g">&#127859;</span><span class="n">Kitchen</span><span class="c">power</span></div>
+            <div class="chip"><span class="g">&#128296;</span><span class="n">Workshop</span><span class="c">locked</span></div>
+            <div class="chip"><span class="g">&#129525;</span><span class="n">Laundry</span><span class="c">locked</span></div>
+          </div>
+          <div class="tray-group" style="border-right:0">
+            <span class="tray-group-label">Staff</span>
+            <div class="chip"><span class="g">&#128188;</span><span class="n">Office</span><span class="c">4x4 min</span></div>
+            <div class="chip"><span class="g">&#128225;</span><span class="n">Control room</span><span class="c">4x4 min</span></div>
+            <div class="chip"><span class="g">&#9749;</span><span class="n">Break room</span><span class="c">4x4 min</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dock">
+        <div class="tool on"><span class="gl">&#9974;</span><span class="lb">Build</span></div>
+        <div class="tool"><span class="gl">&#9635;</span><span class="lb">Rooms</span></div>
+        <div class="tool"><span class="gl">&#128712;</span><span class="lb">Objects</span></div>
+        <div class="tool"><span class="gl">&#9889;</span><span class="lb">Utilities</span></div>
+        <div class="tool"><span class="gl">&#128100;</span><span class="lb">Staff</span></div>
+        <div class="tool"><span class="gl">&#9678;</span><span class="lb">Posts</span></div>
+        <div class="tool"><span class="gl">&#8644;</span><span class="lb">Flow</span></div>
+        <div class="tool"><span class="gl">&#9998;</span><span class="lb">Plan</span></div>
+        <div class="tool"><span class="gl">&#128202;</span><span class="lb">Reports</span></div>
+        <div class="spacer"></div>
+        <div class="tool"><span class="gl">&#9781;</span><span class="lb">Overlay</span></div>
+        <div class="tool danger"><span class="gl">&#9873;</span><span class="lb">Emergency</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     3. TRACE
+     ====================================================================== -->
+<section class="doc" id="trace">
+  <h2>3. Trace panel</h2>
+  <p class="note">The flagship feature. Reached from any warn or critical notification. Every node is
+  tappable and pans the camera to its subject. Fixes are computed with real numbers filled in, and
+  tapping one either applies it directly or opens the relevant tool pre-configured.</p>
+
+  <div class="frame">
+    <div class="frame-label"><span>Screen 3 &middot; Trace: starvation</span><span>1194 x 834</span></div>
+    <div class="device">
+      <div class="topbar">
+        <div class="speed"><button class="on">&#10074;&#10074;</button><button>1x</button><button>2x</button><button>5x</button><button>20x</button></div>
+        <div class="clock"><span class="t">03:12</span><span class="d">Day 28 &middot; Paused</span></div>
+        <div class="spacer"></div>
+        <div class="iconbtn">&#9873;<span class="badge">4</span></div>
+        <div class="iconbtn">&#9776;</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <button class="iconbtn">&#8592;</button>
+          <div>
+            <h2>Why did this happen?</h2>
+            <div class="sub">Inmate 4471 starved to death &middot; Day 28, 03:12</div>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn ghost">Copy report</button>
+        </div>
+
+        <div class="panel-body">
+          <div class="trace">
+            <div class="tnode first">
+              <div class="rail"><div class="knob">&#9760;</div><div class="line"></div></div>
+              <div class="tcard">
+                <div class="th">Inmate 4471 starved to death</div>
+                <div class="tm">Food need held above 95 for 41 continuous in-game hours.</div>
+                <div class="tt">Day 28 &middot; 03:12 &middot; cell A-14</div>
+              </div>
+            </div>
+
+            <div class="tnode">
+              <div class="rail"><div class="knob">&#8593;</div><div class="line"></div></div>
+              <div class="tcard">
+                <div class="th">Ate 0 meals in the last 3 meal blocks</div>
+                <div class="tm">Attended West Hall at 07:00, 12:00 and 18:00 and left without eating each time.</div>
+                <div class="tt">Day 27 &middot; caused by the node below</div>
+              </div>
+            </div>
+
+            <div class="tnode">
+              <div class="rail"><div class="knob">&#8593;</div><div class="line"></div></div>
+              <div class="tcard">
+                <div class="th">West Hall had 0 meals on the serving counters at 12:00</div>
+                <div class="tm">118 inmates were routed to West Hall. 40 meals were delivered.
+                  78 inmates left hungry, of whom 12 have now missed 3 or more blocks.</div>
+                <div class="tt">Day 27 &middot; 12:00</div>
+              </div>
+            </div>
+
+            <div class="tnode">
+              <div class="rail"><div class="knob">&#8593;</div><div class="line"></div></div>
+              <div class="tcard">
+                <div class="th">Kitchen K2 produced 40 meals, needed 118</div>
+                <div class="tm">Preparation began at 08:00 as scheduled. Production stopped at capacity.</div>
+                <div class="tt">Day 27 &middot; 08:00 to 12:00</div>
+              </div>
+            </div>
+
+            <div class="tnode">
+              <div class="rail"><div class="knob">&#8593;</div></div>
+              <div class="tcard" style="border-color:var(--danger)">
+                <div class="th" style="color:var(--danger)">Kitchen K2 has 2 cookers and 1 assigned cook</div>
+                <div class="tm">Capacity is 2 &times; 12 &times; 1.25 = <b>30 meals per hour</b>.
+                  Serving 118 inmates in a 4 hour preparation window needs <b>6 cookers</b>
+                  or <b>3 cookers and 4 assigned cooks</b>.</div>
+                <div class="tt">Root cause</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fixes">
+            <button class="btn primary">Add 4 cookers &middot; $3,200</button>
+            <button class="btn">Assign 3 more inmates to kitchen work</button>
+            <button class="btn">Route 40 inmates to East Hall</button>
+            <button class="btn ghost">Show kitchen in Flow view</button>
+          </div>
+
+          <div style="margin-top:var(--s7);max-width:640px">
+            <h4 style="font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.09em;color:var(--text-faint);margin-bottom:var(--s2)">
+              Other inmates affected by the same root cause</h4>
+            <table class="tbl">
+              <thead><tr><th>Inmate</th><th>Blocks missed</th><th class="num">Food need</th><th class="num">Time to critical</th></tr></thead>
+              <tbody>
+                <tr><td>Marcus Feld &middot; 4488</td><td>3</td><td class="num" style="color:var(--danger)">96</td><td class="num" style="color:var(--danger)">2h</td></tr>
+                <tr><td>Ivan Sokolov &middot; 4402</td><td>3</td><td class="num" style="color:var(--danger)">94</td><td class="num" style="color:var(--danger)">4h</td></tr>
+                <tr><td>Roy Tamblin &middot; 4517</td><td>2</td><td class="num" style="color:var(--warn)">81</td><td class="num" style="color:var(--warn)">11h</td></tr>
+                <tr><td>&hellip; 9 more</td><td>2</td><td class="num" style="color:var(--warn)">72 avg</td><td class="num">14h avg</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     4. ROUTINE
+     ====================================================================== -->
+<section class="doc" id="routine">
+  <h2>4. Routine editor</h2>
+  <p class="note">Drag to paint blocks. The conflict strip underneath is the improvement over the
+  reference game: it names scheduling problems in concrete numbers before they become failures.</p>
+
+  <div class="frame">
+    <div class="frame-label"><span>Screen 4 &middot; Routine editor</span><span>1194 x 834</span></div>
+    <div class="device">
+      <div class="topbar">
+        <div class="speed"><button>&#10074;&#10074;</button><button class="on">1x</button><button>2x</button><button>5x</button><button>20x</button></div>
+        <div class="clock"><span class="t">14:20</span><span class="d">Day 27</span></div>
+        <div class="spacer"></div>
+        <div class="iconbtn">&#9873;<span class="badge">3</span></div>
+        <div class="iconbtn">&#9776;</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <button class="iconbtn">&#8592;</button>
+          <div><h2>Routine</h2><div class="sub">Daily schedule per security category</div></div>
+          <div class="spacer"></div>
+          <div class="seg">
+            <button class="on">All categories</button><button>Minimum</button><button>Medium</button><button>Maximum</button>
+          </div>
+          <button class="btn">Copy to all</button>
+        </div>
+
+        <div class="panel-body">
+          <div class="hourscale">
+            <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
+            <span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+            <span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span>
+          </div>
+
+          <div class="routine">
+            <div class="cat"><i style="background:var(--cat-min)"></i> Minimum</div>
+            <div class="hours" data-routine="min"></div>
+          </div>
+          <div class="routine">
+            <div class="cat"><i style="background:var(--cat-med)"></i> Medium</div>
+            <div class="hours" data-routine="med"></div>
+          </div>
+          <div class="routine">
+            <div class="cat"><i style="background:var(--cat-max)"></i> Maximum</div>
+            <div class="hours" data-routine="max"></div>
+          </div>
+          <div class="routine">
+            <div class="cat"><i style="background:var(--cat-supermax)"></i> Supermax</div>
+            <div class="hours" data-routine="sup"></div>
+          </div>
+
+          <!-- palette -->
+          <div style="display:flex;gap:var(--s2);margin-top:var(--s5);flex-wrap:wrap">
+            <div class="chip on"><span class="g" style="width:16px;height:16px;border-radius:3px;background:#3B4A6B"></span><span class="n">Sleep</span></div>
+            <div class="chip"><span class="g" style="width:16px;height:16px;border-radius:3px;background:#7A5A2E"></span><span class="n">Meal</span></div>
+            <div class="chip"><span class="g" style="width:16px;height:16px;border-radius:3px;background:#2F5C68"></span><span class="n">Wash</span></div>
+            <div class="chip"><span class="g" style="width:16px;height:16px;border-radius:3px;background:#3F6144"></span><span class="n">Yard</span></div>
+            <div class="chip"><span class="g" style="width:16px;height:16px;border-radius:3px;background:#4A5261"></span><span class="n">Free</span></div>
+            <div class="chip"><span class="g" style="width:16px;height:16px;border-radius:3px;background:#6B4F73"></span><span class="n">Work</span></div>
+            <div class="chip"><span class="g" style="width:16px;height:16px;border-radius:3px;background:#5C3A3A"></span><span class="n">Lockup</span></div>
+          </div>
+
+          <div class="conflict">
+            <h4>&#9888; 3 scheduling conflicts</h4>
+            <ul>
+              <li><b>Medium:</b> longest contiguous work block is 2 hours. Vocational Certificate needs 3. It will never run.</li>
+              <li><b>Maximum:</b> mess hall capacity is 80 seats, 94 maximum-security inmates route there at 12:00. Expect a 28 minute queue and roughly 14 missed meals.</li>
+              <li><b>Supermax:</b> 1 hour of yard and 23 hours of lockup will drive the freedom need critical within 2 days. Consider 2 hours of yard.</li>
+            </ul>
+          </div>
+
+          <div style="margin-top:var(--s5);display:flex;gap:var(--s3);flex-wrap:wrap">
+            <div class="metric" style="flex:1;min-width:180px"><span class="k">Meal capacity used</span><span class="v">118%</span><span class="d">West Hall at 12:00</span></div>
+            <div class="metric" style="flex:1;min-width:180px"><span class="k">Work slots filled</span><span class="v">62 / 140</span><span class="d">78 inmates idle during work</span></div>
+            <div class="metric" style="flex:1;min-width:180px"><span class="k">Programmes schedulable</span><span class="v">4 / 7</span><span class="d">3 blocked, see conflicts</span></div>
+            <div class="metric" style="flex:1;min-width:180px"><span class="k">Projected sleep</span><span class="v">7.0h</span><span class="d">above the 5h floor</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     5. POSTS
+     ====================================================================== -->
+<section class="doc" id="posts">
+  <h2>5. Posts (deployment)</h2>
+  <p class="note">Intent-based deployment from PRD 3.5. The player declares posts, the game assigns
+  staff. Unfilled posts are reported with a reason, not just a count.</p>
+
+  <div class="frame">
+    <div class="frame-label"><span>Screen 5 &middot; Posts and sector access</span><span>1194 x 834</span></div>
+    <div class="device">
+      <div class="topbar">
+        <div class="speed"><button>&#10074;&#10074;</button><button class="on">1x</button><button>2x</button><button>5x</button><button>20x</button></div>
+        <div class="clock"><span class="t">14:20</span><span class="d">Day 27</span></div>
+        <div class="stat"><span class="k">Officers</span><span class="v">38</span><span class="sub">$1,140 / hr</span></div>
+        <div class="spacer"></div>
+        <div class="iconbtn">&#9873;<span class="badge">3</span></div>
+        <div class="iconbtn">&#9776;</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <button class="iconbtn">&#8592;</button>
+          <div><h2>Posts</h2><div class="sub">4 unfilled &middot; 38 officers deployed</div></div>
+          <div class="spacer"></div>
+          <div class="seg"><button class="on">Posts</button><button>Patrols</button><button>Sector access</button></div>
+          <button class="btn primary">New post</button>
+        </div>
+
+        <div class="panel-body">
+          <div class="two-col">
+            <div class="card">
+              <header><h3>Sector map</h3>
+                <div class="seg"><button class="on">Access</button><button>Coverage</button><button>Category</button></div>
+              </header>
+              <div class="card-body" style="padding:0;position:relative;height:560px;background:var(--terrain-grass)">
+                <canvas id="world3" width="1520" height="1120" style="width:100%;height:100%;display:block"></canvas>
+                <div class="legend" style="left:var(--s3);bottom:var(--s3)">
+                  <h4>Access mode</h4>
+                  <div class="lrow"><i class="sw" style="background:var(--info)"></i> Staff only</div>
+                  <div class="lrow"><i class="sw" style="background:var(--warn)"></i> Secure</div>
+                  <div class="lrow"><i class="sw" style="background:var(--surface-4)"></i> Shared</div>
+                  <div class="lrow"><i class="sw" style="background:var(--ok)"></i> Open</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:var(--s3);min-height:0">
+              <div class="card" style="border-color:var(--danger)">
+                <header><h3 style="color:var(--danger)">&#9888; 4 posts unfilled</h3></header>
+                <div class="card-body" style="font-size:var(--f-sm);color:var(--text-dim);line-height:1.6">
+                  38 officers hired, 42 required at peak (12:00 to 13:00).
+                  <div style="margin-top:var(--s2)">
+                    <button class="btn sm primary">Hire 4 officers &middot; $1,600 + $120/hr</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card" style="flex:1;overflow:auto">
+                <header><h3>Active posts</h3><span class="pill">14</span></header>
+                <div>
+                  <div class="postrow">
+                    <div><div class="pn">West Hall</div><div class="pd">Meal blocks &middot; 07:00, 12:00, 18:00</div></div>
+                    <div class="staffing"><i class="dotfill"></i><i class="dotfill"></i><i class="dotfill"></i></div>
+                    <span class="pill ok">3 / 3</span>
+                  </div>
+                  <div class="postrow">
+                    <div><div class="pn">C Wing corridor</div><div class="pd">Continuous patrol</div></div>
+                    <div class="staffing"><i class="dotfill"></i><i class="dotempty"></i></div>
+                    <span class="pill bad">1 / 2</span>
+                  </div>
+                  <div class="postrow">
+                    <div><div class="pn">Intake hall</div><div class="pd">Bus arrivals only &middot; auto</div></div>
+                    <div class="staffing"><i class="dotfill"></i><i class="dotfill"></i><i class="dotfill"></i><i class="dotfill"></i></div>
+                    <span class="pill ok">4 / 4</span>
+                  </div>
+                  <div class="postrow">
+                    <div><div class="pn">Yard</div><div class="pd">Yard blocks &middot; 10:00 to 12:00</div></div>
+                    <div class="staffing"><i class="dotfill"></i><i class="dotfill"></i><i class="dotempty"></i><i class="dotempty"></i></div>
+                    <span class="pill bad">2 / 4</span>
+                  </div>
+                  <div class="postrow">
+                    <div><div class="pn">Workshop door</div><div class="pd">Metal detector &middot; work blocks</div></div>
+                    <div class="staffing"><i class="dotfill"></i></div>
+                    <span class="pill ok">1 / 1</span>
+                  </div>
+                  <div class="postrow">
+                    <div><div class="pn">A Wing night watch</div><div class="pd">K9 patrol &middot; 22:00 to 06:00</div></div>
+                    <div class="staffing"><i class="dotfill"></i><i class="dotfill"></i></div>
+                    <span class="pill ok">2 / 2</span>
+                  </div>
+                  <div class="postrow">
+                    <div><div class="pn">Isolation block</div><div class="pd">Continuous</div></div>
+                    <div class="staffing"><i class="dotfill"></i><i class="dotempty"></i></div>
+                    <span class="pill bad">1 / 2</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     6. FLOW
+     ====================================================================== -->
+<section class="doc" id="flow">
+  <h2>6. Flow (logistics)</h2>
+  <p class="note">Every logistics chain gets a throughput diagram with the bottleneck highlighted.
+  This directly answers "why is nobody eating", which the reference game never does.</p>
+
+  <div class="frame">
+    <div class="frame-label"><span>Screen 6 &middot; Flow: meal chain</span><span>1194 x 834</span></div>
+    <div class="device">
+      <div class="topbar">
+        <div class="speed"><button>&#10074;&#10074;</button><button class="on">1x</button><button>2x</button><button>5x</button><button>20x</button></div>
+        <div class="clock"><span class="t">11:40</span><span class="d">Day 27</span></div>
+        <div class="spacer"></div>
+        <div class="iconbtn">&#9873;<span class="badge">3</span></div>
+        <div class="iconbtn">&#9776;</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <button class="iconbtn">&#8592;</button>
+          <div><h2>Flow</h2><div class="sub">Meal chain &middot; West Hall</div></div>
+          <div class="spacer"></div>
+          <div class="seg"><button class="on">Meals</button><button>Laundry</button><button>Cleaning</button><button>Supply</button><button>Exports</button></div>
+        </div>
+
+        <div class="panel-body">
+          <div style="display:flex;gap:var(--s3);margin-bottom:var(--s4);flex-wrap:wrap">
+            <div class="metric" style="flex:1"><span class="k">Required</span><span class="v">118</span><span class="d">meals at 12:00</span></div>
+            <div class="metric" style="flex:1"><span class="k">Projected</span><span class="v" style="color:var(--danger)">40</span><span class="d">78 short</span></div>
+            <div class="metric" style="flex:1"><span class="k">Bottleneck</span><span class="v" style="font-size:var(--f-lg);color:var(--danger)">Cookers</span><span class="d">stage 4 of 8</span></div>
+            <div class="metric" style="flex:1"><span class="k">Chain latency</span><span class="v">3h 40m</span><span class="d">dock to counter</span></div>
+          </div>
+
+          <div class="flow">
+            <div class="stage-node">
+              <h5>Dock</h5><div class="rate">240</div><div class="unit">items / day in</div>
+              <div class="meta">2 trucks &middot; 0 backlog</div>
+            </div>
+            <div class="arrow">&#10230;</div>
+            <div class="stage-node">
+              <h5>Store</h5><div class="rate">186</div><div class="unit">ingredients held</div>
+              <div class="meta">5 types &middot; variety OK</div>
+            </div>
+            <div class="arrow">&#10230;</div>
+            <div class="stage-node">
+              <h5>Fridges &middot; K2</h5><div class="rate">96</div><div class="unit">stocked</div>
+              <div class="meta">3 fridges &middot; capacity 120</div>
+            </div>
+            <div class="arrow">&#10230;</div>
+            <div class="stage-node bottleneck">
+              <h5>Cookers &middot; K2</h5><div class="rate">30</div><div class="unit">meals / hour</div>
+              <div class="meta">2 cookers &middot; 1 cook<br><b style="color:var(--danger)">need 6 cookers</b></div>
+            </div>
+            <div class="arrow">&#10230;</div>
+            <div class="stage-node">
+              <h5>Serving counters</h5><div class="rate">40</div><div class="unit">meals delivered</div>
+              <div class="meta">3 counters &middot; not the limit</div>
+            </div>
+            <div class="arrow">&#10230;</div>
+            <div class="stage-node">
+              <h5>Seating</h5><div class="rate">80</div><div class="unit">seats</div>
+              <div class="meta">118 routed here</div>
+            </div>
+            <div class="arrow">&#10230;</div>
+            <div class="stage-node">
+              <h5>Sinks</h5><div class="rate">120</div><div class="unit">trays / hour</div>
+              <div class="meta">4 sinks &middot; 0 backlog</div>
+            </div>
+            <div class="arrow">&#10230;</div>
+            <div class="stage-node">
+              <h5>Refuse</h5><div class="rate">18</div><div class="unit">bags / day</div>
+              <div class="meta">collected 06:00</div>
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:var(--s5)">
+            <div class="card">
+              <header><h3>Kitchen to mess hall routing</h3><span class="pill info">Delegation unlocked</span></header>
+              <div class="card-body">
+                <table class="tbl">
+                  <thead><tr><th>Kitchen</th><th>Serves</th><th class="num">Capacity</th><th class="num">Demand</th><th class="num">Gap</th></tr></thead>
+                  <tbody>
+                    <tr><td>K1</td><td>East Hall</td><td class="num">96</td><td class="num">68</td><td class="num" style="color:var(--ok)">+28</td></tr>
+                    <tr><td>K2</td><td>West Hall</td><td class="num">30</td><td class="num">118</td><td class="num" style="color:var(--danger)">-88</td></tr>
+                    <tr><td>K3</td><td>Staff canteen</td><td class="num">48</td><td class="num">38</td><td class="num" style="color:var(--ok)">+10</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <header><h3>Suggested fixes</h3></header>
+              <div class="card-body" style="display:flex;flex-direction:column;gap:var(--s2)">
+                <button class="btn primary" style="justify-content:space-between;padding:0 var(--s3)">
+                  <span>Add 4 cookers to K2</span><span style="color:rgba(20,24,30,.65)">$3,200</span></button>
+                <button class="btn" style="justify-content:space-between;padding:0 var(--s3)">
+                  <span>Assign 3 more inmates to kitchen work</span><span style="color:var(--text-faint)">free</span></button>
+                <button class="btn" style="justify-content:space-between;padding:0 var(--s3)">
+                  <span>Reroute 40 inmates to East Hall</span><span style="color:var(--text-faint)">free</span></button>
+                <button class="btn" style="justify-content:space-between;padding:0 var(--s3)">
+                  <span>Add 38 seats to West Hall</span><span style="color:var(--text-faint)">$1,520</span></button>
+                <div style="font-size:var(--f-cap);color:var(--text-faint);margin-top:var(--s1);line-height:1.6">
+                  Fixes are ordered by impact on the bottleneck. Applying the first one alone
+                  raises projected output from 40 to 118 meals.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     7. DIRECTORATE
+     ====================================================================== -->
+<section class="doc" id="directorate">
+  <h2>7. The Directorate (research)</h2>
+  <p class="note">Pinch-zoomable node graph, not a nested list. Every node carries a plain-language
+  "why you want this" line naming the specific problem it solves.</p>
+
+  <div class="frame">
+    <div class="frame-label"><span>Screen 7 &middot; Directorate</span><span>1194 x 834</span></div>
+    <div class="device">
+      <div class="topbar">
+        <div class="speed"><button>&#10074;&#10074;</button><button class="on">1x</button><button>2x</button><button>5x</button><button>20x</button></div>
+        <div class="clock"><span class="t">14:20</span><span class="d">Day 27</span></div>
+        <div class="stat"><span class="k">Balance</span><span class="v pos">$84,120</span></div>
+        <div class="spacer"></div>
+        <div class="iconbtn">&#9873;<span class="badge">3</span></div>
+        <div class="iconbtn">&#9776;</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <button class="iconbtn">&#8592;</button>
+          <div><h2>Directorate</h2><div class="sub">9 of 34 complete &middot; 1 in progress</div></div>
+          <div class="spacer"></div>
+          <div class="seg"><button class="on">All</button><button>Security</button><button>Legal</button><button>Works</button><button>Finance</button></div>
+        </div>
+
+        <div class="panel-body">
+          <div class="two-col">
+            <div class="tree">
+              <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+                <g stroke="#39424F" stroke-width="2" fill="none">
+                  <path d="M100,90 C160,90 160,58 214,58"/>
+                  <path d="M100,90 C160,90 160,150 214,150"/>
+                  <path d="M100,90 C160,90 160,242 214,242"/>
+                  <path d="M100,90 C160,90 160,334 214,334"/>
+                  <path d="M100,90 C160,90 160,426 214,426"/>
+                  <path d="M382,58 C440,58 440,32 496,32"/>
+                  <path d="M382,58 C440,58 440,110 496,110"/>
+                  <path d="M382,58 C440,58 440,188 496,188"/>
+                </g>
+                <g stroke="#9B7BD4" stroke-width="2.5" fill="none" stroke-dasharray="5 4">
+                  <path d="M382,58 C440,58 440,266 496,266"/>
+                </g>
+              </svg>
+
+              <div class="node done" style="left:16px;top:66px">
+                <div class="tick">&#10003;</div>
+                <div class="nt">Warden</div><div class="nc">Hired &middot; day 1</div>
+              </div>
+
+              <div class="node done" style="left:214px;top:34px">
+                <div class="tick">&#10003;</div>
+                <div class="nt">Security Office</div><div class="nc">$500 &middot; 6h</div>
+              </div>
+              <div class="node done" style="left:214px;top:126px">
+                <div class="tick">&#10003;</div>
+                <div class="nt">Welfare</div><div class="nc">$500 &middot; 6h</div>
+              </div>
+              <div class="node done" style="left:214px;top:218px">
+                <div class="tick">&#10003;</div>
+                <div class="nt">Medical</div><div class="nc">$500 &middot; 6h</div>
+              </div>
+              <div class="node" style="left:214px;top:310px">
+                <div class="nt">Works</div><div class="nc">$500 &middot; 6h</div>
+              </div>
+              <div class="node locked" style="left:214px;top:402px">
+                <div class="nt">Legal</div><div class="nc">$5,000 &middot; 12h</div>
+              </div>
+
+              <div class="node done" style="left:496px;top:8px">
+                <div class="tick">&#10003;</div>
+                <div class="nt">Posts</div><div class="nc">$1,000 &middot; 6h</div>
+              </div>
+              <div class="node done" style="left:496px;top:86px">
+                <div class="tick">&#10003;</div>
+                <div class="nt">Patrols</div><div class="nc">$1,000 &middot; 6h</div>
+              </div>
+              <div class="node" style="left:496px;top:164px">
+                <div class="nt">Surveillance</div><div class="nc">$2,000 &middot; 6h</div>
+              </div>
+              <div class="node active" style="left:496px;top:242px">
+                <div class="nt">Intelligence</div><div class="nc">$1,000 &middot; 4h 10m left</div>
+                <div class="np"><i style="width:31%"></i></div>
+              </div>
+              <div class="node locked" style="left:496px;top:326px">
+                <div class="nt">Canine</div><div class="nc">$1,000 &middot; 6h</div>
+              </div>
+              <div class="node locked" style="left:496px;top:404px">
+                <div class="nt">Armoury</div><div class="nc">$2,000 &middot; 12h</div>
+              </div>
+            </div>
+
+            <div class="card" style="align-self:start">
+              <header><h3>Intelligence</h3><span class="pill" style="background:rgba(155,123,212,.2);color:var(--research);border-color:transparent">In progress</span></header>
+              <div class="card-body" style="display:flex;flex-direction:column;gap:var(--s4)">
+                <div>
+                  <div class="track" style="height:10px"><i style="width:31%;background:var(--research)"></i></div>
+                  <div style="display:flex;justify-content:space-between;font-size:var(--f-cap);color:var(--text-dim);margin-top:6px">
+                    <span>31% complete</span><span>4h 10m remaining</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 style="font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.09em;color:var(--text-faint);margin-bottom:var(--s2)">Why you want this</h4>
+                  <p style="font-size:var(--f-sm);color:var(--text);line-height:1.6">
+                    You are losing roughly <b style="color:var(--warn)">9 items of contraband a day</b> to unguarded
+                    rooms and you cannot currently see where any of it comes from. Intelligence shows the source
+                    room for every item, the live trading price, and lets you recruit informants who reveal
+                    hidden stashes before a shank turns up in a fight.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 style="font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.09em;color:var(--text-faint);margin-bottom:var(--s2)">Unlocks</h4>
+                  <div class="pills">
+                    <span class="pill">Intelligence panel</span>
+                    <span class="pill">Contraband source map</span>
+                    <span class="pill">Informant recruitment</span>
+                    <span class="pill">Trade price table</span>
+                    <span class="pill">Reputation reveals</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 style="font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.09em;color:var(--text-faint);margin-bottom:var(--s2)">Requires</h4>
+                  <div class="kv"><span class="k">Security Director</span><span class="v" style="color:var(--ok)">Hired &middot; office OK</span></div>
+                  <div class="kv"><span class="k">Security Office</span><span class="v" style="color:var(--ok)">Complete</span></div>
+                </div>
+
+                <button class="btn danger">Cancel research &middot; refund $500</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     8. REPORTS
+     ====================================================================== -->
+<section class="doc" id="reports">
+  <h2>8. Reports: needs drill-down and finance</h2>
+  <p class="note">The needs report is not a bar chart. Each row breaks down into severity bands, and
+  tapping a row reveals capacity versus demand and the named bottleneck.</p>
+
+  <div class="frame">
+    <div class="frame-label"><span>Screen 8 &middot; Reports</span><span>1194 x 834</span></div>
+    <div class="device">
+      <div class="topbar">
+        <div class="speed"><button>&#10074;&#10074;</button><button class="on">1x</button><button>2x</button><button>5x</button><button>20x</button></div>
+        <div class="clock"><span class="t">14:20</span><span class="d">Day 27</span></div>
+        <div class="spacer"></div>
+        <div class="iconbtn">&#9873;<span class="badge">3</span></div>
+        <div class="iconbtn">&#9776;</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <button class="iconbtn">&#8592;</button>
+          <div><h2>Reports</h2><div class="sub">Day 27 &middot; population 186</div></div>
+          <div class="spacer"></div>
+          <div class="seg">
+            <button class="on">Needs</button><button>Finance</button><button>Population</button>
+            <button>Intelligence</button><button>Programmes</button><button>Log</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="grid3" style="margin-bottom:var(--s4)">
+            <div class="metric"><span class="k">Inmates with a critical need</span><span class="v" style="color:var(--danger)">47</span><span class="d">25% of population &middot; up 12 today</span></div>
+            <div class="metric"><span class="k">Mean mood</span><span class="v" style="color:var(--warn)">54</span><span class="d">down 9 since day 24</span></div>
+            <div class="metric"><span class="k">Misconduct last 24h</span><span class="v" style="color:var(--warn)">31</span><span class="d">18 contraband, 9 destruction, 4 assault</span></div>
+          </div>
+
+          <div class="two-col">
+            <div class="card">
+              <header><h3>Needs across the population</h3>
+                <div style="display:flex;gap:var(--s3);font-size:var(--f-micro);color:var(--text-faint)">
+                  <span><i style="display:inline-block;width:9px;height:9px;background:var(--need-ok);border-radius:2px"></i> Satisfied</span>
+                  <span><i style="display:inline-block;width:9px;height:9px;background:var(--need-medium);border-radius:2px"></i> Medium</span>
+                  <span><i style="display:inline-block;width:9px;height:9px;background:var(--need-high);border-radius:2px"></i> High</span>
+                  <span><i style="display:inline-block;width:9px;height:9px;background:var(--need-critical);border-radius:2px"></i> Critical</span>
+                </div>
+              </header>
+              <div class="card-body" id="needlist"></div>
+            </div>
+
+            <div class="card" style="align-self:start">
+              <header><h3>Food</h3><span class="pill bad">42 critical</span></header>
+              <div class="card-body" style="display:flex;flex-direction:column;gap:var(--s4)">
+                <div>
+                  <h4 style="font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.09em;color:var(--text-faint);margin-bottom:var(--s2)">Capacity vs demand</h4>
+                  <div class="kv"><span class="k">Meals needed per meal block</span><span class="v">186</span></div>
+                  <div class="kv"><span class="k">Kitchen capacity</span><span class="v" style="color:var(--danger)">174</span></div>
+                  <div class="kv"><span class="k">Seats available</span><span class="v" style="color:var(--danger)">160</span></div>
+                  <div class="kv"><span class="k">Serving counters</span><span class="v">6 &middot; sufficient</span></div>
+                </div>
+                <div style="background:var(--danger-soft);border:1px solid var(--danger);border-radius:var(--r-md);padding:var(--s3)">
+                  <div style="font-size:var(--f-sm);font-weight:600;color:var(--danger);margin-bottom:4px">Bottleneck: Kitchen K2 cookers</div>
+                  <div style="font-size:var(--f-cap);color:var(--text);line-height:1.55">
+                    K2 serves 118 inmates with a capacity of 30 meals per hour.
+                    Everything upstream is healthy. This single kitchen accounts for
+                    <b>39 of the 42 critical cases</b>.
+                  </div>
+                  <button class="btn sm primary" style="margin-top:var(--s3);width:100%">Open in Flow view</button>
+                </div>
+                <div>
+                  <h4 style="font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.09em;color:var(--text-faint);margin-bottom:var(--s2)">Where the critical cases are</h4>
+                  <div class="kv"><span class="k">A Wing cells</span><span class="v" style="color:var(--danger)">28</span></div>
+                  <div class="kv"><span class="k">C Wing cells</span><span class="v" style="color:var(--danger)">11</span></div>
+                  <div class="kv"><span class="k">Isolation</span><span class="v" style="color:var(--warn)">3</span></div>
+                  <button class="btn sm" style="width:100%;margin-top:var(--s3)">Show heatmap on the map</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     9. STANDING ORDERS
+     ====================================================================== -->
+<section class="doc" id="orders">
+  <h2>9. Standing Orders</h2>
+  <p class="note">The punishment and search policy matrix. Note the live consequence readout on the
+  right, which projects the effect of the current policy on suppression and reform.</p>
+
+  <div class="frame">
+    <div class="frame-label"><span>Screen 9 &middot; Standing Orders</span><span>1194 x 834</span></div>
+    <div class="device">
+      <div class="topbar">
+        <div class="speed"><button>&#10074;&#10074;</button><button class="on">1x</button><button>2x</button><button>5x</button><button>20x</button></div>
+        <div class="clock"><span class="t">14:20</span><span class="d">Day 27</span></div>
+        <div class="spacer"></div>
+        <div class="iconbtn">&#9873;<span class="badge">3</span></div>
+        <div class="iconbtn">&#9776;</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <button class="iconbtn">&#8592;</button>
+          <div><h2>Standing Orders</h2><div class="sub">Punishment, search and welfare policy</div></div>
+          <div class="spacer"></div>
+          <div class="seg"><button class="on">Punishment</button><button>Search</button><button>Housing</button><button>Meals</button></div>
+        </div>
+
+        <div class="panel-body">
+          <div class="two-col">
+            <div class="card">
+              <header><h3>Misconduct response</h3><span class="pill ghost">Autosaved</span></header>
+              <div class="card-body">
+                <table class="matrix">
+                  <thead><tr><th>Misconduct</th><th style="width:230px">Response</th><th style="width:120px">Duration</th><th style="width:80px">Search</th></tr></thead>
+                  <tbody>
+                    <tr><td>Complaint</td>
+                      <td><div class="radio-seg"><button class="on">Ignore</button><button>Lockdown</button><button>Isolation</button></div></td>
+                      <td style="color:var(--text-faint);font-size:var(--f-cap)">n/a</td><td style="text-align:center;color:var(--text-faint)">&#9633;</td></tr>
+                    <tr><td>Contraband found</td>
+                      <td><div class="radio-seg"><button>Ignore</button><button class="on warn">Lockdown</button><button>Isolation</button></div></td>
+                      <td style="font-size:var(--f-cap)">6 hours</td><td style="text-align:center;color:var(--accent)">&#9635;</td></tr>
+                    <tr><td>Intoxication</td>
+                      <td><div class="radio-seg"><button>Ignore</button><button class="on warn">Lockdown</button><button>Isolation</button></div></td>
+                      <td style="font-size:var(--f-cap)">4 hours</td><td style="text-align:center;color:var(--accent)">&#9635;</td></tr>
+                    <tr><td>Destruction</td>
+                      <td><div class="radio-seg"><button>Ignore</button><button class="on warn">Lockdown</button><button>Isolation</button></div></td>
+                      <td style="font-size:var(--f-cap)">8 hours</td><td style="text-align:center;color:var(--text-faint)">&#9633;</td></tr>
+                    <tr><td>Attacked inmate</td>
+                      <td><div class="radio-seg"><button>Ignore</button><button>Lockdown</button><button class="on bad">Isolation</button></div></td>
+                      <td style="font-size:var(--f-cap)">12 hours</td><td style="text-align:center;color:var(--accent)">&#9635;</td></tr>
+                    <tr><td>Attacked staff</td>
+                      <td><div class="radio-seg"><button>Ignore</button><button>Lockdown</button><button class="on bad">Isolation</button></div></td>
+                      <td style="font-size:var(--f-cap)">24 hours</td><td style="text-align:center;color:var(--accent)">&#9635;</td></tr>
+                    <tr><td>Serious injury</td>
+                      <td><div class="radio-seg"><button>Ignore</button><button>Lockdown</button><button class="on bad">Isolation</button></div></td>
+                      <td style="font-size:var(--f-cap)">36 hours</td><td style="text-align:center;color:var(--accent)">&#9635;</td></tr>
+                    <tr><td>Homicide</td>
+                      <td><div class="radio-seg"><button>Ignore</button><button>Lockdown</button><button class="on bad">Isolation</button></div></td>
+                      <td style="font-size:var(--f-cap)">Indefinite</td><td style="text-align:center;color:var(--accent)">&#9635;</td></tr>
+                    <tr><td>Escape attempt</td>
+                      <td><div class="radio-seg"><button>Ignore</button><button>Lockdown</button><button class="on bad">Isolation</button></div></td>
+                      <td style="font-size:var(--f-cap)">24 hours</td><td style="text-align:center;color:var(--accent)">&#9635;</td></tr>
+                  </tbody>
+                </table>
+
+                <div style="margin-top:var(--s5)">
+                  <h4 style="font-size:var(--f-micro);text-transform:uppercase;letter-spacing:.09em;color:var(--text-faint);margin-bottom:var(--s2)">Cell reassignment strictness</h4>
+                  <div class="radio-seg" style="max-width:340px;height:44px">
+                    <button>Off</button><button class="on">Lenient &middot; within 2</button><button>Strict &middot; exact</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:var(--s3)">
+              <div class="card">
+                <header><h3>Projected effect</h3></header>
+                <div class="card-body" style="display:flex;flex-direction:column;gap:var(--s3)">
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:var(--f-cap);color:var(--text-dim);margin-bottom:5px">
+                      <span>Mean suppression</span><b style="color:var(--warn)">44 &rarr; 51</b></div>
+                    <div class="bar" style="height:8px"><i style="width:51%;background:var(--warn)"></i></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:var(--f-cap);color:var(--text-dim);margin-bottom:5px">
+                      <span>Misconduct rate</span><b style="color:var(--ok)">31/day &rarr; 22/day</b></div>
+                    <div class="bar" style="height:8px"><i style="width:34%;background:var(--ok)"></i></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:var(--f-cap);color:var(--text-dim);margin-bottom:5px">
+                      <span>Programme participation</span><b style="color:var(--danger)">61% &rarr; 48%</b></div>
+                    <div class="bar" style="height:8px"><i style="width:48%;background:var(--danger)"></i></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:var(--f-cap);color:var(--text-dim);margin-bottom:5px">
+                      <span>Re-offending estimate</span><b style="color:var(--danger)">41% &rarr; 47%</b></div>
+                    <div class="bar" style="height:8px"><i style="width:47%;background:var(--danger)"></i></div>
+                  </div>
+                  <p style="font-size:var(--f-cap);color:var(--text-faint);line-height:1.6;margin-top:var(--s1)">
+                    Harsher standing orders buy control now and cost reform later. The projection uses
+                    your current population mix and updates as you change the matrix.
+                  </p>
+                </div>
+              </div>
+
+              <div class="card">
+                <header><h3>Isolation capacity</h3><span class="pill warn">At 92%</span></header>
+                <div class="card-body">
+                  <div class="kv"><span class="k">Isolation cells</span><span class="v">12</span></div>
+                  <div class="kv"><span class="k">Currently occupied</span><span class="v" style="color:var(--warn)">11</span></div>
+                  <div class="kv"><span class="k">Projected peak under this policy</span><span class="v" style="color:var(--danger)">19</span></div>
+                  <div style="font-size:var(--f-cap);color:var(--text-dim);margin-top:var(--s2);line-height:1.55">
+                    Overflow falls back to cell lockdown, which is less effective and will raise
+                    your misconduct rate above the projection.
+                  </div>
+                  <button class="btn sm primary" style="width:100%;margin-top:var(--s3)">Build 8 more isolation cells &middot; $6,400</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ==========================================================================
+   Mockup helpers. None of this is production code, it exists to make the
+   mockups look like a real game. The renderer spec is in PRD 7.6.
+   ========================================================================== */
+const C = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+
+/* ---------- token swatch generation (doc chrome) ---------- */
+function swatches(target, list){
+  const el = document.getElementById(target);
+  el.innerHTML = list.map(([n,v])=>`
+    <div class="sw-card">
+      <div class="fill" style="background:${C(v)}"></div>
+      <div class="meta"><div class="nm">${n}</div><div class="hx">${v} &middot; ${C(v)}</div></div>
+    </div>`).join('');
+}
+swatches('sw-surface',[['bg void','--bg-void'],['bg app','--bg-app'],['surface 1','--surface-1'],
+  ['surface 2','--surface-2'],['surface 3','--surface-3'],['surface 4','--surface-4'],
+  ['border','--border'],['border strong','--border-strong'],['text hi','--text-hi'],
+  ['text','--text'],['text dim','--text-dim'],['text faint','--text-faint']]);
+swatches('sw-semantic',[['accent','--accent'],['accent press','--accent-press'],['info','--info'],
+  ['ok','--ok'],['warn','--warn'],['danger','--danger'],['research','--research'],
+  ['need medium','--need-medium'],['need high','--need-high'],['need critical','--need-critical']]);
+swatches('sw-cat',[['minimum','--cat-min'],['medium','--cat-med'],['maximum','--cat-max'],
+  ['supermax','--cat-supermax'],['protective','--cat-protective'],['condemned','--cat-condemned']]);
+swatches('sw-terrain',[['grass','--terrain-grass'],['mud','--terrain-mud'],['road','--terrain-road'],
+  ['paving','--terrain-paving'],['floor concrete','--floor-concrete'],['floor tile','--floor-tile'],
+  ['floor wood','--floor-wood'],['running track','--floor-track'],['wall interior','--wall-interior'],
+  ['wall perimeter','--wall-perimeter'],['fence','--fence'],['door','--door']]);
+
+/* ---------- prison layout, shared by all three world canvases ---------- */
+const T = 24;                 // tile size in canvas px
+const GW = 69, GH = 57;       // grid dimensions
+
+const ROOMS = [
+  // x, y, w, h, floor, label, tint(optional)
+  [ 4, 3, 6, 5,'paving','Dock'],
+  [ 4,10, 6, 6,'concrete','Store'],
+  [ 4,18, 6, 4,'paving','Dispatch'],
+  [ 4,24, 5, 3,'mud','Refuse'],
+
+  [15, 3, 8, 7,'tile','Intake hall','info'],
+  [15,11, 7, 5,'wood','Warden office','info'],
+  [15,17, 7, 5,'wood','Security dir.','info'],
+  [15,23, 8, 7,'tile','Clinic','info'],
+  [15,31, 7, 5,'concrete','Control room','info'],
+  [15,38, 7, 5,'wood','Break room','info'],
+  [15,45, 8, 6,'concrete','Laundry'],
+
+  [25, 3,14,14,'concrete','A Wing &middot; 16 cells','med'],
+  [25,18,14,10,'tile','West Hall','med'],
+  [25,29, 8, 8,'tile','Kitchen K2'],
+  [34,29, 5, 8,'tile','Washroom'],
+  [25,38,14, 8,'concrete','C Wing &middot; 10 cells','max'],
+  [25,47,14, 4,'concrete','Isolation','max'],
+
+  [41, 3,22,16,'track','Yard','min'],
+  [41,20,13, 9,'concrete','Workshop'],
+  [55,20, 8, 9,'tile','Dayroom','min'],
+  [41,30,10, 8,'tile','Classroom'],
+  [52,30,11, 8,'tile','Library'],
+  [41,39,22,12,'concrete','B Wing &middot; 22 cells','min'],
+];
+
+const FLOORS = {paving:'--terrain-paving',concrete:'--floor-concrete',tile:'--floor-tile',
+  wood:'--floor-wood',track:'--floor-track',mud:'--terrain-mud'};
+const TINTS = {min:'--cat-min',med:'--cat-med',max:'--cat-max',info:'--info'};
+
+function drawPrison(canvas, opts={}){
+  const g = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  g.imageSmoothingEnabled = false;
+
+  // ground
+  g.fillStyle = C('--terrain-grass'); g.fillRect(0,0,w,h);
+  // subtle ground noise
+  g.globalAlpha=.06;
+  for(let i=0;i<2400;i++){
+    g.fillStyle = i%3 ? '#000' : '#fff';
+    g.fillRect(Math.random()*w|0, Math.random()*h|0, 2,2);
+  }
+  g.globalAlpha=1;
+
+  // road down the left
+  g.fillStyle = C('--terrain-road'); g.fillRect(0,0,2.4*T,h);
+  g.strokeStyle='rgba(255,255,255,.16)'; g.setLineDash([14,16]); g.lineWidth=2;
+  g.beginPath(); g.moveTo(1.2*T,0); g.lineTo(1.2*T,h); g.stroke(); g.setLineDash([]);
+
+  // perimeter wall
+  const P = {x:2.6*T, y:0.8*T, w:(GW-3.4)*T, h:(GH-1.6)*T};
+  g.strokeStyle = C('--wall-perimeter'); g.lineWidth = 10;
+  g.strokeRect(P.x,P.y,P.w,P.h);
+  g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 2;
+  g.strokeRect(P.x-5,P.y-5,P.w+10,P.h+10);
+
+  // main building shell
+  const B = {x:13.4*T, y:1.8*T, w:51*T, h:51*T};
+  g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(B.x+6,B.y+8,B.w,B.h);
+  g.fillStyle = C('--floor-concrete'); g.fillRect(B.x,B.y,B.w,B.h);
+  g.strokeStyle = C('--wall-interior'); g.lineWidth = 8; g.strokeRect(B.x,B.y,B.w,B.h);
+
+  // corridors (lighter concrete) drawn under rooms
+  g.fillStyle = C('--terrain-paving');
+  g.fillRect(23.2*T,2.2*T,1.6*T,50*T);      // vertical spine 1
+  g.fillRect(39.2*T,2.2*T,1.6*T,50*T);      // vertical spine 2
+  g.fillRect(14*T,51*T,49.8*T,1.6*T);       // bottom cross corridor
+
+  // rooms
+  ROOMS.forEach(([x,y,rw,rh,floor,label,tint])=>{
+    const px=x*T, py=y*T, pw=rw*T, ph=rh*T;
+    g.fillStyle = C(FLOORS[floor]); g.fillRect(px,py,pw,ph);
+
+    // floor tile grid
+    g.strokeStyle='rgba(0,0,0,.13)'; g.lineWidth=1;
+    for(let i=1;i<rw;i++){g.beginPath();g.moveTo(px+i*T,py);g.lineTo(px+i*T,py+ph);g.stroke();}
+    for(let j=1;j<rh;j++){g.beginPath();g.moveTo(px,py+j*T);g.lineTo(px+pw,py+j*T);g.stroke();}
+
+    // sector tint
+    if(tint && opts.sectors!==false){
+      g.globalAlpha=.20; g.fillStyle=C(TINTS[tint]); g.fillRect(px,py,pw,ph); g.globalAlpha=1;
+    }
+
+    // walls
+    g.strokeStyle=C('--wall-interior'); g.lineWidth=6; g.strokeRect(px,py,pw,ph);
+    g.strokeStyle='rgba(0,0,0,.30)'; g.lineWidth=1.5; g.strokeRect(px-3,py-3,pw+6,ph+6);
+
+    // label
+    g.fillStyle='rgba(0,0,0,.42)';
+    const txt = label.replace('&middot;','·');
+    g.font='600 15px -apple-system,system-ui,sans-serif';
+    const tw = g.measureText(txt).width;
+    g.fillRect(px+7, py+7, tw+14, 24);
+    g.fillStyle='rgba(255,255,255,.90)';
+    g.fillText(txt, px+14, py+24);
+  });
+
+  // cell subdivisions in the wings
+  function cells(x,y,cols,rows,cw,ch){
+    g.strokeStyle=C('--wall-interior'); g.lineWidth=4;
+    for(let c=0;c<cols;c++)for(let r=0;r<rows;r++){
+      g.strokeRect((x+c*cw)*T,(y+r*ch)*T,cw*T,ch*T);
+      // bed + toilet dots
+      g.fillStyle='#8FA0B5'; g.fillRect((x+c*cw)*T+6,(y+r*ch)*T+6,T*1.6,T*0.8);
+      g.fillStyle='#B7C4D2'; g.beginPath();
+      g.arc((x+c*cw+cw-0.5)*T,(y+r*ch+ch-0.5)*T,6,0,7); g.fill();
+    }
+  }
+  cells(25.5, 3.5, 4, 4, 3.4, 3.4);   // A wing
+  cells(25.5,38.5, 4, 2, 3.4, 3.4);   // C wing
+  cells(41.5,39.5, 6, 3, 3.4, 3.4);   // B wing
+
+  // objects: canteen tables, kitchen units, yard equipment
+  function scatter(x,y,w2,h2,n,color,size){
+    g.fillStyle=color;
+    for(let i=0;i<n;i++){
+      const ox=(x+Math.random()*w2)*T, oy=(y+Math.random()*h2)*T;
+      g.fillRect(ox,oy,size,size);
+    }
+  }
+  // mess hall tables in rows
+  g.fillStyle='#8A6A46';
+  for(let r=0;r<4;r++)for(let c=0;c<5;c++){
+    g.fillRect((26.5+c*2.5)*T,(19.5+r*2.2)*T, T*1.8, T*0.9);
+  }
+  // serving counters
+  g.fillStyle='#C9A24B'; g.fillRect(25.6*T,18.4*T,T*12,T*0.7);
+  // kitchen appliances
+  g.fillStyle='#9AA7B6';
+  [[26,30],[28,30],[26,33],[28,33],[31,30],[31,33]].forEach(([x,y])=>g.fillRect(x*T,y*T,T*1.5,T*1.5));
+  // washroom heads
+  g.fillStyle='#7FB2C4';
+  for(let i=0;i<10;i++) g.fillRect((34.6+ (i%2)*3.4)*T,(30+Math.floor(i/2)*1.5)*T,T*0.7,T*0.7);
+  // yard equipment
+  scatter(43,5,18,12,26,'#5E7A62',9);
+  g.fillStyle='#7A5A3C';
+  g.beginPath(); g.ellipse(52*T,11*T,8.5*T,5.4*T,0,0,7); g.lineWidth=T*0.9;
+  g.strokeStyle='#7A5A3C'; g.stroke();
+  // workshop machines
+  g.fillStyle='#9AA7B6';
+  for(let i=0;i<10;i++) g.fillRect((42.5+(i%5)*2.4)*T,(21.5+Math.floor(i/5)*3)*T,T*1.6,T*1.4);
+  // classroom desks / library shelves
+  g.fillStyle='#8A6A46';
+  for(let i=0;i<18;i++) g.fillRect((42+(i%6)*1.5)*T,(31.5+Math.floor(i/6)*2)*T,T*1.1,T*0.6);
+  g.fillStyle='#6E5A3E';
+  for(let i=0;i<10;i++) g.fillRect((53+(i%2)*5)*T,(31.5+Math.floor(i/2)*1.4)*T,T*4,T*0.7);
+
+  // doors on the spine
+  g.fillStyle=C('--door-secure');
+  [[23.2,7],[23.2,21],[23.2,33],[23.2,43],[39.2,9],[39.2,24],[39.2,34],[39.2,44],
+   [13.4,7],[13.4,26],[13.4,40]].forEach(([x,y])=>g.fillRect(x*T-4,y*T,10,T*1.6));
+
+  // agents
+  const CATS=[['--cat-min',.42],['--cat-med',.33],['--cat-max',.17],['--cat-supermax',.03],['--cat-protective',.05]];
+  function agent(px,py,color,r=6){
+    g.fillStyle='rgba(0,0,0,.34)'; g.beginPath(); g.ellipse(px,py+r*0.9,r*0.95,r*0.42,0,0,7); g.fill();
+    g.fillStyle=color; g.beginPath(); g.arc(px,py,r,0,7); g.fill();
+    g.strokeStyle='rgba(0,0,0,.42)'; g.lineWidth=1.4; g.stroke();
+  }
+  const CLUSTERS=[
+    [26,19,13,9,52],  // mess hall queue
+    [42,5,19,13,44],  // yard
+    [26,4,12,12,26],  // A wing
+    [42,40,20,10,30], // B wing
+    [26,39,12,6,14],  // C wing
+    [55,21,7,7,16],   // dayroom
+    [42,21,11,7,14],  // workshop
+    [16,4,6,6,9],     // intake
+  ];
+  CLUSTERS.forEach(([x,y,w2,h2,n])=>{
+    for(let i=0;i<n;i++){
+      let roll=Math.random(),acc=0,col=CATS[0][0];
+      for(const [c,p] of CATS){acc+=p; if(roll<=acc){col=c;break;}}
+      agent((x+Math.random()*w2)*T,(y+Math.random()*h2)*T,C(col));
+    }
+  });
+  // staff
+  for(let i=0;i<26;i++){
+    agent(15*T+Math.random()*47*T, 3*T+Math.random()*48*T, '#2F4F76', 6.5);
+  }
+
+  // blueprint overlay for the build screen
+  if(opts.blueprint){
+    const bp = C('--info');
+    g.save();
+    g.setLineDash([9,6]); g.lineWidth=3; g.strokeStyle=bp;
+    g.fillStyle='rgba(76,155,232,.16)';
+    // new D wing footprint
+    g.fillRect(41*T,52.4*T,22*T,0); // (kept for clarity)
+    const bx=4.2*T, by=30*T, bw=8*T, bh=22*T;
+    g.fillRect(bx,by,bw,bh); g.strokeRect(bx,by,bw,bh);
+    // cells inside blueprint
+    g.setLineDash([]); g.lineWidth=2;
+    for(let r=0;r<6;r++)for(let c=0;c<2;c++){
+      const cx=bx+c*(bw/2), cy=by+r*(bh/6);
+      g.strokeRect(cx+4,cy+4,bw/2-8,bh/6-8);
+    }
+    // invalid rooms flagged amber
+    g.strokeStyle=C('--warn'); g.lineWidth=3;
+    for(let r=3;r<6;r++){
+      const cy=by+r*(bh/6);
+      g.strokeRect(bx+4,cy+4,bw/2-8,bh/6-8);
+      g.fillStyle='rgba(232,163,61,.18)';
+      g.fillRect(bx+4,cy+4,bw/2-8,bh/6-8);
+    }
+    // label
+    g.fillStyle='rgba(76,155,232,.92)';
+    g.font='700 16px -apple-system,system-ui,sans-serif';
+    g.fillText('BLUEPRINT · D Wing · 12 cells', bx, by-12);
+    g.restore();
+  }
+}
+
+/* draw all three */
+window.addEventListener('DOMContentLoaded',()=>{
+  const w1=document.getElementById('world');  if(w1) drawPrison(w1);
+  const w2=document.getElementById('world2'); if(w2) drawPrison(w2,{blueprint:true});
+  const w3=document.getElementById('world3'); if(w3) drawPrison(w3,{sectors:true});
+
+  /* routine strips */
+  const R = {
+    min:['sleep','sleep','sleep','sleep','sleep','sleep','sleep','meal','wash','free','yard','yard',
+         'meal','work','work','work','free','free','meal','free','free','free','sleep','sleep'],
+    med:['sleep','sleep','sleep','sleep','sleep','sleep','sleep','meal','wash','work','work','yard',
+         'meal','work','work','free','free','free','meal','free','lockup','lockup','sleep','sleep'],
+    max:['sleep','sleep','sleep','sleep','sleep','sleep','lockup','meal','wash','lockup','yard','lockup',
+         'meal','work','work','lockup','lockup','free','meal','lockup','lockup','lockup','sleep','sleep'],
+    sup:['sleep','sleep','sleep','sleep','sleep','sleep','lockup','meal','lockup','lockup','yard','lockup',
+         'meal','lockup','lockup','lockup','lockup','lockup','meal','lockup','lockup','lockup','sleep','sleep'],
+  };
+  const LB={sleep:'S',meal:'M',wash:'W',yard:'Y',free:'F',work:'K',lockup:'L'};
+  document.querySelectorAll('[data-routine]').forEach(el=>{
+    el.innerHTML = R[el.dataset.routine].map(b=>
+      `<div class="hr blk-${b}" title="${b}">${LB[b]}</div>`).join('');
+  });
+
+  /* needs report list */
+  const NEEDS=[
+    ['Food',        22,18,18,42],
+    ['Safety',      31,24,21,24],
+    ['Hygiene',     44,26,17,13],
+    ['Freedom',     38,30,22,10],
+    ['Recreation',  47,29,16, 8],
+    ['Privacy',     52,24,17, 7],
+    ['Sleep',       61,22,12, 5],
+    ['Comfort',     58,26,12, 4],
+    ['Environment', 49,33,14, 4],
+    ['Clothing',    66,21, 9, 4],
+    ['Family',      55,28,14, 3],
+    ['Exercise',    71,19, 8, 2],
+    ['Bladder',     84,11, 4, 1],
+    ['Luxury',      41,38,17, 4],
+    ['Narcotics',   12, 9, 6, 3],
+    ['Warmth',      88, 8, 3, 1],
+  ];
+  const nl=document.getElementById('needlist');
+  if(nl){
+    nl.innerHTML = NEEDS.map(([n,a,b,c,d])=>{
+      const total=a+b+c+d;
+      const crit = Math.round(d/total*186);
+      return `<div class="needbar-row">
+        <span style="font-size:var(--f-sm);color:var(--text)">${n}</span>
+        <div class="stackbar">
+          <i style="width:${a}%;background:var(--need-ok)"></i>
+          <i style="width:${b}%;background:var(--need-medium)"></i>
+          <i style="width:${c}%;background:var(--need-high)"></i>
+          <i style="width:${d}%;background:var(--need-critical)"></i>
+        </div>
+        <span style="font-size:var(--f-cap);text-align:right;color:${d>15?'var(--danger)':'var(--text-faint)'};font-variant-numeric:tabular-nums">${crit}</span>
+      </div>`;
+    }).join('');
+  }
+});
+</script>
+</body>
+</html>

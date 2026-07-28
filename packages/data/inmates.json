@@ -1,0 +1,760 @@
+{
+  "securityCategories": [
+    {
+      "id": "minimum",
+      "name": "Minimum",
+      "intakeFee": 320,
+      "dailyPayment": 110,
+      "riskTier": "low",
+      "allowsDangerousTraits": false,
+      "reputationChanceScale": 0.25,
+      "_tuning": true
+    },
+    {
+      "id": "medium",
+      "name": "Medium",
+      "intakeFee": 520,
+      "dailyPayment": 160,
+      "riskTier": "medium",
+      "reputationChanceScale": 1,
+      "_tuning": true
+    },
+    {
+      "id": "maximum",
+      "name": "Maximum",
+      "intakeFee": 1050,
+      "dailyPayment": 260,
+      "riskTier": "high",
+      "reputationChanceScale": 2,
+      "_tuning": true
+    },
+    {
+      "id": "supermax",
+      "name": "Supermax",
+      "intakeFee": 2100,
+      "dailyPayment": 260,
+      "riskTier": "high",
+      "manualDesignationOnly": true,
+      "reputationChanceScale": 2.5,
+      "_tuning": true
+    },
+    {
+      "id": "protective",
+      "name": "Protective",
+      "intakeFee": 0,
+      "dailyPayment": 210,
+      "riskTier": "low",
+      "manualDesignationOnly": true,
+      "reputationChanceScale": 1,
+      "_tuning": true
+    },
+    {
+      "id": "condemned",
+      "name": "Condemned",
+      "intakeFee": 2600,
+      "dailyPayment": 310,
+      "riskTier": "high",
+      "manualDesignationOnly": true,
+      "followsRoutine": false,
+      "reputationChanceScale": 2.5,
+      "unlockedBy": "capital_cases",
+      "_tuning": true
+    }
+  ],
+
+  "traits": [
+    {
+      "id": "clever",
+      "name": "Clever",
+      "description": "Plans ahead. Digs tunnels and wants to learn to read."
+    },
+    {
+      "id": "controlling",
+      "name": "Controlling",
+      "description": "Wants a cell to themselves and resents being searched.",
+      "dangerous": true
+    },
+    {
+      "id": "destructive",
+      "name": "Destructive",
+      "description": "Breaks fittings when angry and during disorder.",
+      "dangerous": true
+    },
+    {
+      "id": "deceitful",
+      "name": "Deceitful",
+      "description": "Talks their way past staff and fabricates accounts of events."
+    },
+    {
+      "id": "lethal",
+      "name": "Lethal",
+      "description": "Kills deliberately rather than fighting to win.",
+      "dangerous": true
+    },
+    {
+      "id": "loyal",
+      "name": "Loyal",
+      "description": "Will take a punishment on someone else's behalf."
+    },
+    {
+      "id": "dependent",
+      "name": "Dependent",
+      "description": "Prone to addiction. Gates the narcotics and alcohol needs."
+    },
+    {
+      "id": "hoarder",
+      "name": "Hoarder",
+      "description": "Keeps contraband rather than trading it away."
+    },
+    {
+      "id": "reckless",
+      "name": "Reckless",
+      "description": "Undeterred by staff presence. Attempts escapes others would not.",
+      "dangerous": true
+    },
+    {
+      "id": "thief",
+      "name": "Thief",
+      "description": "Lifts items from any room they are permitted to enter."
+    },
+    {
+      "id": "driver",
+      "name": "Driver",
+      "description": "Can start and drive a delivery vehicle."
+    },
+    {
+      "id": "violent",
+      "name": "Violent",
+      "description": "Starts fights. Raises the misconduct roll substantially.",
+      "dangerous": true
+    },
+    { "id": "young", "name": "Young", "description": "Impulsive, easily led, and reforms faster." },
+    {
+      "id": "devout",
+      "name": "Devout",
+      "description": "Carries the spirituality need and responds to chaplaincy."
+    }
+  ],
+
+  "reputations": [
+    {
+      "id": "notorious",
+      "name": "Notorious",
+      "description": "The apex tier. Carries several other reputations and draws a crowd.",
+      "baseChance": 0.004,
+      "apex": true,
+      "_tuning": true
+    },
+    {
+      "id": "strong",
+      "name": "Strong",
+      "description": "Hits 50% harder than average.",
+      "baseChance": 0.09,
+      "_tuning": true
+    },
+    {
+      "id": "very_strong",
+      "name": "Very strong",
+      "description": "Hits twice as hard as average.",
+      "baseChance": 0.03,
+      "_tuning": true
+    },
+    {
+      "id": "hardy",
+      "name": "Hardy",
+      "description": "Takes a third less damage.",
+      "baseChance": 0.09,
+      "_tuning": true
+    },
+    {
+      "id": "very_hardy",
+      "name": "Very hardy",
+      "description": "Takes half damage and may shrug off a stun device.",
+      "baseChance": 0.03,
+      "_tuning": true
+    },
+    {
+      "id": "unstable",
+      "name": "Unstable",
+      "description": "Mood swings wildly. Misconduct arrives without warning.",
+      "baseChance": 0.08,
+      "_tuning": true
+    },
+    {
+      "id": "very_unstable",
+      "name": "Very unstable",
+      "description": "Almost no correlation between treatment and behaviour.",
+      "baseChance": 0.025,
+      "_tuning": true
+    },
+    {
+      "id": "stoic",
+      "name": "Stoic",
+      "description": "Accrues no suppression from isolation.",
+      "baseChance": 0.06,
+      "_tuning": true
+    },
+    {
+      "id": "informant",
+      "name": "Informant",
+      "description": "Talks to staff, and is a target once that becomes known.",
+      "baseChance": 0.05,
+      "_tuning": true
+    },
+    {
+      "id": "deadly",
+      "name": "Deadly",
+      "description": "Small chance of killing outright with any weapon.",
+      "baseChance": 0.04,
+      "_tuning": true
+    },
+    {
+      "id": "very_deadly",
+      "name": "Very deadly",
+      "description": "Substantial chance of killing outright with any weapon.",
+      "baseChance": 0.012,
+      "_tuning": true
+    },
+    {
+      "id": "former_officer",
+      "name": "Former officer",
+      "description": "Previously worked in law enforcement. A standing target.",
+      "baseChance": 0.02,
+      "_tuning": true
+    },
+    {
+      "id": "officer_killer",
+      "name": "Officer killer",
+      "description": "Killed an officer. Staff handle them roughly.",
+      "baseChance": 0.01,
+      "_tuning": true
+    },
+    {
+      "id": "fearless",
+      "name": "Fearless",
+      "description": "Guard presence does not reduce their misconduct roll.",
+      "baseChance": 0.05,
+      "_tuning": true
+    },
+    {
+      "id": "fast",
+      "name": "Fast",
+      "description": "Moves 25% quicker than average.",
+      "baseChance": 0.08,
+      "_tuning": true
+    },
+    {
+      "id": "very_fast",
+      "name": "Very fast",
+      "description": "Moves 50% quicker than average.",
+      "baseChance": 0.025,
+      "_tuning": true
+    },
+    {
+      "id": "agitator",
+      "name": "Agitator",
+      "description": "Nearby inmates copy their misconduct within five tiles.",
+      "baseChance": 0.05,
+      "_tuning": true
+    },
+    {
+      "id": "trained_fighter",
+      "name": "Trained fighter",
+      "description": "Can disarm an armed opponent.",
+      "baseChance": 0.05,
+      "_tuning": true
+    },
+    {
+      "id": "expert_fighter",
+      "name": "Expert fighter",
+      "description": "Disarms reliably and rarely loses a fight.",
+      "baseChance": 0.015,
+      "_tuning": true
+    },
+    {
+      "id": "preacher",
+      "name": "Preacher",
+      "description": "Converts neighbours, spreading the spirituality need.",
+      "baseChance": 0.03,
+      "_tuning": true
+    },
+    {
+      "id": "supplier",
+      "name": "Supplier",
+      "description": "Arranges throw-ins and deliveries of contraband.",
+      "baseChance": 0.04,
+      "_tuning": true
+    },
+    {
+      "id": "dealer",
+      "name": "Dealer",
+      "description": "Buys low and sells high in the in-prison market.",
+      "baseChance": 0.04,
+      "_tuning": true
+    },
+    {
+      "id": "grower",
+      "name": "Grower",
+      "description": "Produces narcotics from ordinary garden materials.",
+      "baseChance": 0.025,
+      "_tuning": true
+    },
+    {
+      "id": "gourmand",
+      "name": "Gourmand",
+      "description": "Food need fills faster and meal quality matters more.",
+      "baseChance": 0.05,
+      "_tuning": true
+    }
+  ],
+
+  "convictions": [
+    {
+      "id": "petty_theft",
+      "name": "Petty theft",
+      "minYears": 1,
+      "maxYears": 3,
+      "riskTier": "low",
+      "grantsTraits": ["thief"],
+      "_tuning": true
+    },
+    {
+      "id": "shoplifting",
+      "name": "Shoplifting",
+      "minYears": 1,
+      "maxYears": 4,
+      "riskTier": "low",
+      "grantsTraits": ["thief", "hoarder"],
+      "_tuning": true
+    },
+    {
+      "id": "criminal_damage",
+      "name": "Criminal damage",
+      "minYears": 1,
+      "maxYears": 3,
+      "riskTier": "low",
+      "grantsTraits": ["destructive", "young"],
+      "_tuning": true
+    },
+    {
+      "id": "aggravated_trespass",
+      "name": "Aggravated trespass",
+      "minYears": 1,
+      "maxYears": 2,
+      "riskTier": "low",
+      "grantsTraits": ["reckless"],
+      "_tuning": true
+    },
+    {
+      "id": "public_disorder",
+      "name": "Public disorder",
+      "minYears": 1,
+      "maxYears": 3,
+      "riskTier": "low",
+      "grantsTraits": ["young"],
+      "_tuning": true
+    },
+    {
+      "id": "document_forgery",
+      "name": "Document forgery",
+      "minYears": 2,
+      "maxYears": 8,
+      "riskTier": "low",
+      "grantsTraits": ["deceitful", "clever"],
+      "_tuning": true
+    },
+    {
+      "id": "cheque_fraud",
+      "name": "Cheque fraud",
+      "minYears": 2,
+      "maxYears": 7,
+      "riskTier": "low",
+      "grantsTraits": ["deceitful"],
+      "_tuning": true
+    },
+    {
+      "id": "tax_evasion",
+      "name": "Tax evasion",
+      "minYears": 2,
+      "maxYears": 9,
+      "riskTier": "low",
+      "grantsTraits": ["deceitful", "clever"],
+      "_tuning": true
+    },
+    {
+      "id": "embezzlement",
+      "name": "Embezzlement",
+      "minYears": 3,
+      "maxYears": 12,
+      "riskTier": "low",
+      "grantsTraits": ["deceitful", "clever"],
+      "_tuning": true
+    },
+    {
+      "id": "identity_theft",
+      "name": "Identity theft",
+      "minYears": 2,
+      "maxYears": 8,
+      "riskTier": "low",
+      "grantsTraits": ["deceitful", "thief"],
+      "_tuning": true
+    },
+    {
+      "id": "handling_stolen_goods",
+      "name": "Handling stolen goods",
+      "minYears": 1,
+      "maxYears": 6,
+      "riskTier": "low",
+      "grantsTraits": ["hoarder", "thief"],
+      "_tuning": true
+    },
+    {
+      "id": "unlicensed_trading",
+      "name": "Unlicensed trading",
+      "minYears": 1,
+      "maxYears": 5,
+      "riskTier": "low",
+      "grantsTraits": ["deceitful"],
+      "_tuning": true
+    },
+    {
+      "id": "benefit_fraud",
+      "name": "Benefit fraud",
+      "minYears": 1,
+      "maxYears": 5,
+      "riskTier": "low",
+      "grantsTraits": ["deceitful"],
+      "_tuning": true
+    },
+    {
+      "id": "driving_offence",
+      "name": "Dangerous driving",
+      "minYears": 1,
+      "maxYears": 6,
+      "riskTier": "low",
+      "grantsTraits": ["driver", "reckless"],
+      "_tuning": true
+    },
+    {
+      "id": "burglary",
+      "name": "Burglary",
+      "minYears": 3,
+      "maxYears": 12,
+      "riskTier": "medium",
+      "grantsTraits": ["thief", "clever"],
+      "_tuning": true
+    },
+    {
+      "id": "controlled_substance_possession",
+      "name": "Possession of a controlled substance",
+      "minYears": 2,
+      "maxYears": 7,
+      "riskTier": "medium",
+      "grantsTraits": ["dependent"],
+      "_tuning": true
+    },
+    {
+      "id": "controlled_substance_supply",
+      "name": "Supply of a controlled substance",
+      "minYears": 5,
+      "maxYears": 14,
+      "riskTier": "medium",
+      "grantsTraits": ["dependent", "deceitful"],
+      "_tuning": true
+    },
+    {
+      "id": "common_assault",
+      "name": "Common assault",
+      "minYears": 1,
+      "maxYears": 8,
+      "riskTier": "medium",
+      "grantsTraits": ["violent"],
+      "_tuning": true
+    },
+    {
+      "id": "affray",
+      "name": "Affray",
+      "minYears": 2,
+      "maxYears": 8,
+      "riskTier": "medium",
+      "grantsTraits": ["violent", "destructive"],
+      "_tuning": true
+    },
+    {
+      "id": "vehicle_theft",
+      "name": "Vehicle theft",
+      "minYears": 4,
+      "maxYears": 14,
+      "riskTier": "medium",
+      "grantsTraits": ["thief", "driver", "young"],
+      "_tuning": true
+    },
+    {
+      "id": "blackmail",
+      "name": "Blackmail",
+      "minYears": 4,
+      "maxYears": 13,
+      "riskTier": "medium",
+      "grantsTraits": ["controlling", "deceitful"],
+      "_tuning": true
+    },
+    {
+      "id": "extortion",
+      "name": "Extortion",
+      "minYears": 5,
+      "maxYears": 15,
+      "riskTier": "medium",
+      "grantsTraits": ["controlling", "violent"],
+      "_tuning": true
+    },
+    {
+      "id": "perjury",
+      "name": "Perjury",
+      "minYears": 2,
+      "maxYears": 8,
+      "riskTier": "medium",
+      "grantsTraits": ["deceitful"],
+      "_tuning": true
+    },
+    {
+      "id": "perverting_the_course_of_justice",
+      "name": "Perverting the course of justice",
+      "minYears": 3,
+      "maxYears": 10,
+      "riskTier": "medium",
+      "grantsTraits": ["deceitful", "clever"],
+      "_tuning": true
+    },
+    {
+      "id": "weapons_possession",
+      "name": "Possession of a prohibited weapon",
+      "minYears": 3,
+      "maxYears": 11,
+      "riskTier": "medium",
+      "grantsTraits": ["violent", "hoarder"],
+      "_tuning": true
+    },
+    {
+      "id": "smuggling",
+      "name": "Smuggling",
+      "minYears": 4,
+      "maxYears": 14,
+      "riskTier": "medium",
+      "grantsTraits": ["deceitful", "hoarder"],
+      "_tuning": true
+    },
+    {
+      "id": "animal_cruelty",
+      "name": "Animal cruelty",
+      "minYears": 2,
+      "maxYears": 7,
+      "riskTier": "medium",
+      "grantsTraits": ["violent"],
+      "_tuning": true
+    },
+    {
+      "id": "money_laundering",
+      "name": "Money laundering",
+      "minYears": 5,
+      "maxYears": 15,
+      "riskTier": "medium",
+      "grantsTraits": ["clever", "deceitful"],
+      "_tuning": true
+    },
+    {
+      "id": "riotous_assembly",
+      "name": "Riotous assembly",
+      "minYears": 5,
+      "maxYears": 12,
+      "riskTier": "medium",
+      "grantsTraits": ["violent", "destructive"],
+      "_tuning": true
+    },
+    {
+      "id": "witness_intimidation",
+      "name": "Witness intimidation",
+      "minYears": 4,
+      "maxYears": 12,
+      "riskTier": "medium",
+      "grantsTraits": ["controlling", "loyal"],
+      "_tuning": true
+    },
+    {
+      "id": "aggravated_assault",
+      "name": "Aggravated assault",
+      "minYears": 9,
+      "maxYears": 16,
+      "riskTier": "high",
+      "grantsTraits": ["violent", "reckless"],
+      "_tuning": true
+    },
+    {
+      "id": "armed_robbery",
+      "name": "Armed robbery",
+      "minYears": 14,
+      "maxYears": 25,
+      "riskTier": "high",
+      "grantsTraits": ["thief", "reckless", "violent"],
+      "_tuning": true
+    },
+    {
+      "id": "aggravated_burglary",
+      "name": "Aggravated burglary",
+      "minYears": 10,
+      "maxYears": 20,
+      "riskTier": "high",
+      "grantsTraits": ["thief", "violent", "clever"],
+      "_tuning": true
+    },
+    {
+      "id": "kidnapping",
+      "name": "Kidnapping",
+      "minYears": 12,
+      "maxYears": 24,
+      "riskTier": "high",
+      "grantsTraits": ["controlling", "violent"],
+      "_tuning": true
+    },
+    {
+      "id": "false_imprisonment",
+      "name": "False imprisonment",
+      "minYears": 8,
+      "maxYears": 18,
+      "riskTier": "high",
+      "grantsTraits": ["controlling"],
+      "_tuning": true
+    },
+    {
+      "id": "arson",
+      "name": "Arson",
+      "minYears": 14,
+      "maxYears": 25,
+      "riskTier": "high",
+      "grantsTraits": ["destructive", "reckless"],
+      "_tuning": true
+    },
+    {
+      "id": "manslaughter",
+      "name": "Manslaughter",
+      "minYears": 12,
+      "maxYears": 22,
+      "riskTier": "high",
+      "grantsTraits": ["violent", "reckless"],
+      "_tuning": true
+    },
+    {
+      "id": "attempted_murder",
+      "name": "Attempted murder",
+      "minYears": 18,
+      "maxYears": 28,
+      "riskTier": "high",
+      "grantsTraits": ["violent", "lethal"],
+      "_tuning": true
+    },
+    {
+      "id": "murder",
+      "name": "Murder",
+      "minYears": 25,
+      "maxYears": 25,
+      "riskTier": "high",
+      "grantsTraits": ["violent", "lethal"],
+      "_tuning": true
+    },
+    {
+      "id": "trafficking",
+      "name": "Trafficking",
+      "minYears": 15,
+      "maxYears": 26,
+      "riskTier": "high",
+      "grantsTraits": ["controlling", "deceitful", "clever"],
+      "_tuning": true
+    }
+  ],
+
+  "names": {
+    "given": [
+      "Alden",
+      "Brenna",
+      "Calum",
+      "Daphne",
+      "Ellis",
+      "Farah",
+      "Gideon",
+      "Harlow",
+      "Imani",
+      "Jonah",
+      "Keira",
+      "Leopold",
+      "Mira",
+      "Niall",
+      "Ophelia",
+      "Pavel",
+      "Quin",
+      "Roisin",
+      "Soren",
+      "Tessa",
+      "Uri",
+      "Vera",
+      "Wynn",
+      "Yara",
+      "Zeke",
+      "Anwen",
+      "Bram",
+      "Cressida",
+      "Dorian",
+      "Esme",
+      "Felix",
+      "Greta",
+      "Hugo",
+      "Iris",
+      "Jasper",
+      "Katarina",
+      "Laszlo",
+      "Maeve",
+      "Niko",
+      "Ottilie"
+    ],
+    "family": [
+      "Ashcroft",
+      "Bellamy",
+      "Cartwright",
+      "Dunne",
+      "Everett",
+      "Fairchild",
+      "Graves",
+      "Hollis",
+      "Ingram",
+      "Jennings",
+      "Kessler",
+      "Langley",
+      "Merrick",
+      "North",
+      "Oakley",
+      "Pritchard",
+      "Quill",
+      "Ravenscroft",
+      "Sinclair",
+      "Thorne",
+      "Underwood",
+      "Voss",
+      "Whitaker",
+      "Yates",
+      "Zimmerman",
+      "Aldridge",
+      "Beckett",
+      "Coleridge",
+      "Drummond",
+      "Ellsworth",
+      "Fenwick",
+      "Galloway",
+      "Hargrove",
+      "Iverson",
+      "Lockwood",
+      "Marlowe",
+      "Nash",
+      "Pembroke",
+      "Rowe",
+      "Sterling"
+    ]
+  }
+}

@@ -1,0 +1,657 @@
+{
+  "rooms": [
+    {
+      "_tuning": true,
+      "id": "cell",
+      "name": "Cell",
+      "category": "housing",
+      "minTiles": 6,
+      "minWidth": 2,
+      "minHeight": 3,
+      "properties": ["enclosed", "indoors"],
+      "requiredObjects": [
+        { "objectId": "bed", "count": 1 },
+        { "objectId": "toilet", "count": 1 }
+      ],
+      "suggestedObjects": ["sink", "bookshelf", "window", "bedside_cabinet"],
+      "servesNeeds": ["sleep", "bladder", "privacy"],
+      "graded": true,
+      "gradingRules": {
+        "min": 0,
+        "max": 10,
+        "objectPoints": [
+          { "objectIds": ["comfort_bed"], "points": 1 },
+          { "objectIds": ["foam_mattress"], "points": -1 },
+          { "objectIds": ["bedside_cabinet"], "points": 1 },
+          { "objectIds": ["sink", "mirror"], "points": 1 },
+          { "objectIds": ["shower_head"], "points": 1 },
+          { "objectIds": ["television", "radio"], "points": 1 },
+          { "objectIds": ["bookshelf"], "points": 1 },
+          { "objectIds": ["prayer_mat"], "points": 1 },
+          { "objectIds": ["potted_plant", "wall_art"], "points": 1 }
+        ],
+        "sizeThresholds": [
+          { "tiles": 6, "points": 1 },
+          { "tiles": 9, "points": 2 },
+          { "tiles": 16, "points": 3 }
+        ],
+        "windowRule": { "outdoorFacingBonus": 2, "nonePenalty": -1 },
+        "materialPenalties": [
+          {
+            "materialIds": ["churned_mud", "cracked_plaster", "rusted_panel", "mildewed_brick"],
+            "points": -1
+          }
+        ]
+      }
+    },
+    {
+      "_tuning": true,
+      "id": "dormitory",
+      "name": "Dormitory",
+      "category": "housing",
+      "minTiles": 6,
+      "minWidth": 2,
+      "minHeight": 3,
+      "properties": ["enclosed", "indoors"],
+      "requiredObjects": [
+        { "objectId": "bed", "count": 1, "perOccupant": 1 },
+        { "objectId": "toilet", "count": 1, "perOccupant": 0.125 }
+      ],
+      "suggestedObjects": ["bunk_bed", "sink", "shower_head", "television", "window"],
+      "servesNeeds": ["sleep", "bladder"],
+      "graded": true,
+      "gradingRules": {
+        "min": 0,
+        "max": 10,
+        "objectPoints": [
+          { "objectIds": ["comfort_bed"], "points": 1, "perOccupants": 4 },
+          { "objectIds": ["foam_mattress"], "points": -1, "perOccupants": 4 },
+          { "objectIds": ["sink", "mirror"], "points": 1, "perOccupants": 4 },
+          { "objectIds": ["shower_head"], "points": 1, "perOccupants": 4 },
+          { "objectIds": ["television", "radio"], "points": 1, "perOccupants": 8 },
+          { "objectIds": ["bookshelf"], "points": 1, "perOccupants": 8 },
+          { "objectIds": ["potted_plant", "wall_art"], "points": 1, "perOccupants": 8 }
+        ],
+        "sizeThresholds": [
+          { "tiles": 12, "points": 1 },
+          { "tiles": 24, "points": 2 },
+          { "tiles": 40, "points": 3 }
+        ],
+        "windowRule": { "outdoorFacingBonus": 2, "nonePenalty": -1, "perOccupants": 8 },
+        "materialPenalties": [
+          {
+            "materialIds": ["churned_mud", "cracked_plaster", "rusted_panel", "mildewed_brick"],
+            "points": -1
+          }
+        ]
+      }
+    },
+    {
+      "_tuning": true,
+      "id": "holding_pen",
+      "name": "Holding pen",
+      "category": "housing",
+      "minTiles": 25,
+      "minWidth": 5,
+      "minHeight": 5,
+      "properties": ["enclosed", "indoors"],
+      "requiredObjects": [
+        { "objectId": "toilet", "count": 1 },
+        { "objectId": "bench", "count": 1 }
+      ],
+      "suggestedObjects": ["phone_booth", "foam_mattress"],
+      "servesNeeds": ["bladder", "comfort"],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "isolation",
+      "name": "Isolation",
+      "category": "housing",
+      "minTiles": 4,
+      "minWidth": 2,
+      "minHeight": 2,
+      "properties": ["enclosed", "indoors"],
+      "requiredObjects": [{ "objectId": "toilet", "count": 1 }],
+      "suggestedObjects": ["isolation_pallet"],
+      "servesNeeds": ["bladder"],
+      "graded": false
+    },
+
+    {
+      "_tuning": true,
+      "id": "mess_hall",
+      "name": "Mess hall",
+      "category": "inmateActivity",
+      "minTiles": 12,
+      "minWidth": 3,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "serving_counter", "count": 1 },
+        { "objectId": "table", "count": 1 },
+        { "objectId": "bench", "count": 1 }
+      ],
+      "suggestedObjects": ["tray_rack", "refuse_bin", "water_cooler", "window"],
+      "servesNeeds": ["food"],
+      "graded": true,
+      "gradingRules": {
+        "min": 0,
+        "max": 10,
+        "objectPoints": [
+          { "objectIds": ["potted_plant"], "points": 1, "perCount": 4 },
+          { "objectIds": ["water_cooler"], "points": 1 },
+          { "objectIds": ["television"], "points": 1 },
+          { "objectIds": ["camera"], "points": -1 }
+        ],
+        "sizeThresholds": [{ "tiles": 20, "points": 1 }],
+        "windowRule": { "outdoorFacingBonus": 1, "nonePenalty": -1 },
+        "custom": ["meal_quality", "meal_variety"]
+      }
+    },
+    {
+      "_tuning": true,
+      "id": "washroom",
+      "name": "Washroom",
+      "category": "inmateActivity",
+      "minTiles": 4,
+      "minWidth": 2,
+      "minHeight": 2,
+      "properties": ["indoors"],
+      "requiredObjects": [{ "objectId": "shower_head", "count": 1 }],
+      "suggestedObjects": ["floor_drain", "sink", "mirror"],
+      "servesNeeds": ["hygiene"],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "exercise_yard",
+      "name": "Exercise yard",
+      "category": "inmateActivity",
+      "minTiles": 25,
+      "minWidth": 5,
+      "minHeight": 5,
+      "properties": ["outdoors", "secure"],
+      "suggestedObjects": ["weight_bench", "punch_bag", "bleacher", "first_aid_station"],
+      "servesNeeds": ["exercise", "freedom", "recreation"],
+      "graded": true,
+      "gradingRules": {
+        "min": 0,
+        "max": 10,
+        "objectPoints": [
+          { "objectIds": ["weight_bench"], "points": 1 },
+          { "objectIds": ["punch_bag"], "points": 1 },
+          { "objectIds": ["bleacher"], "points": 1 },
+          { "objectIds": ["treadmill"], "points": 1 },
+          { "objectIds": ["potted_plant"], "points": 1, "perCount": 4 }
+        ],
+        "sizeThresholds": [
+          { "tiles": 50, "points": -1 },
+          { "tiles": 100, "points": 1 },
+          { "tiles": 200, "points": 2 }
+        ],
+        "materialPenalties": [{ "materialIds": ["churned_mud"], "points": -1 }],
+        "custom": ["running_track_length"]
+      }
+    },
+    {
+      "_tuning": true,
+      "id": "dayroom",
+      "name": "Dayroom",
+      "category": "inmateActivity",
+      "minTiles": 16,
+      "minWidth": 4,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "suggestedObjects": ["television", "pool_table", "couch", "phone_booth"],
+      "servesNeeds": ["recreation", "comfort", "luxury"],
+      "graded": true,
+      "gradingRules": {
+        "min": 0,
+        "max": 10,
+        "objectPoints": [
+          { "objectIds": ["television"], "points": 1 },
+          { "objectIds": ["radio"], "points": 1 },
+          { "objectIds": ["pool_table"], "points": 1 },
+          { "objectIds": ["arcade_cabinet"], "points": 1 },
+          { "objectIds": ["phone_booth"], "points": 1 },
+          { "objectIds": ["couch"], "points": 1 },
+          { "objectIds": ["computer_station"], "points": 2, "perCount": 4 },
+          { "objectIds": ["camera"], "points": -1 }
+        ],
+        "sizeThresholds": [
+          { "tiles": 25, "points": 1 },
+          { "tiles": 50, "points": 2 }
+        ]
+      }
+    },
+    {
+      "_tuning": true,
+      "id": "classroom",
+      "name": "Classroom",
+      "category": "inmateActivity",
+      "minTiles": 25,
+      "minWidth": 5,
+      "minHeight": 5,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "classroom_desk", "count": 1, "perOccupant": 1 },
+        { "objectId": "office_desk", "count": 1 },
+        { "objectId": "whiteboard", "count": 1 }
+      ],
+      "suggestedObjects": ["bookshelf", "water_cooler", "computer_station"],
+      "servesNeeds": ["literacy"],
+      "graded": true,
+      "unlockedBy": "education",
+      "gradingRules": {
+        "min": 0,
+        "max": 10,
+        "objectPoints": [
+          { "objectIds": ["classroom_desk"], "points": 1, "perCount": 6 },
+          { "objectIds": ["bookshelf"], "points": 1, "perCount": 2 },
+          { "objectIds": ["water_cooler"], "points": 1 },
+          { "objectIds": ["whiteboard"], "points": 2 },
+          { "objectIds": ["computer_station"], "points": 1, "perCount": 4 }
+        ],
+        "sizeThresholds": [
+          { "tiles": 25, "points": 1 },
+          { "tiles": 50, "points": 2 }
+        ],
+        "windowRule": { "outdoorFacingBonus": 2, "nonePenalty": 0 }
+      }
+    },
+    {
+      "_tuning": true,
+      "id": "library",
+      "name": "Library",
+      "category": "inmateActivity",
+      "minTiles": 25,
+      "minWidth": 5,
+      "minHeight": 5,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "bookshelf", "count": 1 },
+        { "objectId": "sorting_desk", "count": 1 }
+      ],
+      "suggestedObjects": ["library_counter", "long_table", "chair", "computer_station"],
+      "servesNeeds": ["literacy", "recreation"],
+      "jobSlots": { "objectId": "sorting_desk", "slotsPerObject": 1 },
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "chapel",
+      "name": "Chapel",
+      "category": "inmateActivity",
+      "minTiles": 36,
+      "minWidth": 6,
+      "minHeight": 6,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "altar", "count": 1 },
+        { "objectId": "pew", "count": 1 },
+        { "objectId": "prayer_mat", "count": 1 }
+      ],
+      "suggestedObjects": ["window", "potted_plant"],
+      "servesNeeds": ["spirituality"],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "visit_hall",
+      "name": "Visit hall",
+      "category": "inmateActivity",
+      "minTiles": 12,
+      "minWidth": 3,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [{ "objectId": "visit_table", "count": 1 }],
+      "suggestedObjects": ["visit_booth", "metal_detector", "bench", "phone_booth"],
+      "servesNeeds": ["family"],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "commissary",
+      "name": "Commissary",
+      "category": "inmateActivity",
+      "minTiles": 16,
+      "minWidth": 4,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "shop_counter", "count": 1 },
+        { "objectId": "shop_shelf", "count": 1 },
+        { "objectId": "table", "count": 1 }
+      ],
+      "suggestedObjects": ["safe"],
+      "servesNeeds": ["luxury"],
+      "jobSlots": { "objectId": "shop_counter", "slotsPerObject": 1 },
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "mail_sort",
+      "name": "Mail sorting room",
+      "category": "inmateActivity",
+      "minTiles": 25,
+      "minWidth": 5,
+      "minHeight": 5,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "sorting_desk", "count": 1 },
+        { "objectId": "table", "count": 1 },
+        { "objectId": "mail_rack", "count": 1 }
+      ],
+      "suggestedObjects": ["filing_cabinet"],
+      "servesNeeds": ["family", "recreation"],
+      "jobSlots": { "objectId": "sorting_desk", "slotsPerObject": 1 },
+      "graded": false
+    },
+
+    {
+      "_tuning": true,
+      "id": "kitchen",
+      "name": "Kitchen",
+      "category": "production",
+      "minTiles": 12,
+      "minWidth": 3,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "cooker", "count": 1 },
+        { "objectId": "fridge", "count": 1 },
+        { "objectId": "kitchen_sink", "count": 1 }
+      ],
+      "suggestedObjects": ["food_crate", "tray_rack", "refuse_bin", "floor_drain"],
+      "servesNeeds": [],
+      "jobSlots": { "objectId": "cooker", "slotsPerObject": 1 },
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "workshop",
+      "name": "Workshop",
+      "category": "production",
+      "minTiles": 25,
+      "minWidth": 5,
+      "minHeight": 5,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "bench_saw", "count": 1 },
+        { "objectId": "sheet_press", "count": 1 },
+        { "objectId": "workbench", "count": 1 }
+      ],
+      "suggestedObjects": ["timber_rack", "tool_cabinet", "first_aid_station"],
+      "servesNeeds": [],
+      "jobSlots": { "objectId": "workbench", "slotsPerObject": 1 },
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "laundry",
+      "name": "Laundry",
+      "category": "production",
+      "minTiles": 12,
+      "minWidth": 3,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "washing_machine", "count": 1 },
+        { "objectId": "ironing_board", "count": 1 },
+        { "objectId": "laundry_basket", "count": 1 }
+      ],
+      "suggestedObjects": ["floor_drain"],
+      "servesNeeds": [],
+      "jobSlots": { "objectId": "washing_machine", "slotsPerObject": 1 },
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "supply_closet",
+      "name": "Supply closet",
+      "category": "production",
+      "minTiles": 9,
+      "minWidth": 3,
+      "minHeight": 3,
+      "properties": ["indoors"],
+      "requiredObjects": [{ "objectId": "storage_rack", "count": 1 }],
+      "suggestedObjects": ["workbench"],
+      "autoPurchase": [{ "itemId": "cleaning_kit", "perTile": 0.5 }],
+      "servesNeeds": [],
+      "jobSlots": { "objectId": "workbench", "slotsPerObject": 1 },
+      "graded": false,
+      "unlockedBy": "sanitation"
+    },
+    {
+      "_tuning": true,
+      "id": "grove",
+      "name": "Grove",
+      "category": "production",
+      "minTiles": 25,
+      "minWidth": 5,
+      "minHeight": 5,
+      "properties": ["outdoors"],
+      "requiredObjects": [{ "objectId": "sapling_bed", "count": 1 }],
+      "suggestedObjects": ["timber_rack"],
+      "autoPurchase": [{ "itemId": "sapling", "perTile": 0.2 }],
+      "servesNeeds": [],
+      "jobSlots": { "objectId": "sapling_bed", "slotsPerObject": 1 },
+      "graded": false,
+      "unlockedBy": "grounds"
+    },
+
+    {
+      "_tuning": true,
+      "id": "office",
+      "name": "Office",
+      "category": "admin",
+      "minTiles": 16,
+      "minWidth": 4,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "office_desk", "count": 1 },
+        { "objectId": "chair", "count": 1 },
+        { "objectId": "filing_cabinet", "count": 1 }
+      ],
+      "suggestedObjects": ["padded_chair", "safe", "potted_plant"],
+      "servesNeeds": [],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "control_room",
+      "name": "Control room",
+      "category": "staff",
+      "minTiles": 16,
+      "minWidth": 4,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "office_desk", "count": 1 },
+        { "objectId": "chair", "count": 1 },
+        { "objectId": "filing_cabinet", "count": 1 }
+      ],
+      "suggestedObjects": ["monitor_bank", "door_control_desk", "phone_tap"],
+      "servesNeeds": [],
+      "graded": false,
+      "unlockedBy": "security_office"
+    },
+    {
+      "_tuning": true,
+      "id": "break_room",
+      "name": "Break room",
+      "category": "staff",
+      "minTiles": 16,
+      "minWidth": 4,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "couch", "count": 1 },
+        { "objectId": "water_cooler", "count": 1 }
+      ],
+      "suggestedObjects": ["toilet", "sink", "television", "staff_locker", "treadmill"],
+      "servesNeeds": ["comfort", "recreation", "bladder", "hygiene"],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "armoury",
+      "name": "Armoury",
+      "category": "staff",
+      "minTiles": 12,
+      "minWidth": 3,
+      "minHeight": 4,
+      "properties": ["indoors", "secure"],
+      "requiredObjects": [
+        { "objectId": "weapon_rack", "count": 1 },
+        { "objectId": "staff_locker", "count": 1 },
+        { "objectId": "table", "count": 1 }
+      ],
+      "suggestedObjects": ["vest_rack", "stun_charger"],
+      "servesNeeds": [],
+      "graded": false,
+      "unlockedBy": "armoury_programme"
+    },
+    {
+      "_tuning": true,
+      "id": "kennel",
+      "name": "Kennel",
+      "category": "staff",
+      "minTiles": 25,
+      "minWidth": 5,
+      "minHeight": 5,
+      "properties": ["enclosed"],
+      "requiredObjects": [{ "objectId": "dog_crate", "count": 1 }],
+      "suggestedObjects": [],
+      "servesNeeds": [],
+      "graded": false,
+      "unlockedBy": "canine"
+    },
+
+    {
+      "_tuning": true,
+      "id": "clinic",
+      "name": "Clinic",
+      "category": "medical",
+      "minTiles": 12,
+      "minWidth": 3,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [{ "objectId": "clinic_bed", "count": 1 }],
+      "suggestedObjects": ["medicine_cabinet", "sink", "chair"],
+      "servesNeeds": [],
+      "graded": false,
+      "unlockedBy": "medical"
+    },
+    {
+      "_tuning": true,
+      "id": "mortuary",
+      "name": "Mortuary",
+      "category": "medical",
+      "minTiles": 9,
+      "minWidth": 3,
+      "minHeight": 3,
+      "properties": ["indoors"],
+      "requiredObjects": [{ "objectId": "mortuary_slab", "count": 1 }],
+      "suggestedObjects": [],
+      "servesNeeds": [],
+      "graded": false,
+      "unlockedBy": "medical"
+    },
+
+    {
+      "_tuning": true,
+      "id": "store",
+      "name": "Store",
+      "category": "logistics",
+      "minTiles": 9,
+      "minWidth": 3,
+      "minHeight": 3,
+      "properties": ["indoors"],
+      "suggestedObjects": ["storage_rack", "food_crate", "timber_rack"],
+      "servesNeeds": [],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "dock",
+      "name": "Dock",
+      "category": "logistics",
+      "minTiles": 3,
+      "minWidth": 1,
+      "minHeight": 3,
+      "properties": ["outdoors"],
+      "requiredObjects": [{ "objectId": "dock_marker", "count": 1 }],
+      "suggestedObjects": [],
+      "servesNeeds": [],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "dispatch",
+      "name": "Dispatch",
+      "category": "logistics",
+      "minTiles": 3,
+      "minWidth": 1,
+      "minHeight": 3,
+      "properties": ["outdoors"],
+      "requiredObjects": [{ "objectId": "dispatch_marker", "count": 1 }],
+      "suggestedObjects": ["storage_rack"],
+      "servesNeeds": [],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "refuse",
+      "name": "Refuse point",
+      "category": "logistics",
+      "minTiles": 3,
+      "minWidth": 1,
+      "minHeight": 3,
+      "properties": ["outdoors"],
+      "requiredObjects": [{ "objectId": "refuse_bin", "count": 1 }],
+      "suggestedObjects": [],
+      "servesNeeds": [],
+      "graded": false
+    },
+
+    {
+      "_tuning": true,
+      "id": "intake_hall",
+      "name": "Intake hall",
+      "category": "admin",
+      "minTiles": 16,
+      "minWidth": 4,
+      "minHeight": 4,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "office_desk", "count": 1 },
+        { "objectId": "table", "count": 1 },
+        { "objectId": "bench", "count": 1 }
+      ],
+      "suggestedObjects": ["metal_detector"],
+      "servesNeeds": [],
+      "graded": false
+    },
+    {
+      "_tuning": true,
+      "id": "hearing_room",
+      "name": "Hearing room",
+      "category": "admin",
+      "minTiles": 25,
+      "minWidth": 5,
+      "minHeight": 5,
+      "properties": ["indoors"],
+      "requiredObjects": [
+        { "objectId": "visit_table", "count": 1 },
+        { "objectId": "chair", "count": 1 },
+        { "objectId": "office_desk", "count": 1 }
+      ],
+      "suggestedObjects": ["filing_cabinet", "padded_chair"],
+      "servesNeeds": [],
+      "graded": false
+    }
+  ]
+}

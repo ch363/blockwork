@@ -1,0 +1,1580 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`inspector snapshots > renders the inmate variant 1`] = `
+<div
+  style="width: 1194px; height: 834px; position: relative;"
+>
+  <aside
+    aria-hidden="false"
+    aria-label="Inspector"
+    class="bw-inspector"
+    data-kind="inmate"
+    data-open="true"
+  >
+    <div
+      class="bw-insp-head"
+    >
+      <div
+        aria-hidden="true"
+        class="bw-avatar"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="26"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="26"
+        >
+          <path
+            d="M12 11a4 4 0 100-8 4 4 0 000 8z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+        <span
+          class="catbar"
+          style="background: var(--cat-max);"
+        />
+      </div>
+      <div
+        class="who"
+      >
+        <h3>
+          Delroy Ashworth
+        </h3>
+        <div
+          class="sub"
+        >
+          Inmate 4471 · intake day 11
+        </div>
+        <div
+          class="bw-pills"
+          style="margin-top: 7px;"
+        >
+          <span
+            class="bw-pill cat"
+            style="background: var(--cat-max);"
+          >
+            Maximum
+          </span>
+          <span
+            class="bw-pill bad"
+          >
+            3
+             critical need
+            s
+          </span>
+        </div>
+      </div>
+      <button
+        aria-label="Close inspector"
+        class="bw-iconbtn"
+        title="Close"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M6 6l12 12"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M18 6L6 18"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      aria-label="Inmate sections"
+      class="bw-tabs"
+      role="tablist"
+    >
+      <button
+        aria-selected="true"
+        data-on="true"
+        role="tab"
+        type="button"
+      >
+        Status
+      </button>
+      <button
+        aria-selected="false"
+        data-on="false"
+        role="tab"
+        type="button"
+      >
+        Record
+      </button>
+      <button
+        aria-selected="false"
+        data-on="false"
+        role="tab"
+        type="button"
+      >
+        Grades
+      </button>
+    </div>
+    <div
+      class="bw-insp-body"
+    >
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Sentence
+        </h4>
+        <div
+          class="bw-sentence"
+        >
+          <div
+            class="row"
+          >
+            <span>
+              Served 
+              2y 4m
+            </span>
+            <b>
+              of 
+              18y
+            </b>
+          </div>
+          <div
+            aria-label="Sentence progress"
+            aria-valuemax="100"
+            aria-valuemin="0"
+            aria-valuenow="13"
+            class="bw-track"
+            role="meter"
+          >
+            <i
+              style="width: 13%;"
+            />
+          </div>
+          <div
+            class="row"
+            style="margin: 6px 0px 0px;"
+          >
+            <span>
+              Parole eligible
+            </span>
+            <b>
+              day 341
+            </b>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Needs · tap to trace
+        </h4>
+        <div
+          class="bw-needs"
+        >
+          <button
+            aria-label="Food need 97, critical"
+            class="bw-need crit"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Food
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 97%; background: var(--need-critical);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              97
+            </span>
+          </button>
+          <button
+            aria-label="Safety need 91, critical"
+            class="bw-need crit"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Safety
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 91%; background: var(--need-critical);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              91
+            </span>
+          </button>
+          <button
+            aria-label="Hygiene need 89, critical"
+            class="bw-need crit"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Hygiene
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 89%; background: var(--need-critical);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              89
+            </span>
+          </button>
+          <button
+            aria-label="Freedom need 72, high"
+            class="bw-need"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Freedom
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 72%; background: var(--need-high);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              72
+            </span>
+          </button>
+          <button
+            aria-label="Recreation need 54, medium"
+            class="bw-need"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Recreation
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 54%; background: var(--need-medium);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              54
+            </span>
+          </button>
+          <button
+            aria-label="Sleep need 41, medium"
+            class="bw-need"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Sleep
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 41%; background: var(--need-medium);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              41
+            </span>
+          </button>
+          <button
+            aria-label="Comfort need 38, ok"
+            class="bw-need"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Comfort
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 38%; background: var(--need-ok);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              38
+            </span>
+          </button>
+          <button
+            aria-label="Bladder need 22, active"
+            class="bw-need"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Bladder
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 22%; background: var(--need-active);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              22
+            </span>
+          </button>
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Known reputation
+        </h4>
+        <div
+          class="bw-pills"
+        >
+          <span
+            class="bw-pill bad"
+          >
+            Very deadly
+          </span>
+          <span
+            class="bw-pill bad"
+          >
+            Agitator
+          </span>
+          <span
+            class="bw-pill warn"
+          >
+            Unstable
+          </span>
+          <span
+            class="bw-pill ghost"
+          >
+            2
+             unknown
+          </span>
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Current
+        </h4>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Activity
+          </span>
+          <span
+            class="v"
+          >
+            Queueing · West Hall
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Cell
+          </span>
+          <span
+            class="v"
+          >
+            A-14 · grade 3 / 6
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Entitlement
+          </span>
+          <span
+            class="v bw-num"
+          >
+            6
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Suppression
+          </span>
+          <span
+            class="v bw-num"
+            style="color: var(--warn);"
+          >
+            44
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Work
+          </span>
+          <span
+            class="v"
+            style="color: var(--text-faint);"
+          >
+            Unassigned
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Programme
+          </span>
+          <span
+            class="v"
+            style="color: var(--text-faint);"
+          >
+            None
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="bw-insp-foot bw-insp-foot-4"
+    >
+      <button
+        aria-label="Search inmate"
+        class="bw-btn"
+        disabled=""
+        title="Search inmate"
+        type="button"
+      >
+        Search
+      </button>
+      <button
+        aria-label="Reclassify inmate"
+        class="bw-btn"
+        disabled=""
+        title="Reclassify inmate"
+        type="button"
+      >
+        Reclassify
+      </button>
+      <button
+        aria-label="Isolate inmate for 24 hours"
+        class="bw-btn danger"
+        disabled=""
+        title="Isolate inmate for 24 hours"
+        type="button"
+      >
+        Isolation 24h
+      </button>
+      <button
+        aria-label="Place inmate in protective custody"
+        class="bw-btn primary"
+        disabled=""
+        title="Place inmate in protective custody"
+        type="button"
+      >
+        Protective
+      </button>
+    </div>
+  </aside>
+</div>
+`;
+
+exports[`inspector snapshots > renders the object variant 1`] = `
+<div
+  style="width: 1194px; height: 834px; position: relative;"
+>
+  <aside
+    aria-hidden="false"
+    aria-label="Inspector"
+    class="bw-inspector"
+    data-kind="object"
+    data-open="true"
+  >
+    <div
+      class="bw-insp-head"
+    >
+      <div
+        aria-hidden="true"
+        class="bw-avatar"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="26"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="26"
+        >
+          <path
+            d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M4 7.5l8 4.5 8-4.5"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M12 12v9"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+      </div>
+      <div
+        class="who"
+      >
+        <h3>
+          Bed
+        </h3>
+        <div
+          class="sub"
+        >
+          Cell 3
+        </div>
+      </div>
+      <button
+        aria-label="Close inspector"
+        class="bw-iconbtn"
+        title="Close"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M6 6l12 12"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M18 6L6 18"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      class="bw-insp-body"
+    >
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Utilities
+        </h4>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Power
+          </span>
+          <span
+            class="v"
+          >
+            Not required
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Water
+          </span>
+          <span
+            class="v"
+          >
+            Not required
+          </span>
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Condition
+        </h4>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Hit points
+          </span>
+          <span
+            class="v bw-num"
+          >
+            60
+             / 
+            60
+          </span>
+        </div>
+        <div
+          aria-label="Object condition"
+          aria-valuemax="100"
+          aria-valuemin="0"
+          aria-valuenow="100"
+          class="bw-bar"
+          role="meter"
+          style="margin-top: var(--s2);"
+        >
+          <i
+            style="width: 100%; background: var(--ok);"
+          />
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Details
+        </h4>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Cost
+          </span>
+          <span
+            class="v bw-num"
+          >
+            $
+            120
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Room
+          </span>
+          <span
+            class="v"
+          >
+            Cell 3
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Contraband risk
+          </span>
+          <span
+            class="v bw-num"
+          >
+            0
+            %
+          </span>
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Needs served
+        </h4>
+        <div
+          class="bw-pills"
+        >
+          <span
+            class="bw-pill info"
+          >
+            Sleep
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="bw-insp-foot"
+    >
+      <button
+        aria-label="Centre on selection"
+        class="bw-btn"
+        disabled=""
+        title="Centre on selection"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M11 18a7 7 0 100-14 7 7 0 000 14z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M16.2 16.2L21 21"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+        Centre
+      </button>
+      <button
+        aria-label="Demolish selection"
+        class="bw-btn danger"
+        disabled=""
+        title="Demolish selection"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M4 8l6-4 10 6-2 3-4-2-2 3-4-2-2 3-2-7z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M4 20h16"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+        Demolish
+      </button>
+    </div>
+  </aside>
+</div>
+`;
+
+exports[`inspector snapshots > renders the room variant 1`] = `
+<div
+  style="width: 1194px; height: 834px; position: relative;"
+>
+  <aside
+    aria-hidden="false"
+    aria-label="Inspector"
+    class="bw-inspector"
+    data-kind="room"
+    data-open="true"
+  >
+    <div
+      class="bw-insp-head"
+    >
+      <div
+        aria-hidden="true"
+        class="bw-avatar"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="26"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="26"
+        >
+          <path
+            d="M3 4h18v16H3z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M10 4v16"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M10 12h11"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+        <span
+          class="catbar"
+          style="background: var(--danger);"
+        />
+      </div>
+      <div
+        class="who"
+      >
+        <h3>
+          Cell 3
+        </h3>
+        <div
+          class="sub"
+        >
+          Cell
+        </div>
+      </div>
+      <button
+        aria-label="Close inspector"
+        class="bw-iconbtn"
+        title="Close"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M6 6l12 12"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M18 6L6 18"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      class="bw-insp-body"
+    >
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Status
+        </h4>
+        <div
+          class="bw-pills"
+        >
+          <span
+            class="bw-pill bad"
+          >
+            <svg
+              aria-hidden="true"
+              class="ico-svg"
+              fill="none"
+              focusable="false"
+              height="13"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.75"
+              viewBox="0 0 24 24"
+              width="13"
+            >
+              <path
+                d="M12 3l9.5 17H2.5L12 3z"
+                vector-effect="non-scaling-stroke"
+              />
+              <path
+                d="M12 10v4.5"
+                vector-effect="non-scaling-stroke"
+              />
+              <path
+                d="M12 17.6h.01"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+            1 unmet
+          </span>
+          <span
+            class="bw-pill"
+          >
+            enclosed
+          </span>
+          <span
+            class="bw-pill"
+          >
+            indoors
+          </span>
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Requirements
+        </h4>
+        <ul>
+          <li
+            class="bw-req"
+            data-met="true"
+          >
+            <span
+              class="mk"
+            >
+              <svg
+                aria-hidden="true"
+                class="ico-svg"
+                fill="none"
+                focusable="false"
+                height="16"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                viewBox="0 0 24 24"
+                width="16"
+              >
+                <path
+                  d="M4.5 12.5l5 5 10-11"
+                  vector-effect="non-scaling-stroke"
+                />
+              </svg>
+            </span>
+            <span
+              class="n"
+            >
+              1 × bed
+            </span>
+            <span
+              class="bw-num"
+              style="color: var(--text-dim); font-size: var(--f-cap);"
+            >
+              1 of 1
+            </span>
+          </li>
+          <li
+            class="bw-req"
+            data-met="false"
+          >
+            <span
+              class="mk"
+            >
+              <svg
+                aria-hidden="true"
+                class="ico-svg"
+                fill="none"
+                focusable="false"
+                height="16"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                viewBox="0 0 24 24"
+                width="16"
+              >
+                <path
+                  d="M6 6l12 12"
+                  vector-effect="non-scaling-stroke"
+                />
+                <path
+                  d="M18 6L6 18"
+                  vector-effect="non-scaling-stroke"
+                />
+              </svg>
+            </span>
+            <span
+              class="n"
+            >
+              1 × toilet
+            </span>
+            <span
+              class="bw-num"
+              style="color: var(--text-dim); font-size: var(--f-cap);"
+            >
+              0 of 1
+            </span>
+          </li>
+          <li
+            class="bw-req"
+            data-met="true"
+          >
+            <span
+              class="mk"
+            >
+              <svg
+                aria-hidden="true"
+                class="ico-svg"
+                fill="none"
+                focusable="false"
+                height="16"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                viewBox="0 0 24 24"
+                width="16"
+              >
+                <path
+                  d="M4.5 12.5l5 5 10-11"
+                  vector-effect="non-scaling-stroke"
+                />
+              </svg>
+            </span>
+            <span
+              class="n"
+            >
+              Must be enclosed
+            </span>
+            <span
+              class="bw-num"
+              style="color: var(--text-dim); font-size: var(--f-cap);"
+            >
+              Yes
+            </span>
+          </li>
+        </ul>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Size
+        </h4>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Footprint
+          </span>
+          <span
+            class="v bw-num"
+          >
+            6
+             × 
+            5
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Tiles
+          </span>
+          <span
+            class="v bw-num"
+          >
+            30
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Occupants
+          </span>
+          <span
+            class="v bw-num"
+          >
+            1
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="bw-insp-foot"
+    >
+      <button
+        aria-label="Centre on selection"
+        class="bw-btn"
+        disabled=""
+        title="Centre on selection"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M11 18a7 7 0 100-14 7 7 0 000 14z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M16.2 16.2L21 21"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+        Centre
+      </button>
+      <button
+        aria-label="Demolish selection"
+        class="bw-btn danger"
+        disabled=""
+        title="Demolish selection"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M4 8l6-4 10 6-2 3-4-2-2 3-4-2-2 3-2-7z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M4 20h16"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+        Demolish
+      </button>
+    </div>
+  </aside>
+</div>
+`;
+
+exports[`inspector snapshots > renders the staff variant 1`] = `
+<div
+  style="width: 1194px; height: 834px; position: relative;"
+>
+  <aside
+    aria-hidden="false"
+    aria-label="Inspector"
+    class="bw-inspector"
+    data-kind="staff"
+    data-open="true"
+  >
+    <div
+      class="bw-insp-head"
+    >
+      <div
+        aria-hidden="true"
+        class="bw-avatar"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="26"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="26"
+        >
+          <path
+            d="M12 11a4 4 0 100-8 4 4 0 000 8z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+        <span
+          class="catbar"
+          style="background: var(--info);"
+        />
+      </div>
+      <div
+        class="who"
+      >
+        <h3>
+          Officer 3
+        </h3>
+        <div
+          class="sub"
+        >
+          Officer
+        </div>
+      </div>
+      <button
+        aria-label="Close inspector"
+        class="bw-iconbtn"
+        title="Close"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M6 6l12 12"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M18 6L6 18"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      class="bw-insp-body"
+    >
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Role
+        </h4>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Title
+          </span>
+          <span
+            class="v"
+          >
+            Officer
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Wage
+          </span>
+          <span
+            class="v bw-num"
+          >
+            $
+            22
+            /hr
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Morale contribution
+          </span>
+          <span
+            class="v bw-num"
+          >
+            4
+          </span>
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Needs
+        </h4>
+        <div
+          class="bw-needs"
+        >
+          <button
+            aria-label="Bladder need 30, ok"
+            class="bw-need"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Bladder
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 30%; background: var(--need-ok);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              30
+            </span>
+          </button>
+          <button
+            aria-label="Food need 45, medium"
+            class="bw-need"
+            type="button"
+          >
+            <span
+              class="nm"
+            >
+              Food
+            </span>
+            <span
+              aria-hidden="true"
+              class="bw-need-bar"
+            >
+              <i
+                style="width: 45%; background: var(--need-medium);"
+              />
+            </span>
+            <span
+              class="vv"
+            >
+              45
+            </span>
+          </button>
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Assignment
+        </h4>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Current task
+          </span>
+          <span
+            class="v"
+          >
+            Patrolling
+          </span>
+        </div>
+        <div
+          class="bw-kv"
+        >
+          <span
+            class="k"
+          >
+            Post
+          </span>
+          <span
+            class="v"
+          >
+            Post 2
+          </span>
+        </div>
+      </div>
+      <div
+        class="bw-block"
+      >
+        <h4>
+          Equipment
+        </h4>
+        <div
+          class="bw-pills"
+        >
+          <span
+            class="bw-pill"
+          >
+            Baton
+          </span>
+          <span
+            class="bw-pill"
+          >
+            Keys
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="bw-insp-foot"
+    >
+      <button
+        aria-label="Centre on selection"
+        class="bw-btn"
+        disabled=""
+        title="Centre on selection"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M11 18a7 7 0 100-14 7 7 0 000 14z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M16.2 16.2L21 21"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+        Centre
+      </button>
+      <button
+        aria-label="Demolish selection"
+        class="bw-btn danger"
+        disabled=""
+        title="Demolish selection"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="ico-svg"
+          fill="none"
+          focusable="false"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          viewBox="0 0 24 24"
+          width="16"
+        >
+          <path
+            d="M4 8l6-4 10 6-2 3-4-2-2 3-4-2-2 3-2-7z"
+            vector-effect="non-scaling-stroke"
+          />
+          <path
+            d="M4 20h16"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+        Demolish
+      </button>
+    </div>
+  </aside>
+</div>
+`;
