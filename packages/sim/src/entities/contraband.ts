@@ -6,6 +6,7 @@
  */
 
 import type { Fnv1aHasher } from '../core/hash'
+import type { InmateComponent } from './inmate'
 
 export interface ContrabandStash {
   readonly id: number
@@ -101,7 +102,97 @@ export class ContrabandState {
     return entry
   }
 
+
+  /** Running total of items confiscated by searches (T4.3). */
+  confiscatedCount = 0
+
+  /** Give carried contraband; mirrors onto inmate inventory (T4.2 + T4.3). */
+  giveCarried(inmate: InmateComponent, _inmateId: number, defId: string): void {
+    mutableInventory(inmate).push(defId)
+  }
+
+  /** Carried items live on the inmate inventory after T4.2. */
+  carriedOf(inmate: InmateComponent): readonly string[] {
+    return inmate.inventory
+  }
+
+  confiscateCarried(inmate: InmateComponent, _inmateId: number): string[] {
+    const inv = mutableInventory(inmate)
+    const taken = inv.splice(0, inv.length)
+    this.confiscatedCount += taken.length
+    return taken
+  }
+
+  confiscateCarriedWithChance(
+    inmate: InmateComponent,
+    _inmateId: number,
+    chance: number,
+    roll: () => boolean,
+  ): string[] {
+    const inv = mutableInventory(inmate)
+    if (inv.length === 0) return []
+    const kept: string[] = []
+    const taken: string[] = []
+    for (const defId of inv) {
+      if (chance >= 1 || (chance > 0 && roll())) taken.push(defId)
+      else kept.push(defId)
+    }
+    inv.splice(0, inv.length, ...kept)
+    this.confiscatedCount += taken.length
+    return taken
+  }
+
+  /** Hide one or more items at a tile (search tests / AI stash). */
+  hideAt(tileIndex: number, items: readonly string[], ownerInmateId = 0): void {
+    for (const itemId of items) {
+      this.addStash(tileIndex, itemId, ownerInmateId)
+    }
+  }
+
+  /**
+   * Roll each stash item at a tile independently. Removes found stashes.
+   */
+  searchStash(tileIndex: number, chance: number, roll: () => boolean): string[] {
+    const taken: string[] = []
+    const kept: ContrabandStash[] = []
+    for (const stash of this.stashes) {
+      if (stash.tileIndex !== tileIndex) {
+        kept.push(stash)
+        continue
+      }
+      if (chance >= 1 || (chance > 0 && roll())) {
+        taken.push(stash.itemId)
+      } else {
+        kept.push(stash)
+      }
+    }
+    this.stashes.length = 0
+    this.stashes.push(...kept)
+    this.confiscatedCount += taken.length
+    return taken
+  }
+
+  stashCount(): number {
+    const tiles = new Set<number>()
+    for (const stash of this.stashes) tiles.add(stash.tileIndex)
+    return tiles.size
+  }
+
+  clearStash(tileIndex: number): string[] {
+    const taken: string[] = []
+    const kept: ContrabandStash[] = []
+    for (const stash of this.stashes) {
+      if (stash.tileIndex === tileIndex) taken.push(stash.itemId)
+      else kept.push(stash)
+    }
+    this.stashes.length = 0
+    this.stashes.push(...kept)
+    this.confiscatedCount += taken.length
+    return taken
+  }
+
   hashInto(hasher: Fnv1aHasher): void {
+    hasher.writeUint32(this.confiscatedCount)
     hasher.writeUint32(this.#nextStashId)
     hasher.writeUint32(this.#nextThrowInId)
     hasher.writeUint32(this.pendingArrivalIds.length)
@@ -139,4 +230,8 @@ export class ContrabandState {
 
 export function createContrabandState(): ContrabandState {
   return new ContrabandState()
+}
+
+function mutableInventory(inmate: InmateComponent): string[] {
+  return inmate.inventory as string[]
 }

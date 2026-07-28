@@ -3,26 +3,26 @@
     "inmate.starved": {
       "title": "Inmate {inmateId} starved to death",
       "detail": "Food need held above {foodNeed} for {hours} continuous in-game hours.",
-      "meta": "Day {day} · {time} · {location}"
+      "meta": "Day {day} \u00b7 {time} \u00b7 {location}"
     },
     "inmate.missedMeal": {
       "title": "Ate {mealsEaten} meals in the last {blocks} meal blocks",
       "detail": "Attended {messName} at {blockTimes} and left without eating each time.",
-      "meta": "Day {day} · caused by the node below"
+      "meta": "Day {day} \u00b7 caused by the node below"
     },
     "mess.emptyAtMealtime": {
       "title": "{messName} had {mealsAvailable} meals on the serving counters at {time}",
       "detail": "{routed} inmates were routed to {messName}. {mealsDelivered} meals were delivered. {leftHungry} inmates left hungry, of whom {missedThreePlus} have now missed 3 or more blocks.",
-      "meta": "Day {day} · {time}"
+      "meta": "Day {day} \u00b7 {time}"
     },
     "kitchen.producedShortfall": {
       "title": "Kitchen {kitchenName} produced {produced} meals, needed {needed}",
       "detail": "Preparation began at {prepStart} as scheduled. Production stopped at capacity.",
-      "meta": "Day {day} · {prepStart} to {mealTime}"
+      "meta": "Day {day} \u00b7 {prepStart} to {mealTime}"
     },
     "kitchen.underCapacity": {
       "title": "Kitchen {kitchenName} has {cookers} cookers and {cooks} assigned cook{cooksPlural}",
-      "detail": "Capacity is {cookers} × {mealsPerCookerPerHour} × {assistFactor} = {mealsPerHour} meals per hour. Serving {needed} inmates in a {prepHours} hour preparation window needs {neededCookers} cookers or {altCookers} cookers and {altCooks} assigned cooks.",
+      "detail": "Capacity is {cookers} \u00d7 {mealsPerCookerPerHour} \u00d7 {assistFactor} = {mealsPerHour} meals per hour. Serving {needed} inmates in a {prepHours} hour preparation window needs {neededCookers} cookers or {altCookers} cookers and {altCooks} assigned cooks.",
       "meta": "Root cause"
     },
     "kitchen.noIngredients": {
@@ -43,7 +43,7 @@
     "mess.full": {
       "title": "{messName} serving counters are full",
       "detail": "Counters hold {mealsHeld} of {capacity} meals. Kitchen {kitchenName} could not stage {blocked} more meals.",
-      "meta": "Day {day} · {time}"
+      "meta": "Day {day} \u00b7 {time}"
     },
     "laundry.noRouteToHousing": {
       "title": "Laundry {laundryName} has no route to a housing block",
@@ -52,7 +52,7 @@
     },
     "laundry.underCapacity": {
       "title": "Laundry {laundryName} has {machines} washing machine{machinesPlural} and {labour} assigned worker{labourPlural}",
-      "detail": "Capacity is {machines} × {uniformsPerMachinePerHour} × {assistFactor} = {uniformsPerHour} uniforms per hour. Serving {needed} inmates needs more machines or labour.",
+      "detail": "Capacity is {machines} \u00d7 {uniformsPerMachinePerHour} \u00d7 {assistFactor} = {uniformsPerHour} uniforms per hour. Serving {needed} inmates needs more machines or labour.",
       "meta": "Root cause"
     },
     "laundry.noLabour": {
@@ -63,22 +63,52 @@
     "cleaning.noCleaners": {
       "title": "No cleaners are working while floors are dirty",
       "detail": "Mean indoor dirt is {meanDirt}. Hire cleaners, groundskeepers for outdoor tiles, or assign cleaning labour during work blocks.",
-      "meta": "Day {day} · {time}"
+      "meta": "Day {day} \u00b7 {time}"
     },
     "morale.bribeTaken": {
       "title": "Officer {officerId} pocketed {contrabandId} during a search",
       "detail": "Staff morale was {morale}. Bribe chance was {chance}. The inmate kept their secret and the officer kept the goods.",
-      "meta": "Day {day} · inmate {inmateId}"
+      "meta": "Day {day} \u00b7 inmate {inmateId}"
     },
     "morale.strikeStarted": {
-      "title": "Staff walked out — morale fell to {morale}",
+      "title": "Staff walked out \u2014 morale fell to {morale}",
       "detail": "Non-emergency staff stop working for 24 hours. A pay demand of +{demandedRaise} is open until they return.",
-      "meta": "Day {day} · ends at tick {endsAtTick}"
+      "meta": "Day {day} \u00b7 ends at tick {endsAtTick}"
     },
     "morale.payDemand": {
       "title": "Staff demand a {demandedRaise} wage rise",
       "detail": "Accept to raise wages immediately and end the strike. Refuse and the next walkout becomes more likely.",
       "meta": "Current wage multiplier {currentWageMultiplier}"
+    },
+    "search.performed": {
+      "title": "{kind} search completed",
+      "detail": "Touched {inmatesTouched} inmates and {stashesTouched} stashes. Found {found} items. Mood cost {moodCost}. Staff morale was {morale}.",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "search.found": {
+      "title": "Search recovered {count} contraband item{countPlural}",
+      "detail": "Items: {items}.",
+      "meta": "Day {day} \u00b7 search kind {kind}"
+    },
+    "search.intakeDelayed": {
+      "title": "Intake search delayed inmate {inmateId} by {delayMinutes} minutes",
+      "detail": "{officers} officers searched at chance {chance}.",
+      "meta": "Day {day} \u00b7 intake hall"
+    },
+    "search.metalDetect": {
+      "title": "Metal detector flagged inmate {inmateId}",
+      "detail": "Recovered {items} at chance {chance} (morale {morale}).",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "search.dogDetect": {
+      "title": "Dog team flagged inmate {inmateId}",
+      "detail": "Recovered odorous items {items} at chance {chance} (morale {morale}).",
+      "meta": "Day {day} \u00b7 {time}"
+    },
+    "search.standingOrderApplied": {
+      "title": "Standing Orders applied for {misconduct}",
+      "detail": "Punishment {punishment} for {durationHours} hours. Search trigger {search}.",
+      "meta": "Inmate {inmateId}"
     }
   }
 }

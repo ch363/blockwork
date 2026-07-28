@@ -139,6 +139,8 @@ describe('createGame', () => {
       'rooms',
       'objects',
       'intake',
+      'contraband',
+      'search',
       'misconduct',
       'punishment',
       'economy',

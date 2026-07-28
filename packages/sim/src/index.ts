@@ -1068,6 +1068,39 @@ export {
   updateContraband,
   visitSmuggleChance,
 } from './systems/contrabandSystem'
+
+export {
+  SEARCH_SYSTEM_NAME,
+  SEARCH_SYSTEM_PERIOD,
+  SEARCH_EVENTS,
+  SEARCH_COMMANDS,
+  SEARCH_KINDS,
+  createSearchSystem,
+  searchCommandHandlers,
+  performSearch,
+  detectionChance,
+  compoundDetectionChance,
+  searchMoodCost,
+  applyStandingOrder,
+  applyStandingOrderForMisconduct,
+  createStandingOrdersPolicy,
+  rollMetalDetectorPass,
+  rollDogDetection,
+  isMisconductKind,
+  isPunishmentKind,
+  isReassignmentStrictness,
+  isSearchKind,
+} from './systems/searchSystem'
+export type {
+  SearchKind,
+  SearchSystemOptions,
+  SearchResult,
+  DetectionCurve,
+  PerformSearchOptions,
+  PassiveDetectOptions,
+  MisconductStandingOrder as SearchMisconductStandingOrder,
+  StandingOrdersPolicy as SearchStandingOrdersPolicy,
+} from './systems/searchSystem'
 export type {
   ArrangedThrowIn,
   ContrabandStash,

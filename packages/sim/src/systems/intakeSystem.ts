@@ -199,6 +199,8 @@ export class InmateWorld extends ObjectWorld {
   averageCellGrade = 5
   /** Fights, injury, corpses (T4.5). */
   readonly combat: CombatRuntime
+  /** Inmates already intake-searched this stay in the hall (T4.3). */
+  readonly intakeSearchedInmateIds = new Set<number>()
   /** Sandbox / map mutators (staff needs default on). */
   readonly settings: MapRuntimeSettings
   /**
@@ -342,6 +344,10 @@ export class InmateWorld extends ObjectWorld {
       hasher.writeFloat64(grade)
     }
     this.combat.hashInto(hasher)
+    hasher.writeUint32(this.intakeSearchedInmateIds.size)
+    for (const id of [...this.intakeSearchedInmateIds].sort((a, b) => a - b)) {
+      hasher.writeUint32(id)
+    }
     this.sectors.hashInto(hasher)
     this.posts.hashInto(hasher)
     hasher.writeUint32(this.settings.staffNeeds ? 1 : 0)
@@ -403,6 +409,8 @@ export function createInmateWorld(options: CreateInmateWorldOptions): InmateWorl
   )
 
   world.grid.fill('outdoors', 1)
+  world.meals.standingOrders.quantity = world.standingOrders.mealQuantity
+  world.meals.standingOrders.variety = world.standingOrders.mealVariety
   refreshPassabilityRect(world, data)
   detectAllRooms({
     world,

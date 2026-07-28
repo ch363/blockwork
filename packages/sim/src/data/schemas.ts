@@ -217,6 +217,12 @@ export const PUNISHMENT_KINDS = ['ignore', 'lockdown', 'isolation'] as const
 /** Cell reassignment strictness on Standing Orders. */
 export const REASSIGNMENT_STRICTNESS = ['off', 'lenient', 'strict'] as const
 
+const misconductOrderSchema = z.strictObject({
+  punishment: z.enum(PUNISHMENT_KINDS),
+  durationHours: z.number().int(),
+  search: z.boolean(),
+})
+
 /** Load-shedding order, lowest priority shed first (PRD 5.12). */
 export const POWER_PRIORITIES = ['lifeSafety', 'security', 'production', 'comfort'] as const
 
@@ -702,6 +708,36 @@ export const balanceSchema = z.strictObject({
     throwInDelayMinutes: z.strictObject({ min: positiveCount, max: positiveCount }),
     metalDetector: z.strictObject({ base: fraction, moraleScale: fraction }),
     dogRadiusTiles: positiveCount,
+    dog: z.strictObject({ base: fraction, moraleScale: fraction }),
+    search: z.strictObject({
+      manual: z.strictObject({ base: fraction, moraleScale: fraction }),
+      intake: z.strictObject({ base: fraction, moraleScale: fraction }),
+      shakedown: z.strictObject({ base: fraction, moraleScale: fraction }),
+      moodCost: z.strictObject({
+        individual: rate,
+        cell: rate,
+        block: rate,
+        shakedown: rate,
+        intake: rate,
+      }),
+      shakedownDangerSpike: rate,
+      intakeDelayMinutesPerInmate: positiveCount,
+      intakeNearPerfectOfficerCount: positiveCount,
+    }),
+    standingOrders: z.strictObject({
+      defaultReassignmentStrictness: z.enum(REASSIGNMENT_STRICTNESS),
+      defaults: z.strictObject({
+        complaint: misconductOrderSchema,
+        contraband: misconductOrderSchema,
+        intoxication: misconductOrderSchema,
+        destruction: misconductOrderSchema,
+        attackInmate: misconductOrderSchema,
+        attackStaff: misconductOrderSchema,
+        seriousInjury: misconductOrderSchema,
+        homicide: misconductOrderSchema,
+        escapeAttempt: misconductOrderSchema,
+      }),
+    }),
     arrivalPossessionChanceByCategory: z.record(id, fraction),
     visitSmuggleChanceTables: fraction,
     visitSmuggleChanceBooths: fraction,

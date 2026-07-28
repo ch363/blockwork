@@ -78,6 +78,7 @@ import { createCombatSystem } from '../systems/combatSystem'
 import { createEconomySystem } from '../systems/economySystem'
 import { createContractSystem, contractCommandHandlers } from '../systems/contractSystem'
 import { createContrabandSystem } from '../systems/contrabandSystem'
+import { createSearchSystem, searchCommandHandlers } from '../systems/searchSystem'
 import { createMisconductSystem } from '../systems/misconductSystem'
 import { createPunishmentSystem } from '../systems/punishmentSystem'
 import type { GameData } from '../data/loader'
@@ -217,7 +218,7 @@ export function createGame(options: GameOptions): Game {
   // band with movement (slot 13); needs + staff needs are slot 6; activity is
   // slot 7; logistics (meals, supply, deliveries, cleaning, laundry) is slot 8;
   // construction is slot 9; Utilities (slot 10) not yet present; Contraband is
-  // slot 11 after intake; misconduct + punishment are security (slot 12).
+  // slot 11 after intake; search / misconduct / punishment are security (slot 12).
   // Supply runs before deliveries so new orders land in
   // the pending queue in time for the same-minute truck schedule check.
   const systems: readonly System[] = [
@@ -245,7 +246,8 @@ export function createGame(options: GameOptions): Game {
     createObjectSystem({ data }),
     createIntakeSystem({ data }),
     createContrabandSystem({ data }),
-    // Contraband is slot 11; security slot (PRD 4.4 #12): misconduct then punishment.
+    // Security slot (PRD 4.4 #12): search / detection, misconduct, punishment.
+    createSearchSystem({ data }),
     createMisconductSystem({ data }),
     createPunishmentSystem({ data }),
     createEconomySystem({ data }),
@@ -268,6 +270,7 @@ export function createGame(options: GameOptions): Game {
       ...contractCommandHandlers(data),
       ...sectorCommandHandlers(data),
       ...postCommandHandlers(data),
+      ...searchCommandHandlers(data),
     },
     ...(options.events === undefined ? {} : { events: options.events }),
   })
