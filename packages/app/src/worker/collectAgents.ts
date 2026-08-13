@@ -1,9 +1,10 @@
 /**
- * Snapshot entity collection for the live game (T2.8 + T2.9 wiring).
+ * Snapshot entity collection for the live game (T2.8 + T2.9 + T8.2 wiring).
  *
- * The worker publishes drawable agents after every step. Presentation colours
- * and mood pins are packed here using the render package's flag contract so
- * the main thread can rebuild `RenderAgent` poses without another round trip.
+ * The worker publishes drawable agents and placed objects after every step.
+ * Presentation colours and mood pins are packed here using the render package's
+ * flag contract so the main thread can rebuild `RenderAgent` / `RenderObject`
+ * poses without another round trip.
  */
 
 import {
@@ -15,12 +16,13 @@ import {
   STAFF_UNIFORM_COLOUR,
   uniformColourForCategory,
 } from '@blockwork/render'
-import type { RenderAgent } from '@blockwork/render'
+import type { RenderAgent, RenderObject } from '@blockwork/render'
 import {
   housingCapacity,
   type GameData,
   type InmateEntity,
   type InmateWorld,
+  type ObjectEntity,
   type SnapshotEntity,
   type StaffEntity,
   type UiDigest,
@@ -28,6 +30,12 @@ import {
 
 /** High bit marks a staff snapshot id so inmate/staff registries never collide. */
 export const SNAPSHOT_STAFF_ID_FLAG = 0x4000_0000
+
+/**
+ * Distinct from the staff flag: object entity ids share the low 30 bits with
+ * inmates, so furniture must not be fed to the agent layer as people.
+ */
+export const SNAPSHOT_OBJECT_ID_FLAG = 0x2000_0000
 
 export function snapshotIdForInmate(id: number): number {
   return id
@@ -37,16 +45,26 @@ export function snapshotIdForStaff(id: number): number {
   return id | SNAPSHOT_STAFF_ID_FLAG
 }
 
+export function snapshotIdForObject(id: number): number {
+  return id | SNAPSHOT_OBJECT_ID_FLAG
+}
+
 export function isStaffSnapshotId(snapshotId: number): boolean {
   return (snapshotId & SNAPSHOT_STAFF_ID_FLAG) !== 0
 }
 
+export function isObjectSnapshotId(snapshotId: number): boolean {
+  return (snapshotId & SNAPSHOT_OBJECT_ID_FLAG) !== 0
+}
+
 export function entityIdFromSnapshot(snapshotId: number): number {
-  return snapshotId & ~SNAPSHOT_STAFF_ID_FLAG
+  return snapshotId & ~(SNAPSHOT_STAFF_ID_FLAG | SNAPSHOT_OBJECT_ID_FLAG)
 }
 
 /**
- * Fills `out` with every drawable inmate and staff shell for the current tick.
+ * Fills `out` with every drawable inmate, staff shell, and placed object for
+ * the current tick. Objects share the entity array (PRD 7.5 / snapshot limits)
+ * and are tagged so the main thread can split the agent and object feeds.
  */
 export function collectGameEntities(
   world: InmateWorld,
@@ -56,12 +74,16 @@ export function collectGameEntities(
 ): void {
   const categories = data.securityCategories.ids()
   const needIds = data.needs.ids()
+  const objectIds = data.objects.ids()
 
   for (const inmate of world.inmates.all()) {
     out.push(packInmate(inmate, categories, needIds, tick))
   }
   for (const staff of world.staff.all()) {
     out.push(packStaff(staff, tick))
+  }
+  for (const object of world.objects.all()) {
+    out.push(packObject(object, objectIds))
   }
 }
 
@@ -114,6 +136,33 @@ export function snapshotEntityToRenderAgent(
   }
 }
 
+/**
+ * Rebuilds a `RenderObject` from a tagged snapshot entity.
+ *
+ * `x`/`y` are anchor tiles (not world units). `spriteIndex` indexes
+ * `data.objects.ids()`. `facing` is rotation/90. `flags` packs footprint
+ * width (low 8) and height (next 8).
+ */
+export function snapshotEntityToRenderObject(
+  entity: SnapshotEntity,
+  objectIds: readonly string[],
+): RenderObject | null {
+  if (!isObjectSnapshotId(entity.id)) return null
+  const defId = objectIds[entity.spriteIndex]
+  if (defId === undefined) return null
+  const width = Math.max(1, entity.flags & 0xff)
+  const height = Math.max(1, (entity.flags >> 8) & 0xff)
+  return {
+    id: entityIdFromSnapshot(entity.id),
+    defId,
+    tileX: Math.floor(entity.x),
+    tileY: Math.floor(entity.y),
+    width,
+    height,
+    rotation: (entity.facing % 4) * 90,
+  }
+}
+
 function packInmate(
   entity: InmateEntity,
   categories: readonly string[],
@@ -148,6 +197,20 @@ function packStaff(entity: StaffEntity, tick: number): SnapshotEntity {
     spriteIndex: idle ? 0 : (Math.floor(tick / 2) + entity.id) % AGENT_WALK_FRAMES,
     facing: AGENT_FACING.SOUTH,
     flags: packAgentFlags({ idle }),
+  }
+}
+
+function packObject(entity: ObjectEntity, objectIds: readonly string[]): SnapshotEntity {
+  const defIndex = Math.max(0, objectIds.indexOf(entity.object.defId))
+  const { width, height } = entity.object.footprint
+  return {
+    id: snapshotIdForObject(entity.id),
+    x: entity.tx,
+    y: entity.ty,
+    kind: 0xfe,
+    spriteIndex: defIndex & 0xffff,
+    facing: (entity.object.rotation / 90) & 0xff,
+    flags: (width & 0xff) | ((height & 0xff) << 8),
   }
 }
 

@@ -103,7 +103,11 @@ import {
 } from '@blockwork/ui'
 import { SimBridge, createSimWorker, isolationDiagnostic } from '../worker/bridge'
 import type { InspectResult, TraceResult } from '../worker/simWorker'
-import { snapshotEntityToRenderAgent } from '../worker/collectAgents'
+import {
+  isObjectSnapshotId,
+  snapshotEntityToRenderAgent,
+  snapshotEntityToRenderObject,
+} from '../worker/collectAgents'
 import { SaveStore } from '../save/store'
 
 import {
@@ -497,6 +501,9 @@ export class Session {
   /** Bumped to drop in-flight auto-route replies after discard / commit. */
   #autoRouteGeneration = 0
   readonly #categoryIds: readonly string[]
+  readonly #objectIds: readonly string[]
+  /** Local mirror of CommitLedger.redoSize for the TopBar button. */
+  #redoDepth = 0
   #overlayPaletteId: OverlayPaletteId = 'standard'
   #overlayRequestKey = ''
   #overlayRefreshBucket = -1
@@ -520,6 +527,7 @@ export class Session {
     this.mapSize = mapSize
     this.#palettes = createPalettes(data)
     this.#categoryIds = data.securityCategories.ids()
+    this.#objectIds = data.objects.ids()
 
     this.state = {
       topBar: signal(EMPTY_TOP_BAR),
@@ -1725,6 +1733,7 @@ export class Session {
     this.#renderBlueprint()
     this.#abandonValidation()
     this.state.canUndo.value = true
+    this.#redoDepth = 0
     this.state.canRedo.value = false
 
     globalThis.setTimeout(() => {
@@ -1742,13 +1751,15 @@ export class Session {
   undo(): void {
     if (this.undoStroke()) return
     this.bridge.sendCommand(undoCommand(this.#tick()))
+    this.#redoDepth += 1
     this.state.canRedo.value = true
   }
 
   /** Re-applies the most recently undone commit (PRD 3.3). */
   redo(): void {
     this.bridge.sendCommand(redoCommand(this.#tick()))
-    this.state.canRedo.value = false
+    this.#redoDepth = Math.max(0, this.#redoDepth - 1)
+    this.state.canRedo.value = this.#redoDepth > 0
     this.state.canUndo.value = true
   }
 
@@ -1828,6 +1839,7 @@ export class Session {
 
     if (snapshot !== null) {
       this.#publishAgents(snapshot.entities)
+      this.#publishObjects(snapshot.entities)
       this.#publishDigest(snapshot.tick, snapshot.digest)
     }
     this.#refreshOpenControlPanels()
@@ -1974,7 +1986,8 @@ export class Session {
       flags: number
     }[],
   ): void {
-    const next = entities.map((entity) =>
+    const agents = entities.filter((entity) => !isObjectSnapshotId(entity.id))
+    const next = agents.map((entity) =>
       snapshotEntityToRenderAgent(entity, {
         categoryIds: this.#categoryIds,
         selectedId: this.#selectedSnapshotId,
@@ -1984,6 +1997,25 @@ export class Session {
       this.#prevAgents.length === 0 ? next : interpolateAgents(this.#prevAgents, next, 0.5)
     this.renderer.agents.setAgents(posed)
     this.#prevAgents = next
+  }
+
+  #publishObjects(
+    entities: readonly {
+      id: number
+      x: number
+      y: number
+      kind: number
+      spriteIndex: number
+      facing: number
+      flags: number
+    }[],
+  ): void {
+    const objects: RenderObject[] = []
+    for (const entity of entities) {
+      const object = snapshotEntityToRenderObject(entity, this.#objectIds)
+      if (object !== null) objects.push(object)
+    }
+    this.renderer.objects.setObjects(objects)
   }
 
   #publishDigest(
@@ -2090,6 +2122,3 @@ function actionRects(
       return []
   }
 }
-
-/** Placeholder until the entity store lands: the world has no drawables yet. */
-export const NO_RENDER_OBJECTS: readonly RenderObject[] = []
