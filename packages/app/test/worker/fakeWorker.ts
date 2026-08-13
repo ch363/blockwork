@@ -29,19 +29,25 @@ export class FakeWorkerChannel {
         listener(messageEvent(message))
       }
     },
-    addEventListener: (
-      _type: 'message',
-      listener: (event: MessageEvent<SimWorkerOutbound>) => void,
+    addEventListener: ((
+      type: 'message' | 'error' | 'messageerror',
+      listener: unknown,
     ): void => {
-      this.#toMain.push(listener)
-    },
-    removeEventListener: (
-      _type: 'message',
-      listener: (event: MessageEvent<SimWorkerOutbound>) => void,
+      if (type === 'message') {
+        this.#toMain.push(listener as (event: MessageEvent<SimWorkerOutbound>) => void)
+      }
+      // error and messageerror listeners are ignored in tests
+    }) as SimWorkerPort['addEventListener'],
+    removeEventListener: ((
+      type: 'message' | 'error' | 'messageerror',
+      listener: unknown,
     ): void => {
-      const at = this.#toMain.indexOf(listener)
-      if (at >= 0) this.#toMain.splice(at, 1)
-    },
+      if (type === 'message') {
+        const at = this.#toMain.indexOf(listener as (event: MessageEvent<SimWorkerOutbound>) => void)
+        if (at >= 0) this.#toMain.splice(at, 1)
+      }
+      // error and messageerror listeners are ignored in tests
+    }) as SimWorkerPort['removeEventListener'],
     terminate: (): void => {
       this.terminated = true
     },

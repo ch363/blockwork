@@ -26,10 +26,11 @@
  */
 
 import { TICKS_PER_MINUTE } from '../core/clock'
-import type { System, SystemContext } from '../core/simulation'
+import type { System, SystemContext, World } from '../core/simulation'
 import type { GameData } from '../data/loader'
 import { ConstructionWorld, completeSite, deliverAll, isDelivered } from '../world/construction'
 import type { ConstructionBlocker, ConstructionDeps, ConstructionSite } from '../world/construction'
+import { firstOrderGraceActive, syncFirstOrderGrace } from '../world/opening'
 import { isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 import { completeJob, postJob } from './jobSystem'
@@ -116,7 +117,7 @@ function setBlocked(
   })
 }
 
-function resolveWorkforce(options: ConstructionSystemOptions, world: unknown): Workforce {
+function resolveWorkforce(options: ConstructionSystemOptions, world: World): Workforce {
   if (options.workforce !== undefined) return options.workforce
   if (isInmateWorld(world)) return createJobWorkforce(world)
   return NO_WORKFORCE
@@ -196,13 +197,16 @@ export function createConstructionSystem(options: ConstructionSystemOptions): Sy
 
       if (isInmateWorld(world)) {
         syncBuildJobs({ world, data, events: context.events, tick }, world)
+        syncFirstOrderGrace(world)
       }
 
       const deps: ConstructionDeps = { world, data, events: context.events, tick }
+      const grace =
+        isInmateWorld(world) && (stubDelivery || firstOrderGraceActive(world))
 
       for (const site of world.sites.all()) {
         if (!isDelivered(site)) {
-          if (!stubDelivery) {
+          if (!grace) {
             setBlocked(deps, site, 'materials')
             continue
           }

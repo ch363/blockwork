@@ -33,7 +33,7 @@
 
 import { TICKS_PER_MINUTE } from '../core/clock'
 import { isJsonArray } from '../core/commands'
-import type { Command, JsonValue } from '../core/commands'
+import type { Command, JsonObject, JsonValue } from '../core/commands'
 import type { Fnv1aHasher } from '../core/hash'
 import type { CommandHandler, EventSink, SystemContext, World } from '../core/simulation'
 import type { GameData } from '../data/loader'
@@ -136,6 +136,27 @@ export type ConstructionJobKind = (typeof CONSTRUCTION_JOB_KINDS)[number]
 export const CONSTRUCTION_BLOCKERS = ['none', 'materials', 'worker'] as const
 
 export type ConstructionBlocker = (typeof CONSTRUCTION_BLOCKERS)[number]
+
+export function isConstructionBlocker(value: string): value is ConstructionBlocker {
+  return (CONSTRUCTION_BLOCKERS as readonly string[]).includes(value)
+}
+
+/** Serializable construction queue (save v5). */
+export interface ConstructionQueueSnapshot {
+  readonly nextId: number
+  readonly sites: readonly {
+    readonly id: number
+    readonly tileIndex: number
+    readonly job: JsonObject
+    readonly requirements: readonly { readonly itemId: string; readonly units: number }[]
+    readonly delivered: readonly number[]
+    readonly workTicksRequired: number
+    readonly workTicksDone: number
+    readonly cost: number
+    readonly queuedAtTick: number
+    readonly blockedBy: string
+  }[]
+}
 
 /** One line of a site's bill of materials. `itemId` names a material or a supply. */
 export interface MaterialRequirement {
@@ -309,6 +330,44 @@ export class ConstructionQueue {
       hasher.writeUint32(site.cost)
       hasher.writeUint32(site.queuedAtTick)
       hasher.writeUint32(CONSTRUCTION_BLOCKERS.indexOf(site.blockedBy))
+    }
+  }
+
+  serialise(): ConstructionQueueSnapshot {
+    return {
+      nextId: this.#nextId,
+      sites: this.all().map((site) => ({
+        id: site.id,
+        tileIndex: site.tileIndex,
+        job: site.job,
+        requirements: site.requirements.map((r) => ({ itemId: r.itemId, units: r.units })),
+        delivered: [...site.delivered],
+        workTicksRequired: site.workTicksRequired,
+        workTicksDone: site.workTicksDone,
+        cost: site.cost,
+        queuedAtTick: site.queuedAtTick,
+        blockedBy: site.blockedBy,
+      })),
+    }
+  }
+
+  restore(snapshot: ConstructionQueueSnapshot): void {
+    this.#sites.clear()
+    this.#nextId = snapshot.nextId
+    for (const entry of snapshot.sites) {
+      const site: ConstructionSite = {
+        id: entry.id,
+        tileIndex: entry.tileIndex,
+        job: entry.job as ConstructionJob,
+        requirements: entry.requirements.map((r) => ({ itemId: r.itemId, units: r.units })),
+        delivered: [...entry.delivered],
+        workTicksRequired: entry.workTicksRequired,
+        workTicksDone: entry.workTicksDone,
+        cost: entry.cost,
+        queuedAtTick: entry.queuedAtTick,
+        blockedBy: isConstructionBlocker(entry.blockedBy) ? entry.blockedBy : 'none',
+      }
+      this.#sites.set(site.tileIndex, site)
     }
   }
 }

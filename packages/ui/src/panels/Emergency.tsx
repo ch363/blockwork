@@ -8,6 +8,7 @@
 
 import type { JSX } from 'preact'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { Button } from '../controls/Button'
 import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
@@ -76,6 +77,7 @@ export function Emergency({
   onCallNationalGuard,
 }: EmergencyProps): JSX.Element {
   const open = model !== null
+  const trapRef = useFocusTrap({ active: open, onEscape: onClose })
   const handlers = {
     ...(onSectorLockdown === undefined ? {} : { onSectorLockdown }),
     ...(onLiftSectorLockdown === undefined ? {} : { onLiftSectorLockdown }),
@@ -90,10 +92,12 @@ export function Emergency({
 
   return (
     <div
+      ref={trapRef}
       class="bw-emergency-panel"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Emergency"
+      aria-modal={open ? 'true' : undefined}
     >
       {model !== null && (
         <>

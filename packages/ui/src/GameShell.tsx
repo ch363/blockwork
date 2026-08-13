@@ -61,6 +61,25 @@ import type {
 } from './panels/StandingOrders'
 import { Tray } from './panels/Tray'
 import type { TrayGroup } from './panels/Tray'
+import { PauseMenu } from './panels/PauseMenu'
+import type { PauseMenuModel } from './panels/PauseMenu'
+import { Settings } from './panels/Settings'
+import type { ColourBlindPalette, SettingsModel, SettingsTab } from './panels/Settings'
+import { NewPrison } from './panels/NewPrison'
+import type { MapSizePreset, NewPrisonModel } from './panels/NewPrison'
+import { Onboarding } from './panels/Onboarding'
+import type { OnboardingMode, OnboardingModel } from './panels/Onboarding'
+import { Alerts } from './panels/Alerts'
+import type { AlertRowModel, AlertSeverity, AlertsModel } from './panels/Alerts'
+import { Routine } from './panels/Routine'
+import type { RoutineBlockId, RoutineModel } from './panels/Routine'
+import { Contracts } from './panels/Contracts'
+import type { ContractsModel } from './panels/Contracts'
+import { Intake } from './panels/Intake'
+import type { IntakeModel } from './panels/Intake'
+import { Flow } from './panels/Flow'
+import type { FlowModel } from './panels/Flow'
+import { PanelBoundary } from './components/ErrorBoundary'
 
 export interface GameShellProps {
   /** The element the renderer appends its canvas to. */
@@ -192,6 +211,85 @@ export interface GameShellProps {
   readonly hint?: string | null
   /** Diagnostics: fps, draw calls. Absent in a release build. */
   readonly hud?: string | null
+
+  /** Null closes the Pause menu (T8.6). */
+  readonly pauseMenu?: PauseMenuModel | null
+  readonly onPauseMenuClose?: () => void
+  readonly onPauseMenuResume?: () => void
+  readonly onPauseMenuSave?: () => void
+  readonly onPauseMenuLoad?: (key: string) => void
+  readonly onPauseMenuExport?: () => void
+  readonly onPauseMenuImport?: () => void
+  readonly onPauseMenuSettings?: () => void
+  readonly onPauseMenuNewPrison?: () => void
+  readonly onPauseMenuQuit?: () => void
+
+  /** Null closes the Settings panel (T8.7). */
+  readonly settings?: SettingsModel | null
+  readonly settingsTab?: SettingsTab
+  readonly onSettingsTab?: (tab: SettingsTab) => void
+  readonly onSettingsClose?: () => void
+  readonly onSettingsVolume?: (channel: 'music' | 'sfx', value: number) => void
+  readonly onSettingsMute?: (muted: boolean) => void
+  readonly onSettingsPalette?: (palette: ColourBlindPalette) => void
+  readonly onSettingsReduceMotion?: (enabled: boolean) => void
+  readonly onSettingsTypeScale?: (scale: number) => void
+  readonly onSettingsPreferNoFailure?: (enabled: boolean) => void
+  readonly onSettingsAutosaveHours?: (hours: number) => void
+
+  /** Null closes the NewPrison screen (T8.7). */
+  readonly newPrison?: NewPrisonModel | null
+  readonly onNewPrisonSize?: (preset: MapSizePreset) => void
+  readonly onNewPrisonStartingFunds?: (amount: number) => void
+  readonly onNewPrisonContinuousIntake?: (enabled: boolean) => void
+  readonly onNewPrisonRandomEvents?: (enabled: boolean) => void
+  readonly onNewPrisonFirstOrderGrace?: (enabled: boolean) => void
+  readonly onNewPrisonSeed?: (input: string) => void
+  readonly onNewPrisonFailure?: (id: string, enabled: boolean) => void
+  readonly onNewPrisonMutator?: (id: string, enabled: boolean) => void
+  readonly onNewPrisonStart?: () => void
+  readonly onNewPrisonCancel?: () => void
+
+  /** Null closes the Onboarding guide (T8.7). */
+  readonly onboarding?: OnboardingModel | null
+  readonly onOnboardingSkip?: () => void
+  readonly onOnboardingDismissMark?: (objectiveIndex: number) => void
+  readonly onOnboardingMode?: (mode: OnboardingMode) => void
+
+  /** Null closes the Alerts panel (T8.7). */
+  readonly alerts?: AlertsModel | null
+  readonly onAlertsClose?: () => void
+  readonly onAlertsFilter?: (severity: AlertSeverity | null) => void
+  readonly onAlertsMute?: (category: string, muted: boolean) => void
+  readonly onAlertsAutoPause?: (enabled: boolean) => void
+  readonly onAlertsOpenTrace?: (row: AlertRowModel) => void
+
+  /** Null closes the Routine panel (T8.9). */
+  readonly routine?: RoutineModel | null
+  readonly onRoutineClose?: () => void
+  readonly onRoutineSetCategory?: (categoryId: string, blocks: readonly RoutineBlockId[]) => void
+
+  /** Null closes the Contracts panel (T8.9). */
+  readonly contracts?: ContractsModel | null
+  readonly onContractsClose?: () => void
+  readonly onContractsAccept?: (contractId: string) => void
+  readonly onContractsCancel?: (contractId: string) => void
+  readonly onContractsTakeLoan?: (amount: number) => void
+  readonly onContractsRepayLoan?: (amount: number) => void
+
+  /** Null closes the Intake panel (T8.9). */
+  readonly intake?: IntakeModel | null
+  readonly onIntakeClose?: () => void
+  readonly onIntakeSetContinuous?: (continuous: boolean) => void
+  readonly onIntakeSetRequested?: (categoryId: string, count: number) => void
+  readonly onIntakeClearRequested?: () => void
+
+  /** Null closes the Flow panel (T8.9). */
+  readonly flow?: FlowModel | null
+  readonly onFlowClose?: () => void
+
+  /** Called when a panel throws during render (T8.15). */
+  readonly onPanelError?: (error: Error, panelName: string) => void
 }
 
 export function GameShell(props: GameShellProps): JSX.Element {
@@ -243,35 +341,39 @@ export function GameShell(props: GameShellProps): JSX.Element {
           inspectorOpen={inspectorOpen}
         />
 
-        <Inspector
-          model={props.inspector}
-          onClose={props.onInspectorClose}
-          {...(props.onInspectorFocus === undefined ? {} : { onFocus: props.onInspectorFocus })}
-          {...(props.onInspectorDemolish === undefined
-            ? {}
-            : { onDemolish: props.onInspectorDemolish })}
-          {...(props.onInspectorSearch === undefined ? {} : { onSearch: props.onInspectorSearch })}
-          {...(props.onInspectorReclassify === undefined
-            ? {}
-            : { onReclassify: props.onInspectorReclassify })}
-          {...(props.onInspectorPunish === undefined ? {} : { onPunish: props.onInspectorPunish })}
-          {...(props.onInspectorProtective === undefined
-            ? {}
-            : { onProtective: props.onInspectorProtective })}
-          {...(props.onInspectorNeedSelect === undefined
-            ? {}
-            : { onNeedSelect: props.onInspectorNeedSelect })}
-        />
+        <PanelBoundary name="inspector" {...(props.onPanelError === undefined ? {} : { onError: props.onPanelError })}>
+          <Inspector
+            model={props.inspector}
+            onClose={props.onInspectorClose}
+            {...(props.onInspectorFocus === undefined ? {} : { onFocus: props.onInspectorFocus })}
+            {...(props.onInspectorDemolish === undefined
+              ? {}
+              : { onDemolish: props.onInspectorDemolish })}
+            {...(props.onInspectorSearch === undefined ? {} : { onSearch: props.onInspectorSearch })}
+            {...(props.onInspectorReclassify === undefined
+              ? {}
+              : { onReclassify: props.onInspectorReclassify })}
+            {...(props.onInspectorPunish === undefined ? {} : { onPunish: props.onInspectorPunish })}
+            {...(props.onInspectorProtective === undefined
+              ? {}
+              : { onProtective: props.onInspectorProtective })}
+            {...(props.onInspectorNeedSelect === undefined
+              ? {}
+              : { onNeedSelect: props.onInspectorNeedSelect })}
+          />
+        </PanelBoundary>
 
-        <Trace
-          model={props.trace ?? null}
-          onClose={props.onTraceClose ?? (() => undefined)}
-          onNodeFocus={props.onTraceNodeFocus ?? (() => undefined)}
-          onFix={props.onTraceFix ?? (() => undefined)}
-          {...(props.onTraceCopyReport === undefined
-            ? {}
-            : { onCopyReport: props.onTraceCopyReport })}
-        />
+        <PanelBoundary name="trace" {...(props.onPanelError === undefined ? {} : { onError: props.onPanelError })}>
+          <Trace
+            model={props.trace ?? null}
+            onClose={props.onTraceClose ?? (() => undefined)}
+            onNodeFocus={props.onTraceNodeFocus ?? (() => undefined)}
+            onFix={props.onTraceFix ?? (() => undefined)}
+            {...(props.onTraceCopyReport === undefined
+              ? {}
+              : { onCopyReport: props.onTraceCopyReport })}
+          />
+        </PanelBoundary>
 
         <Posts
           model={props.posts ?? null}
@@ -354,14 +456,16 @@ export function GameShell(props: GameShellProps): JSX.Element {
             : { onMealVariety: props.onStandingOrdersMealVariety })}
         />
 
-        <Directorate
-          model={props.directorate ?? null}
-          branch={props.directorateBranch ?? 'all'}
-          onBranch={props.onDirectorateBranch ?? (() => undefined)}
-          onSelect={props.onDirectorateSelect ?? (() => undefined)}
-          onClose={props.onDirectorateClose ?? (() => undefined)}
-          {...(props.onDirectorateStart === undefined ? {} : { onStart: props.onDirectorateStart })}
-        />
+        <PanelBoundary name="directorate" {...(props.onPanelError === undefined ? {} : { onError: props.onPanelError })}>
+          <Directorate
+            model={props.directorate ?? null}
+            branch={props.directorateBranch ?? 'all'}
+            onBranch={props.onDirectorateBranch ?? (() => undefined)}
+            onSelect={props.onDirectorateSelect ?? (() => undefined)}
+            onClose={props.onDirectorateClose ?? (() => undefined)}
+            {...(props.onDirectorateStart === undefined ? {} : { onStart: props.onDirectorateStart })}
+          />
+        </PanelBoundary>
 
         <Programs
           model={props.programs ?? null}
@@ -384,21 +488,128 @@ export function GameShell(props: GameShellProps): JSX.Element {
             : { onFocusInformant: props.onIntelligenceFocusInformant })}
         />
 
-        <Reports
-          model={props.reports ?? null}
-          tab={props.reportsTab ?? 'needs'}
-          onTab={props.onReportsTab ?? (() => undefined)}
-          onClose={props.onReportsClose ?? (() => undefined)}
-          {...(props.onReportsNeedHeatmap === undefined
+        <PanelBoundary name="reports" {...(props.onPanelError === undefined ? {} : { onError: props.onPanelError })}>
+          <Reports
+            model={props.reports ?? null}
+            tab={props.reportsTab ?? 'needs'}
+            onTab={props.onReportsTab ?? (() => undefined)}
+            onClose={props.onReportsClose ?? (() => undefined)}
+            {...(props.onReportsNeedHeatmap === undefined
+              ? {}
+              : { onShowNeedHeatmap: props.onReportsNeedHeatmap })}
+            {...(props.onReportsTrace === undefined ? {} : { onTrace: props.onReportsTrace })}
+          />
+        </PanelBoundary>
+
+        <Routine
+          model={props.routine ?? null}
+          onClose={props.onRoutineClose ?? (() => undefined)}
+          {...(props.onRoutineSetCategory === undefined
             ? {}
-            : { onShowNeedHeatmap: props.onReportsNeedHeatmap })}
-          {...(props.onReportsTrace === undefined ? {} : { onTrace: props.onReportsTrace })}
+            : { onSetCategory: props.onRoutineSetCategory })}
+        />
+
+        <Contracts
+          model={props.contracts ?? null}
+          onClose={props.onContractsClose ?? (() => undefined)}
+          {...(props.onContractsAccept === undefined ? {} : { onAccept: props.onContractsAccept })}
+          {...(props.onContractsCancel === undefined ? {} : { onCancel: props.onContractsCancel })}
+          {...(props.onContractsTakeLoan === undefined
+            ? {}
+            : { onTakeLoan: props.onContractsTakeLoan })}
+          {...(props.onContractsRepayLoan === undefined
+            ? {}
+            : { onRepayLoan: props.onContractsRepayLoan })}
+        />
+
+        <Intake
+          model={props.intake ?? null}
+          onClose={props.onIntakeClose ?? (() => undefined)}
+          {...(props.onIntakeSetContinuous === undefined
+            ? {}
+            : { onSetContinuous: props.onIntakeSetContinuous })}
+          {...(props.onIntakeSetRequested === undefined
+            ? {}
+            : { onSetRequested: props.onIntakeSetRequested })}
+          {...(props.onIntakeClearRequested === undefined
+            ? {}
+            : { onClearRequested: props.onIntakeClearRequested })}
+        />
+
+        <Flow
+          model={props.flow ?? null}
+          onClose={props.onFlowClose ?? (() => undefined)}
         />
 
         <Toasts toasts={props.toasts} onTrace={props.onTrace} onDismiss={props.onDismissToast} />
       </div>
 
       <ToolDock active={props.tool} onSelect={props.onTool} disabled={props.disabledTools ?? []} />
+
+      <PauseMenu
+        model={props.pauseMenu ?? null}
+        onClose={props.onPauseMenuClose ?? (() => undefined)}
+        onResume={props.onPauseMenuResume ?? (() => undefined)}
+        {...(props.onPauseMenuSave === undefined ? {} : { onSave: props.onPauseMenuSave })}
+        {...(props.onPauseMenuLoad === undefined ? {} : { onLoad: props.onPauseMenuLoad })}
+        {...(props.onPauseMenuExport === undefined ? {} : { onExport: props.onPauseMenuExport })}
+        {...(props.onPauseMenuImport === undefined ? {} : { onImport: props.onPauseMenuImport })}
+        {...(props.onPauseMenuSettings === undefined ? {} : { onSettings: props.onPauseMenuSettings })}
+        {...(props.onPauseMenuNewPrison === undefined ? {} : { onNewPrison: props.onPauseMenuNewPrison })}
+        {...(props.onPauseMenuQuit === undefined ? {} : { onQuit: props.onPauseMenuQuit })}
+      />
+
+      <Settings
+        model={props.settings ?? null}
+        tab={props.settingsTab ?? 'audio'}
+        onTab={props.onSettingsTab ?? (() => undefined)}
+        onClose={props.onSettingsClose ?? (() => undefined)}
+        {...(props.onSettingsVolume === undefined ? {} : { onVolume: props.onSettingsVolume })}
+        {...(props.onSettingsMute === undefined ? {} : { onMute: props.onSettingsMute })}
+        {...(props.onSettingsPalette === undefined ? {} : { onPalette: props.onSettingsPalette })}
+        {...(props.onSettingsReduceMotion === undefined
+          ? {}
+          : { onReduceMotion: props.onSettingsReduceMotion })}
+        {...(props.onSettingsTypeScale === undefined
+          ? {}
+          : { onTypeScale: props.onSettingsTypeScale })}
+        {...(props.onSettingsPreferNoFailure === undefined
+          ? {}
+          : { onPreferNoFailure: props.onSettingsPreferNoFailure })}
+        {...(props.onSettingsAutosaveHours === undefined
+          ? {}
+          : { onAutosaveHours: props.onSettingsAutosaveHours })}
+      />
+
+      <NewPrison
+        model={props.newPrison ?? null}
+        onSize={props.onNewPrisonSize ?? (() => undefined)}
+        onStartingFunds={props.onNewPrisonStartingFunds ?? (() => undefined)}
+        onContinuousIntake={props.onNewPrisonContinuousIntake ?? (() => undefined)}
+        onRandomEvents={props.onNewPrisonRandomEvents ?? (() => undefined)}
+        onFirstOrderGrace={props.onNewPrisonFirstOrderGrace ?? (() => undefined)}
+        onSeed={props.onNewPrisonSeed ?? (() => undefined)}
+        onFailure={props.onNewPrisonFailure ?? (() => undefined)}
+        onMutator={props.onNewPrisonMutator ?? (() => undefined)}
+        onStart={props.onNewPrisonStart ?? (() => undefined)}
+        onCancel={props.onNewPrisonCancel ?? (() => undefined)}
+      />
+
+      <Alerts
+        model={props.alerts ?? null}
+        onClose={props.onAlertsClose ?? (() => undefined)}
+        onFilter={props.onAlertsFilter ?? (() => undefined)}
+        {...(props.onAlertsMute === undefined ? {} : { onMute: props.onAlertsMute })}
+        {...(props.onAlertsAutoPause === undefined ? {} : { onAutoPause: props.onAlertsAutoPause })}
+        {...(props.onAlertsOpenTrace === undefined ? {} : { onOpenTrace: props.onAlertsOpenTrace })}
+      />
+
+      <Onboarding
+        model={props.onboarding ?? null}
+        onSkip={props.onOnboardingSkip ?? (() => undefined)}
+        onDismissMark={props.onOnboardingDismissMark ?? (() => undefined)}
+        {...(props.onOnboardingMode === undefined ? {} : { onMode: props.onOnboardingMode })}
+      />
     </div>
   )
 }

@@ -1,7 +1,6 @@
 {
   "needs": [
     {
-      "_tuning": true,
       "id": "bladder",
       "name": "Bladder",
       "driver": "time",
@@ -13,7 +12,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "sleep",
       "name": "Sleep",
       "driver": "time",
@@ -25,7 +23,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "food",
       "name": "Food",
       "driver": "time",
@@ -37,7 +34,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "hygiene",
       "name": "Hygiene",
       "driver": "time",
@@ -49,7 +45,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "clothing",
       "name": "Clothing",
       "driver": "time",
@@ -61,7 +56,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "comfort",
       "name": "Comfort",
       "driver": "time",
@@ -73,7 +67,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "exercise",
       "name": "Exercise",
       "driver": "time",
@@ -85,7 +78,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "safety",
       "name": "Safety",
       "driver": "danger",
@@ -97,7 +89,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "freedom",
       "name": "Freedom",
       "driver": "confinement",
@@ -109,7 +100,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "family",
       "name": "Family",
       "driver": "time",
@@ -121,7 +111,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "recreation",
       "name": "Recreation",
       "driver": "time",
@@ -133,7 +122,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "environment",
       "name": "Environment",
       "driver": "dirt",
@@ -145,7 +133,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "privacy",
       "name": "Privacy",
       "driver": "proximity",
@@ -157,7 +144,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "literacy",
       "name": "Literacy",
       "driver": "time",
@@ -170,7 +156,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "spirituality",
       "name": "Spirituality",
       "driver": "time",
@@ -183,7 +168,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "narcotics",
       "name": "Narcotics",
       "driver": "addiction",
@@ -196,7 +180,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "alcohol",
       "name": "Alcohol",
       "driver": "addiction",
@@ -209,7 +192,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "warmth",
       "name": "Warmth",
       "driver": "temperature",
@@ -221,7 +203,6 @@
       "thresholds": { "medium": 40, "high": 65, "critical": 88 }
     },
     {
-      "_tuning": true,
       "id": "luxury",
       "name": "Luxury",
       "driver": "time",

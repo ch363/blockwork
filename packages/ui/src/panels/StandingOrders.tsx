@@ -8,6 +8,7 @@
 
 import type { JSX } from 'preact'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
 
@@ -98,15 +99,18 @@ export function StandingOrders({
   onMealVariety,
 }: StandingOrdersProps): JSX.Element {
   const open = model !== null
+  const trapRef = useFocusTrap({ active: open, onEscape: onClose })
   const showSide =
     model !== null && model.projection !== null && (tab === 'punishment' || tab === 'search')
 
   return (
     <div
+      ref={trapRef}
       class="bw-orders-panel"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Standing Orders"
+      aria-modal={open ? 'true' : undefined}
     >
       {model !== null && (
         <>

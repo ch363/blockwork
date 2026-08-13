@@ -8,6 +8,7 @@
 
 import type { JSX } from 'preact'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { Button } from '../controls/Button'
 import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
@@ -161,16 +162,21 @@ export function Inspector({
   onProtective,
   onNeedSelect,
 }: InspectorProps): JSX.Element {
+  const open = model !== null
+  const trapRef = useFocusTrap({ active: open, onEscape: onClose })
   const head = model === null ? null : heading(model)
   const showGenericFoot = model !== null && model.kind !== 'inmate'
 
   return (
     <aside
+      ref={trapRef}
       class="bw-inspector"
-      data-open={model !== null}
+      data-open={open}
       data-kind={model?.kind ?? 'none'}
-      aria-hidden={model === null}
+      role="dialog"
       aria-label="Inspector"
+      aria-modal={open ? 'true' : undefined}
+      aria-hidden={!open}
     >
       {model !== null && head !== null && (
         <>

@@ -26,30 +26,48 @@ import type { World } from '../core/simulation'
 import type { TileGrid } from '../world/tileGrid'
 
 import type {
+  CellGradesStateSnapshot,
+  CleaningStateSnapshot,
   CombatStateSnapshot,
+  ConstructionStateSnapshot,
   ContrabandStateSnapshot,
   ContractState,
+  DeliveriesStateSnapshot,
+  DoorsStateSnapshot,
   DirectorateStateSnapshot,
   EconomyState,
   EmergencyStateSnapshot,
+  EntityRegistryState,
   EscapesStateSnapshot,
+  EscortsStateSnapshot,
   FireStateSnapshot,
+  FogStateSnapshot,
   GradingStateSnapshot,
   ProgramsStateSnapshot,
   ParoleStateSnapshot,
   ReleaseStateSnapshot,
   GradesStateSnapshot,
   IntelligenceStateSnapshot,
+  IntakeStateSnapshot,
+  JobsStateSnapshot,
+  LabourStateSnapshot,
+  LaundryStateSnapshot,
   LogEntry,
   MapSettings,
+  MealsStateSnapshot,
+  MoraleStateSnapshot,
+  NeedsRuntimeStateSnapshot,
+  OfficesStateSnapshot,
   PostsState,
   PunishmentsStateSnapshot,
   RiotStateSnapshot,
+  RoutineRuntimeStateSnapshot,
   RoutineState,
   SectorsState,
   SerialisedEntity,
   SerialisedRoom,
   StandingOrdersState,
+  SupplyStateSnapshot,
   UtilitiesStateSnapshot,
 } from './format'
 
@@ -84,6 +102,28 @@ export interface SaveState {
   readonly combat: CombatStateSnapshot
   readonly punishments: PunishmentsStateSnapshot
   readonly utilities: UtilitiesStateSnapshot
+  readonly entityRegistry: EntityRegistryState
+  readonly doors: DoorsStateSnapshot
+  readonly construction: ConstructionStateSnapshot
+  readonly intake: IntakeStateSnapshot
+  readonly cellGrades: CellGradesStateSnapshot
+  readonly incomeOwed: number
+  readonly staffOnlyRoomIds: readonly number[]
+  readonly intakeSearchedInmateIds: readonly number[]
+  readonly staffNeedsEnabled: boolean
+  readonly fog: FogStateSnapshot
+  readonly offices: OfficesStateSnapshot
+  readonly escorts: EscortsStateSnapshot
+  readonly jobs: JobsStateSnapshot
+  readonly labour: LabourStateSnapshot
+  readonly morale: MoraleStateSnapshot
+  readonly needsRuntime: NeedsRuntimeStateSnapshot
+  readonly routineRuntime: RoutineRuntimeStateSnapshot
+  readonly meals: MealsStateSnapshot
+  readonly supply: SupplyStateSnapshot
+  readonly deliveries: DeliveriesStateSnapshot
+  readonly cleaning: CleaningStateSnapshot
+  readonly laundry: LaundryStateSnapshot
   readonly dangerLevel: number
   readonly riotActive: boolean
   readonly lockdownActive: boolean
@@ -132,6 +172,30 @@ function hashWorldInto(state: SaveState, hasher: Fnv1aHasher): void {
   hasher.writeJson(state.combat)
   hasher.writeJson(state.punishments)
   hasher.writeJson(state.utilities)
+  hasher.writeJson(state.entityRegistry)
+  hasher.writeJson(state.doors)
+  hasher.writeJson(state.construction)
+  hasher.writeJson(state.intake)
+  hasher.writeJson(state.cellGrades)
+  hasher.writeUint32(state.incomeOwed)
+  hasher.writeUint32(state.staffOnlyRoomIds.length)
+  for (const roomId of state.staffOnlyRoomIds) hasher.writeUint32(roomId)
+  hasher.writeUint32(state.intakeSearchedInmateIds.length)
+  for (const id of state.intakeSearchedInmateIds) hasher.writeUint32(id)
+  hasher.writeUint32(state.staffNeedsEnabled ? 1 : 0)
+  hasher.writeJson(state.fog)
+  hasher.writeJson(state.offices)
+  hasher.writeJson(state.escorts)
+  hasher.writeJson(state.jobs)
+  hasher.writeJson(state.labour)
+  hasher.writeJson(state.morale)
+  hasher.writeJson(state.needsRuntime)
+  hasher.writeJson(state.routineRuntime)
+  hasher.writeJson(state.meals)
+  hasher.writeJson(state.supply)
+  hasher.writeJson(state.deliveries)
+  hasher.writeJson(state.cleaning)
+  hasher.writeJson(state.laundry)
 
   hasher.writeFloat64(state.dangerLevel)
   hasher.writeUint32(state.riotActive ? 1 : 0)

@@ -77,6 +77,28 @@ interface DockPile {
   readonly reserved: Map<number, Map<string, number>>
 }
 
+/** Serializable supply logistics (save v5). */
+export interface SupplyLogisticsSnapshot {
+  readonly nextOrderId: number
+  readonly orders: readonly MaterialOrder[]
+  readonly dockFree: readonly { readonly itemId: string; readonly units: number }[]
+  readonly dockReserved: readonly {
+    readonly siteId: number
+    readonly stock: readonly { readonly itemId: string; readonly units: number }[]
+  }[]
+  readonly storeStock: readonly { readonly itemId: string; readonly units: number }[]
+  readonly binRefuse: readonly { readonly id: number; readonly units: number }[]
+  readonly refuseZone: readonly { readonly id: number; readonly units: number }[]
+  readonly carries: readonly {
+    readonly jobId: number
+    readonly hop: string
+    readonly itemId: string
+    readonly units: number
+    readonly siteId: number
+    readonly fromObjectId: number
+  }[]
+}
+
 /* -------------------------------------------------------------------------- */
 /* State                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -342,6 +364,87 @@ export class SupplyLogistics {
       hasher.writeUint32(mission.units)
       hasher.writeUint32(mission.siteId)
       hasher.writeUint32(mission.fromObjectId)
+    }
+  }
+
+  serialise(): SupplyLogisticsSnapshot {
+    const stockEntries = (stock: ReadonlyMap<string, number>) =>
+      [...stock.entries()]
+        .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+        .map(([itemId, units]) => ({ itemId, units }))
+    return {
+      nextOrderId: this.#nextOrderId,
+      orders: this.orders.map((order) => ({ ...order })),
+      dockFree: stockEntries(this.dock.free),
+      dockReserved: [...this.dock.reserved.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([siteId, stock]) => ({ siteId, stock: stockEntries(stock) })),
+      storeStock: stockEntries(this.storeStock),
+      binRefuse: [...this.binRefuse.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([id, units]) => ({ id, units })),
+      refuseZone: [...this.refuseZone.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([id, units]) => ({ id, units })),
+      carries: [...this.carries.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([jobId, mission]) => ({
+          jobId,
+          hop: mission.hop,
+          itemId: mission.itemId,
+          units: mission.units,
+          siteId: mission.siteId,
+          fromObjectId: mission.fromObjectId,
+        })),
+    }
+  }
+
+  restore(snapshot: SupplyLogisticsSnapshot): void {
+    this.orders.length = 0
+    this.orders.push(
+      ...snapshot.orders.map((order) => ({
+        id: order.id,
+        itemId: order.itemId,
+        units: order.units,
+        siteId: order.siteId,
+        orderedAtTick: order.orderedAtTick,
+        remaining: order.remaining,
+      })),
+    )
+    this.#nextOrderId = snapshot.nextOrderId
+    this.orderedBySite.clear()
+    for (const order of this.orders) {
+      let byItem = this.orderedBySite.get(order.siteId)
+      if (byItem === undefined) {
+        byItem = new Map()
+        this.orderedBySite.set(order.siteId, byItem)
+      }
+      byItem.set(order.itemId, (byItem.get(order.itemId) ?? 0) + order.units)
+    }
+    this.dock.free.clear()
+    for (const entry of snapshot.dockFree) this.dock.free.set(entry.itemId, entry.units)
+    this.dock.reserved.clear()
+    for (const entry of snapshot.dockReserved) {
+      const stock = new Map<string, number>()
+      for (const line of entry.stock) stock.set(line.itemId, line.units)
+      this.dock.reserved.set(entry.siteId, stock)
+    }
+    this.storeStock.clear()
+    for (const entry of snapshot.storeStock) this.storeStock.set(entry.itemId, entry.units)
+    this.binRefuse.clear()
+    for (const entry of snapshot.binRefuse) this.binRefuse.set(entry.id, entry.units)
+    this.refuseZone.clear()
+    for (const entry of snapshot.refuseZone) this.refuseZone.set(entry.id, entry.units)
+    this.carries.clear()
+    for (const entry of snapshot.carries) {
+      this.carries.set(entry.jobId, {
+        jobId: entry.jobId,
+        hop: entry.hop as CarryHop,
+        itemId: entry.itemId,
+        units: entry.units,
+        siteId: entry.siteId,
+        fromObjectId: entry.fromObjectId,
+      })
     }
   }
 }

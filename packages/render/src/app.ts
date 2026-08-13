@@ -11,11 +11,9 @@
  *             ├── objects   (PRD 7.6 layer 3)
  *             ├── agents    (PRD 7.6 layer 4)
  *             ├── overlay   (PRD 7.6 layer 5: sectors / fire / tunnels)
+ *             ├── effects   (PRD 7.6 layer 6: selection rings, pins)
  *             ├── blueprint (staged build overlay)
  *             └── grid      tile lattice and map boundary
- *
- * Layer 6 of PRD 7.6 — effects — is a later ticket. Selection rings and mood
- * pins live on the agents layer (T2.8) rather than waiting for the effects pass.
  *
  * **Why the camera is a container transform.** Nothing in a layer knows where
  * the camera is. The world container carries a scale and a translation, and
@@ -50,7 +48,9 @@ import type {
   OverlayPaletteId,
   OverlayTunnel,
 } from './layers/overlay'
-import { PLACEHOLDER_TERRAIN_PALETTE, TerrainLayer, createTerrainAtlas } from './layers/terrain'
+import { EffectsLayer, createEffectsAtlas } from './layers/effects'
+import type { EffectPin, EffectSelection } from './layers/effects'
+import { DEFAULT_GROUND_APPEARANCE, TerrainLayer, createTerrainAtlas } from './layers/terrain'
 import type { TerrainTileAppearance } from './layers/terrain'
 import { WallLayer, createDoorAtlas, createWallShapeAtlas, wallPalette } from './layers/walls'
 import type { WallAppearance } from './layers/walls'
@@ -102,6 +102,7 @@ export class BlockworkRenderer {
   readonly objects: ObjectLayer
   readonly agents: AgentLayer
   readonly overlay: OverlayLayer
+  readonly effects: EffectsLayer
   readonly blueprint: BlueprintLayer
   readonly grid: GridLayer
   /** Map edge in tiles. */
@@ -120,6 +121,7 @@ export class BlockworkRenderer {
     objects: ObjectLayer,
     agents: AgentLayer,
     overlay: OverlayLayer,
+    effects: EffectsLayer,
     blueprint: BlueprintLayer,
     grid: GridLayer,
   ) {
@@ -131,6 +133,7 @@ export class BlockworkRenderer {
     this.objects = objects
     this.agents = agents
     this.overlay = overlay
+    this.effects = effects
     this.blueprint = blueprint
     this.grid = grid
 
@@ -141,6 +144,7 @@ export class BlockworkRenderer {
       objects.container,
       agents.container,
       overlay.container,
+      effects.container,
       blueprint.container,
       grid.container,
     )
@@ -196,7 +200,7 @@ export class BlockworkRenderer {
       easing: !(options.reducedMotion ?? prefersReducedMotion()),
     })
 
-    const atlas = createTerrainAtlas(options.palette ?? PLACEHOLDER_TERRAIN_PALETTE)
+    const atlas = createTerrainAtlas(options.palette ?? [DEFAULT_GROUND_APPEARANCE])
     const terrain = new TerrainLayer({ mapSize, atlas })
     const walls = new WallLayer({
       mapSize,
@@ -207,6 +211,7 @@ export class BlockworkRenderer {
     const objects = new ObjectLayer({ mapSize, atlas: createObjectAtlas() })
     const agents = new AgentLayer({ mapSize, atlas: createAgentAtlas() })
     const overlay = new OverlayLayer({ mapSize })
+    const effects = new EffectsLayer({ mapSize, atlas: createEffectsAtlas() })
     const blueprint = new BlueprintLayer({ mapSize })
     const grid = new GridLayer({ mapSize })
 
@@ -219,6 +224,7 @@ export class BlockworkRenderer {
       objects,
       agents,
       overlay,
+      effects,
       blueprint,
       grid,
     )
@@ -301,6 +307,54 @@ export class BlockworkRenderer {
     this.walls.setPalette(wallPalette(materialIds, appearances))
   }
 
+  /**
+   * Replaces the set of selected entities. Each gets a selection ring in the
+   * effects layer.
+   */
+  setSelections(selections: Iterable<EffectSelection>): void {
+    this.effects.setSelections(selections)
+  }
+
+  /** Adds or updates a single selection. */
+  setSelection(selection: EffectSelection): void {
+    this.effects.setSelection(selection)
+  }
+
+  /** Removes a selection by entity id. */
+  removeSelection(id: number): void {
+    this.effects.removeSelection(id)
+  }
+
+  /** Clears all selections. */
+  clearSelections(): void {
+    this.effects.clearSelections()
+  }
+
+  /** Adds or updates a notification pin. */
+  setPin(pin: EffectPin): void {
+    this.effects.setPin(pin)
+  }
+
+  /** Removes a pin by notification id. */
+  removePin(id: string): void {
+    this.effects.removePin(id)
+  }
+
+  /** Clears all notification pins. */
+  clearPins(): void {
+    this.effects.clearPins()
+  }
+
+  /** Removes all pins for a given subject entity. */
+  removePinsForSubject(subjectId: number): void {
+    this.effects.removePinsForSubject(subjectId)
+  }
+
+  /** Enables or disables path debug visualization. */
+  setPathDebugEnabled(enabled: boolean): void {
+    this.effects.setPathDebugEnabled(enabled)
+  }
+
   destroy(): void {
     if (this.#destroyed) return
     this.#destroyed = true
@@ -313,6 +367,7 @@ export class BlockworkRenderer {
     this.objects.destroy()
     this.agents.destroy()
     this.overlay.destroy()
+    this.effects.destroy()
     this.blueprint.destroy()
     this.grid.destroy()
     this.app.destroy({ removeView: true }, { children: true })
@@ -342,6 +397,7 @@ export class BlockworkRenderer {
     this.objects.update(this.camera)
     this.agents.update(this.camera)
     this.overlay.sync(this.camera)
+    this.effects.update(this.camera, ticker.deltaMS)
     this.blueprint.update(zoom)
     this.grid.update(this.camera)
   }

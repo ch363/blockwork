@@ -17,6 +17,7 @@
 
 import type { JSX } from 'preact'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { Button } from '../controls/Button'
 import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
@@ -118,13 +119,16 @@ export function Intelligence({
   onFocusInformant,
 }: IntelligenceProps): JSX.Element {
   const open = model !== null
+  const trapRef = useFocusTrap({ active: open, onEscape: onClose })
 
   return (
     <div
+      ref={trapRef}
       class="bw-intel-panel"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Intelligence"
+      aria-modal={open ? 'true' : undefined}
     >
       {model !== null && (
         <>

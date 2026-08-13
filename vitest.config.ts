@@ -11,7 +11,20 @@ export default defineConfig({
     restoreMocks: true,
     coverage: {
       provider: 'v8',
+      enabled: process.env['CI'] === 'true',
       include: ['{packages,tools}/*/src/**/*.{ts,tsx}'],
+      thresholds: {
+        statements: 50,
+        branches: 50,
+        functions: 55,
+        lines: 50,
+        'packages/sim/src/systems/**': {
+          statements: 70,
+          branches: 70,
+          functions: 75,
+          lines: 70,
+        },
+      },
     },
   },
 })

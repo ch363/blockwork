@@ -11,6 +11,7 @@
 
 import type { JSX } from 'preact'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { Button } from '../controls/Button'
 import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
@@ -95,13 +96,16 @@ export function Posts({
   const open = model !== null
   const unfilled = model?.unfilledCount ?? 0
   const deployed = model?.deployedCount ?? 0
+  const trapRef = useFocusTrap({ active: open, onEscape: onClose })
 
   return (
     <div
+      ref={trapRef}
       class="bw-posts-panel"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Posts"
+      aria-modal={open ? 'true' : undefined}
     >
       {model !== null && (
         <>

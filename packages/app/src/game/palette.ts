@@ -515,7 +515,7 @@ export function unlockSnapshotKey(unlocks: UnlockSnapshot): string {
 }
 
 /** Tools whose systems do not exist yet, so the dock can grey them out. */
-export const UNBUILT_TOOLS: readonly DockToolId[] = ['flow']
+export const UNBUILT_TOOLS: readonly DockToolId[] = []
 
 /**
  * Reports palette chips open the PRD 6.2 hub or an existing Phase 5 depth
@@ -585,6 +585,30 @@ function reportsPalette(): Palette {
       name: 'Intelligence',
       note: 'Informants and contraband',
       icon: 'search',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'routine',
+      name: 'Routine',
+      note: '24-hour schedule',
+      icon: 'reports',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'contracts',
+      name: 'Contracts',
+      note: 'Grants and loans',
+      icon: 'reports',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'intake',
+      name: 'Intake',
+      note: 'Prisoner arrivals',
+      icon: 'staff',
       gesture: 'tile',
       action: noop,
     },

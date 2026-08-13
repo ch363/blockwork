@@ -21,12 +21,19 @@
  * exactly what an unhandled rejection in an async module gives you.
  */
 
-import { loadGameData } from '@blockwork/sim'
+import { loadGameData, TICKS_PER_HOUR } from '@blockwork/sim'
 import { injectShellCss } from '@blockwork/ui'
 import { render } from 'preact'
 
 import { App } from './App'
+import { installCapacitorLifecycle } from './game/capacitor'
 import { Session } from './game/session'
+import {
+  APP_SETTINGS_KEY,
+  parseAppSettings,
+  settingsCssVariables,
+  type AppSettings,
+} from './game/appSettings'
 
 const mountPoint = document.querySelector('#root')
 if (!(mountPoint instanceof HTMLElement)) {
@@ -47,14 +54,114 @@ function fail(error: unknown, stage: string): void {
   root.appendChild(panel)
 }
 
+/** Applies app settings as CSS variables on the document root. */
+function applySettingsCss(settings: AppSettings): void {
+  const vars = settingsCssVariables(settings)
+  for (const [key, value] of Object.entries(vars)) {
+    document.documentElement.style.setProperty(key, value)
+  }
+}
+
+/** Loads settings from localStorage, falling back to defaults defensively. */
+function loadSettings(): AppSettings {
+  try {
+    const raw = localStorage.getItem(APP_SETTINGS_KEY)
+    return parseAppSettings(raw === null ? null : JSON.parse(raw))
+  } catch {
+    return parseAppSettings(null)
+  }
+}
+
+/** Persists settings to localStorage. */
+function saveSettings(settings: AppSettings): void {
+  try {
+    localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(settings))
+  } catch {
+    // Quota exceeded or private mode — the setting still takes effect this run.
+  }
+}
+
+/**
+ * Installs global error handlers (T8.15).
+ *
+ * Captures uncaught errors and unhandled promise rejections so they surface
+ * visibly rather than silently failing or blanking the screen.
+ */
+function installGlobalErrorHandlers(session: { reportRuntimeError: (message: string) => void }): void {
+  window.onerror = (
+    message: string | Event,
+    _source?: string,
+    _lineno?: number,
+    _colno?: number,
+    error?: Error,
+  ): boolean => {
+    const text = error?.message ?? (typeof message === 'string' ? message : 'Unknown error')
+    console.error('Blockwork uncaught error:', error ?? message)
+    session.reportRuntimeError(text)
+    return true
+  }
+
+  window.onunhandledrejection = (event: PromiseRejectionEvent): void => {
+    const reason = event.reason
+    const message = reason instanceof Error ? reason.message : String(reason)
+    console.error('Blockwork unhandled rejection:', reason)
+    session.reportRuntimeError(message)
+  }
+}
+
 async function boot(): Promise<void> {
   injectShellCss(document)
 
   const data = loadGameData()
 
+  // Load and apply stored settings before any rendering.
+  const initialSettings = loadSettings()
+  applySettingsCss(initialSettings)
+
   const session = await Session.create({ parent: root, data })
 
+  // Install global error handlers now that we have a session to report to.
+  installGlobalErrorHandlers(session)
+
+  // Wire settings changes from session back to persistence and CSS.
+  session.onSettingsChange = (settings: AppSettings) => {
+    applySettingsCss(settings)
+    saveSettings(settings)
+
+    // Route colour-blind palette through the renderer's overlay palette (T8.8).
+    const paletteId = settings.accessibility.palette === 'default'
+      ? 'standard'
+      : settings.accessibility.palette
+    session.setOverlayPalette(paletteId)
+  }
+
+  // Apply initial settings to renderer overlay palette.
+  if (initialSettings.accessibility.palette !== 'default') {
+    session.setOverlayPalette(initialSettings.accessibility.palette)
+  }
+
+  // Initialize audio engine with stored settings (T8.8).
+  session.initAudio(initialSettings.audio)
+
+  // Initialize session with full settings for autosave scheduling.
+  session.applyAppSettings(initialSettings)
+
   render(<App session={session} />, root)
+
+  // Timed autosave: fires every autosaveHours of in-game time (PRD 3.10).
+  // Separate from the visibilitychange autosave which handles backgrounding.
+  let lastAutosaveTick = 0
+  const checkTimedAutosave = (): void => {
+    const currentTick = session.bridge.latestSnapshot()?.tick ?? 0
+    const autosaveIntervalTicks = session.autosaveHours * TICKS_PER_HOUR
+    if (currentTick - lastAutosaveTick >= autosaveIntervalTicks) {
+      lastAutosaveTick = currentTick
+      void session.autosave()
+    }
+  }
+
+  // Check for timed autosave once per second.
+  setInterval(checkTimedAutosave, 1000)
 
   // Capacitor and Safari both fire this when the app goes to the background;
   // the worker's own catch-up clamp handles the resume, and pausing here means
@@ -66,6 +173,19 @@ async function boot(): Promise<void> {
       session.setSpeed(0)
       void session.autosave()
     }
+  })
+
+  // Capacitor lifecycle handlers for iPadOS (T8.21).
+  // Handles native app state changes. On web this is a no-op; the
+  // visibilitychange handler above is sufficient.
+  void installCapacitorLifecycle({
+    onBackground: async () => {
+      session.setSpeed(0)
+      await session.autosave()
+    },
+    onForeground: () => {
+      // Resume handled by player; don't auto-resume speed on foreground.
+    },
   })
 }
 

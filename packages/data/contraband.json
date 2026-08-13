@@ -1,7 +1,6 @@
 {
   "items": [
     {
-      "_tuning": true,
       "id": "fists",
       "name": "Fists",
       "category": "weapon",
@@ -14,7 +13,6 @@
       "basePrice": 0
     },
     {
-      "_tuning": true,
       "id": "baton",
       "name": "Baton",
       "category": "weapon",
@@ -28,7 +26,6 @@
       "basePrice": 120
     },
     {
-      "_tuning": true,
       "id": "club",
       "name": "Club",
       "category": "weapon",
@@ -42,7 +39,6 @@
       "basePrice": 60
     },
     {
-      "_tuning": true,
       "id": "scissors",
       "name": "Scissors",
       "category": "weapon",
@@ -56,7 +52,6 @@
       "basePrice": 90
     },
     {
-      "_tuning": true,
       "id": "fork",
       "name": "Fork",
       "category": "weapon",
@@ -70,7 +65,6 @@
       "basePrice": 40
     },
     {
-      "_tuning": true,
       "id": "kitchen_knife",
       "name": "Kitchen knife",
       "category": "weapon",
@@ -84,7 +78,6 @@
       "basePrice": 220
     },
     {
-      "_tuning": true,
       "id": "shiv",
       "name": "Shiv",
       "category": "weapon",
@@ -98,7 +91,6 @@
       "basePrice": 300
     },
     {
-      "_tuning": true,
       "id": "heavy_pen",
       "name": "Heavy pen",
       "category": "weapon",
@@ -112,7 +104,6 @@
       "basePrice": 260
     },
     {
-      "_tuning": true,
       "id": "pruning_shears",
       "name": "Pruning shears",
       "category": "weapon",
@@ -126,7 +117,6 @@
       "basePrice": 340
     },
     {
-      "_tuning": true,
       "id": "pistol",
       "name": "Pistol",
       "category": "weapon",
@@ -140,7 +130,6 @@
       "basePrice": 1200
     },
     {
-      "_tuning": true,
       "id": "shotgun",
       "name": "Shotgun",
       "category": "weapon",
@@ -154,7 +143,6 @@
       "basePrice": 1800
     },
     {
-      "_tuning": true,
       "id": "marksman_rifle",
       "name": "Marksman rifle",
       "category": "weapon",
@@ -168,7 +156,6 @@
       "basePrice": 2600
     },
     {
-      "_tuning": true,
       "id": "stun_device",
       "name": "Stun device",
       "category": "weapon",
@@ -183,7 +170,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "spoon",
       "name": "Spoon",
       "category": "tool",
@@ -198,7 +184,6 @@
       "basePrice": 30
     },
     {
-      "_tuning": true,
       "id": "handsaw",
       "name": "Handsaw",
       "category": "tool",
@@ -212,7 +197,6 @@
       "basePrice": 260
     },
     {
-      "_tuning": true,
       "id": "screwdriver",
       "name": "Screwdriver",
       "category": "tool",
@@ -227,7 +211,6 @@
       "basePrice": 180
     },
     {
-      "_tuning": true,
       "id": "hammer",
       "name": "Hammer",
       "category": "tool",
@@ -242,7 +225,6 @@
       "basePrice": 240
     },
     {
-      "_tuning": true,
       "id": "power_drill",
       "name": "Power drill",
       "category": "tool",
@@ -257,7 +239,6 @@
       "basePrice": 420
     },
     {
-      "_tuning": true,
       "id": "crowbar",
       "name": "Crowbar",
       "category": "tool",
@@ -272,7 +253,6 @@
       "basePrice": 500
     },
     {
-      "_tuning": true,
       "id": "wire_cutters",
       "name": "Wire cutters",
       "category": "tool",
@@ -286,7 +266,6 @@
       "basePrice": 380
     },
     {
-      "_tuning": true,
       "id": "rope",
       "name": "Rope",
       "category": "tool",
@@ -301,7 +280,6 @@
       "basePrice": 620
     },
     {
-      "_tuning": true,
       "id": "master_key",
       "name": "Master key",
       "category": "tool",
@@ -316,7 +294,6 @@
       "basePrice": 1500
     },
     {
-      "_tuning": true,
       "id": "timber_pick",
       "name": "Timber pick",
       "category": "tool",
@@ -331,7 +308,6 @@
       "basePrice": 340
     },
     {
-      "_tuning": true,
       "id": "sedative_syringe",
       "name": "Sedative syringe",
       "category": "tool",
@@ -345,7 +321,6 @@
       "basePrice": 480
     },
     {
-      "_tuning": true,
       "id": "hand_torch",
       "name": "Hand torch",
       "category": "tool",
@@ -360,7 +335,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "prescription_pills",
       "name": "Prescription pills",
       "category": "narcotic",
@@ -374,7 +348,6 @@
       "basePrice": 260
     },
     {
-      "_tuning": true,
       "id": "powder",
       "name": "Powder",
       "category": "narcotic",
@@ -387,7 +360,6 @@
       "basePrice": 900
     },
     {
-      "_tuning": true,
       "id": "syringe",
       "name": "Syringe",
       "category": "narcotic",
@@ -401,7 +373,6 @@
       "basePrice": 200
     },
     {
-      "_tuning": true,
       "id": "herbal_narcotic",
       "name": "Herbal narcotic",
       "category": "narcotic",
@@ -416,7 +387,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "liquor",
       "name": "Liquor",
       "category": "luxury",
@@ -431,7 +401,6 @@
       "basePrice": 340
     },
     {
-      "_tuning": true,
       "id": "cigarettes",
       "name": "Cigarettes",
       "category": "luxury",
@@ -445,7 +414,6 @@
       "basePrice": 120
     },
     {
-      "_tuning": true,
       "id": "mobile_phone",
       "name": "Mobile phone",
       "category": "luxury",
@@ -459,7 +427,6 @@
       "basePrice": 800
     },
     {
-      "_tuning": true,
       "id": "lighter",
       "name": "Lighter",
       "category": "luxury",
@@ -473,7 +440,6 @@
       "basePrice": 90
     },
     {
-      "_tuning": true,
       "id": "pocket_watch",
       "name": "Pocket watch",
       "category": "luxury",
@@ -487,7 +453,6 @@
       "basePrice": 1100
     },
     {
-      "_tuning": true,
       "id": "snack_food",
       "name": "Snack food",
       "category": "luxury",

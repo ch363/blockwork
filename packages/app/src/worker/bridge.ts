@@ -85,10 +85,14 @@ export interface SimWorkerPort {
     type: 'message',
     listener: (event: MessageEvent<SimWorkerOutbound>) => void,
   ): void
+  addEventListener(type: 'error', listener: (event: ErrorEvent) => void): void
+  addEventListener(type: 'messageerror', listener: (event: MessageEvent) => void): void
   removeEventListener(
     type: 'message',
     listener: (event: MessageEvent<SimWorkerOutbound>) => void,
   ): void
+  removeEventListener(type: 'error', listener: (event: ErrorEvent) => void): void
+  removeEventListener(type: 'messageerror', listener: (event: MessageEvent) => void): void
   terminate(): void
 }
 
@@ -152,6 +156,10 @@ export interface SimBridgeOptions {
   readonly speed?: number
   /** Overrides transport detection. Tests use it to force the fallback. */
   readonly sharedMemory?: boolean
+  /** First-order material grace for a new prison (T8.4). */
+  readonly firstOrderGrace?: boolean
+  /** Called on worker crash or message error (T8.15). */
+  readonly onWorkerError?: (message: string) => void
 }
 
 export class SimBridge {
@@ -163,6 +171,8 @@ export class SimBridge {
 
   readonly #worker: SimWorkerPort
   readonly #onMessage: (event: MessageEvent<SimWorkerOutbound>) => void
+  readonly #onError: (event: ErrorEvent) => void
+  readonly #onMessageError: (event: MessageEvent) => void
   readonly #reader: SnapshotReader | null
   readonly #chunkVersions: ChunkVersionReader | null
 
@@ -177,6 +187,10 @@ export class SimBridge {
   readonly #pendingSaves = new Map<
     number,
     (result: { bytes: Uint8Array; playedTicks: number }) => void
+  >()
+  readonly #pendingLoads = new Map<
+    number,
+    (result: { mapSize: number; playedTicks: number; materialIds: readonly string[] }) => void
   >()
   #notifications: SnapshotNotification[] = []
   #control: ControlHudPayload | null = null
@@ -231,6 +245,24 @@ export class SimBridge {
     }
     this.#worker.addEventListener('message', this.#onMessage)
 
+    // Worker crash handler (T8.15).
+    this.#onError = (event: ErrorEvent): void => {
+      const message = event.message || 'Worker crashed'
+      console.error('Blockwork worker error:', event)
+      this.#error = message
+      options.onWorkerError?.(message)
+    }
+    this.#worker.addEventListener('error', this.#onError)
+
+    // Message deserialization failure handler (T8.15).
+    this.#onMessageError = (event: MessageEvent): void => {
+      const message = 'Worker message could not be deserialized'
+      console.error('Blockwork worker message error:', event)
+      this.#error = message
+      options.onWorkerError?.(message)
+    }
+    this.#worker.addEventListener('messageerror', this.#onMessageError)
+
     const init: SimWorkerInbound = {
       type: 'sim:init',
       seed: options.seed,
@@ -240,6 +272,9 @@ export class SimBridge {
       ...(snapshotBuffer === null ? {} : { snapshotBuffer }),
       ...(gridBuffers === null ? {} : { gridBuffers }),
       ...(chunkVersionBuffer === null ? {} : { chunkVersionBuffer }),
+      ...(options.firstOrderGrace === undefined
+        ? {}
+        : { firstOrderGrace: options.firstOrderGrace }),
     }
     this.#worker.postMessage(init, [])
   }
@@ -484,6 +519,33 @@ export class SimBridge {
     })
   }
 
+  /**
+   * Loads a `.blockwork` save, replacing the current simulation state (T8.6).
+   *
+   * The bytes are transferred to the worker. On success, returns the loaded
+   * map size, played ticks, and new material palette. The caller is
+   * responsible for updating any UI state that depends on these.
+   */
+  async load(
+    bytes: Uint8Array,
+  ): Promise<{ mapSize: number; playedTicks: number; materialIds: readonly string[] }> {
+    this.#assertLive()
+    const requestId = this.#nextRequestId
+    this.#nextRequestId += 1
+
+    const copy = bytes.slice()
+    const buffer = copy.buffer
+
+    return new Promise<{
+      mapSize: number
+      playedTicks: number
+      materialIds: readonly string[]
+    }>((resolve) => {
+      this.#pendingLoads.set(requestId, resolve)
+      this.#worker.postMessage({ type: 'sim:load', requestId, buffer }, [buffer])
+    })
+  }
+
   /** 0 pauses. PRD 3.9's ladder is 1, 2, 5 and 20. */
   setSpeed(multiplier: number): void {
     this.#assertLive()
@@ -521,6 +583,8 @@ export class SimBridge {
     this.#disposed = true
     this.#worker.postMessage({ type: 'sim:stop' }, [])
     this.#worker.removeEventListener('message', this.#onMessage)
+    this.#worker.removeEventListener('error', this.#onError)
+    this.#worker.removeEventListener('messageerror', this.#onMessageError)
     this.#worker.terminate()
     this.#pendingReports.clear()
     this.#pendingInspections.clear()
@@ -529,6 +593,7 @@ export class SimBridge {
     this.#pendingOverlays.clear()
     this.#pendingReportSnapshots.clear()
     this.#pendingSaves.clear()
+    this.#pendingLoads.clear()
   }
 
   #handle(message: SimWorkerOutbound): void {
@@ -600,6 +665,21 @@ export class SimBridge {
         resolve({
           bytes: new Uint8Array(message.buffer),
           playedTicks: message.playedTicks,
+        })
+        break
+      }
+      case 'sim:loaded': {
+        const resolve = this.#pendingLoads.get(message.requestId)
+        if (resolve === undefined) break
+        this.#pendingLoads.delete(message.requestId)
+        this.#materialIds = message.materialIds
+        this.#latest = null
+        this.#pending = null
+        this.#dirtyChunks.clear()
+        resolve({
+          mapSize: message.mapSize,
+          playedTicks: message.playedTicks,
+          materialIds: message.materialIds,
         })
         break
       }

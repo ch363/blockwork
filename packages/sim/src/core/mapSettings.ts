@@ -70,6 +70,11 @@ export interface NewPrisonConfig {
   /** Random events (PRD 6.x). Off disables the event system entirely. */
   readonly randomEvents: boolean
   readonly mutators: Readonly<Record<Mutator, boolean>>
+  /**
+   * First-order material grace (T8.4): construction bills fill themselves
+   * until the player designates a Store. The opening dock is always placed.
+   */
+  readonly firstOrderGrace: boolean
 }
 
 export function resolveMapSize(data: GameData, preset: MapSizePreset): number {
@@ -87,6 +92,7 @@ export function defaultNewPrisonConfig(data: GameData, seed = 1): NewPrisonConfi
     failures: allFailures(true),
     randomEvents: true,
     mutators: allMutators(true),
+    firstOrderGrace: data.balance.construction.firstOrderGraceDefault,
   }
 }
 
@@ -132,6 +138,7 @@ export function toMapSettings(config: NewPrisonConfig): JsonObject {
     randomEvents: config.randomEvents,
     failures: { ...config.failures },
     mutators: { ...config.mutators },
+    firstOrderGrace: config.firstOrderGrace,
   }
 }
 
@@ -156,6 +163,7 @@ export function fromMapSettings(data: GameData, settings: JsonValue | undefined)
     randomEvents: readBoolean(settings['randomEvents'], defaults.randomEvents),
     failures: readFlags(settings['failures'], FAILURE_CONDITIONS, defaults.failures),
     mutators: readFlags(settings['mutators'], MUTATORS, defaults.mutators),
+    firstOrderGrace: readBoolean(settings['firstOrderGrace'], defaults.firstOrderGrace),
   }
 }
 

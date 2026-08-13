@@ -106,6 +106,27 @@ export function isJobKind(value: string): value is JobKind {
   return (JOB_KINDS as readonly string[]).includes(value)
 }
 
+export function isJobState(value: string): value is JobState {
+  return (JOB_STATES as readonly string[]).includes(value)
+}
+
+/** Serializable job pool (save v5). */
+export interface JobPoolSnapshot {
+  readonly nextId: number
+  readonly jobs: readonly {
+    readonly id: number
+    readonly kind: string
+    readonly priority: number
+    readonly location: number
+    readonly requiredRole: string
+    readonly reservedFor: string | null
+    readonly claimedBy: number
+    readonly claimantKind: string | null
+    readonly state: string
+    readonly enqueuedAt: number
+  }[]
+}
+
 export function isStaffRequiredRole(role: JobRequiredRole): role is StaffCapability {
   return STAFF_ROLE_SET.has(role)
 }
@@ -328,6 +349,49 @@ export class JobPool {
       hasher.writeString(job.claimantKind ?? '')
       hasher.writeString(job.state)
       hasher.writeUint32(job.enqueuedAt)
+    }
+  }
+
+  serialise(): JobPoolSnapshot {
+    return {
+      nextId: this.#nextId,
+      jobs: this.all().map((job) => ({
+        id: job.id,
+        kind: job.kind,
+        priority: job.priority,
+        location: job.location,
+        requiredRole: job.requiredRole,
+        reservedFor: job.reservedFor,
+        claimedBy: job.claimedBy,
+        claimantKind: job.claimantKind,
+        state: job.state,
+        enqueuedAt: job.enqueuedAt,
+      })),
+    }
+  }
+
+  restore(snapshot: JobPoolSnapshot): void {
+    this.#jobs.clear()
+    this.#claims.clear()
+    this.#nextId = snapshot.nextId
+    for (const entry of snapshot.jobs) {
+      if (!isJobKind(entry.kind) || !isJobState(entry.state)) continue
+      const job: Job = {
+        id: entry.id,
+        kind: entry.kind,
+        priority: entry.priority,
+        location: entry.location,
+        requiredRole: entry.requiredRole as JobRequiredRole,
+        reservedFor: entry.reservedFor as LabourAssignment | null,
+        claimedBy: entry.claimedBy,
+        claimantKind: entry.claimantKind as JobClaimantKind | null,
+        state: entry.state,
+        enqueuedAt: entry.enqueuedAt,
+      }
+      this.#jobs.set(job.id, job)
+      if (job.state === 'claimed' && job.claimantKind !== null && job.claimedBy !== NO_CLAIMANT) {
+        this.#claims.set(claimKey(job.claimantKind, job.claimedBy), job.id)
+      }
     }
   }
 

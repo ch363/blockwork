@@ -7,9 +7,11 @@ exports[`inspector snapshots > renders the inmate variant 1`] = `
   <aside
     aria-hidden="false"
     aria-label="Inspector"
+    aria-modal="true"
     class="bw-inspector"
     data-kind="inmate"
     data-open="true"
+    role="dialog"
   >
     <div
       class="bw-insp-head"
@@ -565,9 +567,11 @@ exports[`inspector snapshots > renders the object variant 1`] = `
   <aside
     aria-hidden="false"
     aria-label="Inspector"
+    aria-modal="true"
     class="bw-inspector"
     data-kind="object"
     data-open="true"
+    role="dialog"
   >
     <div
       class="bw-insp-head"
@@ -864,9 +868,11 @@ exports[`inspector snapshots > renders the room variant 1`] = `
   <aside
     aria-hidden="false"
     aria-label="Inspector"
+    aria-modal="true"
     class="bw-inspector"
     data-kind="room"
     data-open="true"
+    role="dialog"
   >
     <div
       class="bw-insp-head"
@@ -1329,9 +1335,11 @@ exports[`inspector snapshots > renders the staff variant 1`] = `
   <aside
     aria-hidden="false"
     aria-label="Inspector"
+    aria-modal="true"
     class="bw-inspector"
     data-kind="staff"
     data-open="true"
+    role="dialog"
   >
     <div
       class="bw-insp-head"

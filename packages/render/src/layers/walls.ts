@@ -75,7 +75,7 @@ import type { DoorType } from '@blockwork/sim'
 import type { Texture } from 'pixi.js'
 
 /* -------------------------------------------------------------------------- */
-/* Placeholder art                                                             */
+/* Wall atlas constants                                                        */
 /* -------------------------------------------------------------------------- */
 
 /** Atlas cell edge in pixels: one tile of art at zoom 1. */
@@ -120,31 +120,8 @@ export interface WallAppearance {
   readonly colour: number
 }
 
-/**
- * Placeholder wall colours, keyed by the material ids in
- * `packages/data/materials.json` and taken from the wall and fence swatches in
- * `docs/04-ui-mockups.html`.
- *
- * This is presentation for materials whose appearance the data layer does not
- * yet record, exactly as `PLACEHOLDER_TERRAIN_PALETTE` is for floors. When
- * `materialDefSchema` grows an appearance, this table goes away and the app
- * passes the real thing to `wallPalette`.
- */
-export const PLACEHOLDER_WALL_APPEARANCES: Readonly<Record<string, WallAppearance>> = {
-  brick_wall: { colour: 0x7a6152 },
-  concrete_wall: { colour: 0x757e8d },
-  perimeter_wall: { colour: 0x5a6270 },
-  chain_fence: { colour: 0x6e7a88 },
-  razor_fence: { colour: 0x808c9a },
-  glass_partition: { colour: 0x8fa8b8 },
-  timber_partition: { colour: 0x8a6a46 },
-  cracked_plaster: { colour: 0x8b8f96 },
-  rusted_panel: { colour: 0x8a6a5a },
-  mildewed_brick: { colour: 0x6b7263 },
-}
-
-/** Anything without a placeholder colour still has to be visible. */
-const UNKNOWN_WALL_APPEARANCE: WallAppearance = { colour: 0x757e8d }
+/** Fallback wall colour when a material lacks an appearance entry. */
+export const DEFAULT_WALL_APPEARANCE: WallAppearance = { colour: 0x757e8d }
 
 /**
  * Turns the simulation's index-ordered material ids into a palette the layer
@@ -157,11 +134,16 @@ const UNKNOWN_WALL_APPEARANCE: WallAppearance = { colour: 0x757e8d }
  */
 export function wallPalette(
   materialIds: readonly string[],
-  appearances: Readonly<Record<string, WallAppearance>> = PLACEHOLDER_WALL_APPEARANCES,
+  appearances?: ReadonlyMap<string, WallAppearance> | Readonly<Record<string, WallAppearance>>,
 ): readonly (WallAppearance | null)[] {
+  const lookup = appearances === undefined
+    ? () => undefined
+    : appearances instanceof Map
+      ? (id: string) => appearances.get(id)
+      : (id: string) => (appearances as Readonly<Record<string, WallAppearance>>)[id]
   return materialIds.map((id, index) => {
     if (index === 0) return null
-    return appearances[id] ?? UNKNOWN_WALL_APPEARANCE
+    return lookup(id) ?? DEFAULT_WALL_APPEARANCE
   })
 }
 
@@ -263,9 +245,17 @@ export function createWallShapeAtlas(cellPx: number = WALL_ATLAS_CELL_PX): Sprit
 export const DOOR_ORIENTATIONS = ['horizontal', 'vertical'] as const
 export type DoorOrientation = (typeof DOOR_ORIENTATIONS)[number]
 
-/** The two frames of the swing. */
-export const DOOR_FRAMES = ['closed', 'open'] as const
+/**
+ * The frames of the swing. Eight frames provide a proper hinged sweep at 22.5
+ * degrees per step, enough to read as an opening motion at game speed.
+ */
+export const DOOR_FRAMES = [
+  'closed', 'swing1', 'swing2', 'swing3', 'swing4', 'swing5', 'swing6', 'open',
+] as const
 export type DoorFrame = (typeof DOOR_FRAMES)[number]
+
+/** Number of swing frames for the hinged sweep animation. */
+export const DOOR_SWING_FRAMES = DOOR_FRAMES.length
 
 /**
  * The door types of `sim/data/schemas.ts`, in the order the atlas lays them
@@ -290,12 +280,8 @@ export interface DoorAppearance {
   readonly barred: boolean
 }
 
-/**
- * Placeholder door art, from the `--door` and `--door-secure` swatches in
- * `docs/04-ui-mockups.html`. Timber for the ordinary door, steel for
- * everything that locks.
- */
-export const PLACEHOLDER_DOOR_APPEARANCES: Readonly<Record<DoorType, DoorAppearance>> = {
+/** Default door appearances keyed by type. Uses palette swatches. */
+export const DEFAULT_DOOR_APPEARANCES: Readonly<Record<DoorType, DoorAppearance>> = {
   standard: { colour: 0xa9805a, barred: false },
   secure: { colour: 0x7e8b9b, barred: false },
   barred: { colour: 0x8d99a8, barred: true },
@@ -311,17 +297,15 @@ const DOOR_OUTLINE_COLOUR = 0x1b2028
 const DOOR_THRESHOLD_COLOUR = 0x2f343b
 
 /**
- * Draws every door state into one atlas: type down the rows, and the four
+ * Draws every door state into one atlas: type down the rows, and the
  * combinations of orientation and frame across the columns.
  *
- * The swing is two frames, per T1.6. Closed is the leaf filling the opening;
- * open is the same leaf folded back against one jamb, with the threshold
- * showing through. Switching between them is a texture swap, which is the
- * whole animation — a real hinged sweep needs frames this placeholder set does
- * not have and art direction Phase 6 has not done yet.
+ * The swing is now eight frames, providing a proper hinged sweep per T8.22.
+ * Each frame rotates the leaf incrementally from closed (0°) to open (90°),
+ * giving smooth door animation at game speed.
  */
 export function createDoorAtlas(
-  appearances: Readonly<Record<DoorType, DoorAppearance>> = PLACEHOLDER_DOOR_APPEARANCES,
+  appearances: Readonly<Record<DoorType, DoorAppearance>> = DEFAULT_DOOR_APPEARANCES,
   cellPx: number = WALL_ATLAS_CELL_PX,
 ): SpriteAtlas {
   const columns = DOOR_ORIENTATIONS.length * DOOR_FRAMES.length
@@ -334,14 +318,14 @@ export function createDoorAtlas(
   const outline = Math.max(1, Math.round(scale))
 
   for (const [row, type] of DOOR_ATLAS_TYPES.entries()) {
-    // Every atlas type has a placeholder entry; fall back only if a caller
-    // passed a partial override map.
-    const appearance = appearances[type] ?? PLACEHOLDER_DOOR_APPEARANCES.standard
+    const appearance = appearances[type] ?? DEFAULT_DOOR_APPEARANCES.standard
     const originY = row * cellPx
 
     for (const [orientationIndex, orientation] of DOOR_ORIENTATIONS.entries()) {
-      for (const [frameIndex, frame] of DOOR_FRAMES.entries()) {
+      for (const [frameIndex] of DOOR_FRAMES.entries()) {
         const originX = (orientationIndex * DOOR_FRAMES.length + frameIndex) * cellPx
+        // Swing angle: 0 = closed (0°), 7 = open (90°)
+        const swingAngle = (frameIndex / (DOOR_FRAMES.length - 1)) * (Math.PI / 2)
 
         context.save()
         context.translate(originX, originY)
@@ -352,9 +336,9 @@ export function createDoorAtlas(
           context.rotate(Math.PI / 2)
           context.translate(-cellPx / 2, -cellPx / 2)
         }
-        drawHorizontalDoor(context, {
+        drawHingedDoor(context, {
           appearance,
-          open: frame === 'open',
+          swingAngle,
           cellPx,
           jamb,
           leaf,
@@ -368,56 +352,110 @@ export function createDoorAtlas(
   return spriteAtlasFromCanvas(canvas, { cellPx, columns, rows, label: 'blockwork-doors' })
 }
 
-interface DoorDrawOptions {
+interface HingedDoorDrawOptions {
   readonly appearance: DoorAppearance
-  readonly open: boolean
+  /** Swing angle in radians: 0 = closed, π/2 = fully open */
+  readonly swingAngle: number
   readonly cellPx: number
   readonly jamb: number
   readonly leaf: number
   readonly outline: number
 }
 
-/** One door in a wall running east to west, drawn into the current transform. */
-function drawHorizontalDoor(context: CanvasRenderingContext2D, options: DoorDrawOptions): void {
-  const { appearance, open, cellPx, jamb, leaf, outline } = options
+/**
+ * Draws a hinged door with proper sweep animation. The door leaf rotates from
+ * closed (0°) to fully open (90°), pivoting from the hinge point against the
+ * left jamb.
+ */
+function drawHingedDoor(context: CanvasRenderingContext2D, options: HingedDoorDrawOptions): void {
+  const { appearance, swingAngle, cellPx, jamb, leaf, outline } = options
   const centre = (cellPx - leaf) / 2
 
+  // Draw the threshold visible through the opening
   context.fillStyle = cssColour(DOOR_THRESHOLD_COLOUR)
   context.fillRect(0, centre, cellPx, leaf)
 
+  // Draw the jambs (frame posts on each side)
   context.fillStyle = cssColour(DOOR_JAMB_COLOUR)
   context.fillRect(0, centre - outline, jamb, leaf + outline * 2)
   context.fillRect(cellPx - jamb, centre - outline, jamb, leaf + outline * 2)
 
   const openingLeft = jamb
   const openingWidth = cellPx - jamb * 2
+  const hingeX = openingLeft
+  const hingeY = centre + leaf / 2
 
-  // Closed, the leaf spans the opening. Open, it folds back against the left
-  // jamb at roughly a third of its width, which is as much of a swing as two
-  // frames can carry.
-  const leafWidth = open ? Math.max(2, Math.round(openingWidth / 3)) : openingWidth
-  const leafHeight = open ? Math.max(2, Math.round(leaf / 2)) : leaf
-  const leafY = centre + (leaf - leafHeight) / 2
+  // Calculate the door leaf dimensions based on swing angle
+  // As the door opens, we see it foreshortened (narrower) from the top-down view
+  const leafLength = openingWidth
+  const foreshortening = Math.cos(swingAngle)
+  const projectedWidth = Math.max(2, leafLength * foreshortening)
+  const projectedDepth = Math.max(1, Math.abs(leafLength * Math.sin(swingAngle)))
 
+  context.save()
+  context.translate(hingeX, hingeY)
+
+  // Draw the door leaf with perspective foreshortening
+  // When closed (0°): full width rectangle
+  // When open (90°): thin line perpendicular to the wall
   context.fillStyle = cssColour(appearance.colour)
-  context.fillRect(openingLeft, leafY, leafWidth, leafHeight)
 
-  if (appearance.barred) {
+  if (swingAngle < 0.1) {
+    // Nearly closed: draw as a flat rectangle spanning the opening
+    context.fillRect(0, -leaf / 2, openingWidth, leaf)
+  } else if (swingAngle > Math.PI / 2 - 0.1) {
+    // Nearly fully open: draw as a thin rectangle against the jamb
+    const thickness = Math.max(2, leaf * 0.15)
+    context.fillRect(-thickness / 2, -leaf / 2 - leafLength + leaf, thickness, leafLength)
+  } else {
+    // Mid-swing: draw as a parallelogram showing the hinged rotation
+    // The door swings inward (toward negative Y in our coordinate system)
+    context.beginPath()
+    context.moveTo(0, -leaf / 2) // Near corner at hinge
+    context.lineTo(projectedWidth, -leaf / 2 - projectedDepth) // Far corner top
+    context.lineTo(projectedWidth, leaf / 2 - projectedDepth) // Far corner bottom
+    context.lineTo(0, leaf / 2) // Near corner at hinge bottom
+    context.closePath()
+    context.fill()
+  }
+
+  // Draw bars for barred doors
+  if (appearance.barred && projectedWidth > 4) {
     context.fillStyle = cssColour(DOOR_OUTLINE_COLOUR, 0.45)
-    const step = Math.max(2, Math.round(leafWidth / 4))
-    for (let x = openingLeft + step; x < openingLeft + leafWidth; x += step) {
-      context.fillRect(x, leafY, outline, leafHeight)
+    const numBars = Math.max(2, Math.floor(projectedWidth / 6))
+    const barSpacing = projectedWidth / (numBars + 1)
+    for (let i = 1; i <= numBars; i += 1) {
+      const barX = barSpacing * i
+      const barYOffset = swingAngle > 0.1 ? -projectedDepth * (barX / projectedWidth) : 0
+      context.fillRect(barX - outline / 2, -leaf / 2 + barYOffset, outline, leaf)
     }
   }
 
+  // Draw outline
   context.strokeStyle = cssColour(DOOR_OUTLINE_COLOUR, 0.7)
   context.lineWidth = outline
-  context.strokeRect(
-    openingLeft + outline / 2,
-    leafY + outline / 2,
-    Math.max(0, leafWidth - outline),
-    Math.max(0, leafHeight - outline),
-  )
+
+  if (swingAngle < 0.1) {
+    context.strokeRect(outline / 2, -leaf / 2 + outline / 2, openingWidth - outline, leaf - outline)
+  } else if (swingAngle > Math.PI / 2 - 0.1) {
+    const thickness = Math.max(2, leaf * 0.15)
+    context.strokeRect(
+      -thickness / 2 + outline / 2,
+      -leaf / 2 - leafLength + leaf + outline / 2,
+      thickness - outline,
+      leafLength - outline,
+    )
+  } else {
+    context.beginPath()
+    context.moveTo(outline / 2, -leaf / 2 + outline / 2)
+    context.lineTo(projectedWidth - outline / 2, -leaf / 2 - projectedDepth + outline / 2)
+    context.lineTo(projectedWidth - outline / 2, leaf / 2 - projectedDepth - outline / 2)
+    context.lineTo(outline / 2, leaf / 2 - outline / 2)
+    context.closePath()
+    context.stroke()
+  }
+
+  context.restore()
 }
 
 /** Where a door state sits in the atlas grid. */
@@ -427,9 +465,17 @@ export function doorAtlasCell(
   frame: DoorFrame,
 ): number {
   const row = Math.max(0, DOOR_ATLAS_TYPES.indexOf(type))
-  const column =
-    DOOR_ORIENTATIONS.indexOf(orientation) * DOOR_FRAMES.length + DOOR_FRAMES.indexOf(frame)
+  const frameIndex = DOOR_FRAMES.indexOf(frame)
+  const column = DOOR_ORIENTATIONS.indexOf(orientation) * DOOR_FRAMES.length + frameIndex
   return row * DOOR_ORIENTATIONS.length * DOOR_FRAMES.length + column
+}
+
+/**
+ * Maps an open/closed boolean to a frame for backward compatibility.
+ * For smooth animation, use the full frame sequence.
+ */
+export function doorFrameFromOpen(open: boolean): DoorFrame {
+  return open ? 'open' : 'closed'
 }
 
 /**

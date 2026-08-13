@@ -1,7 +1,6 @@
 {
   "rooms": [
     {
-      "_tuning": true,
       "id": "cell",
       "name": "Cell",
       "category": "housing",
@@ -45,7 +44,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "dormitory",
       "name": "Dormitory",
       "category": "housing",
@@ -87,7 +85,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "holding_pen",
       "name": "Holding pen",
       "category": "housing",
@@ -104,7 +101,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "isolation",
       "name": "Isolation",
       "category": "housing",
@@ -119,7 +115,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "mess_hall",
       "name": "Mess hall",
       "category": "inmateActivity",
@@ -150,7 +145,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "washroom",
       "name": "Washroom",
       "category": "inmateActivity",
@@ -164,7 +158,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "exercise_yard",
       "name": "Exercise yard",
       "category": "inmateActivity",
@@ -195,7 +188,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "dayroom",
       "name": "Dayroom",
       "category": "inmateActivity",
@@ -226,7 +218,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "classroom",
       "name": "Classroom",
       "category": "inmateActivity",
@@ -261,7 +252,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "library",
       "name": "Library",
       "category": "inmateActivity",
@@ -279,7 +269,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "chapel",
       "name": "Chapel",
       "category": "inmateActivity",
@@ -297,7 +286,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "visit_hall",
       "name": "Visit hall",
       "category": "inmateActivity",
@@ -311,7 +299,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "commissary",
       "name": "Commissary",
       "category": "inmateActivity",
@@ -330,7 +317,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "mail_sort",
       "name": "Mail sorting room",
       "category": "inmateActivity",
@@ -350,7 +336,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "kitchen",
       "name": "Kitchen",
       "category": "production",
@@ -369,7 +354,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "workshop",
       "name": "Workshop",
       "category": "production",
@@ -388,7 +372,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "laundry",
       "name": "Laundry",
       "category": "production",
@@ -407,7 +390,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "supply_closet",
       "name": "Supply closet",
       "category": "production",
@@ -424,7 +406,6 @@
       "unlockedBy": "sanitation"
     },
     {
-      "_tuning": true,
       "id": "grove",
       "name": "Grove",
       "category": "production",
@@ -442,7 +423,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "office",
       "name": "Office",
       "category": "admin",
@@ -460,7 +440,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "control_room",
       "name": "Control room",
       "category": "staff",
@@ -479,7 +458,6 @@
       "unlockedBy": "security_office"
     },
     {
-      "_tuning": true,
       "id": "break_room",
       "name": "Break room",
       "category": "staff",
@@ -496,7 +474,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "armoury",
       "name": "Armoury",
       "category": "staff",
@@ -515,7 +492,6 @@
       "unlockedBy": "armoury_programme"
     },
     {
-      "_tuning": true,
       "id": "kennel",
       "name": "Kennel",
       "category": "staff",
@@ -531,7 +507,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "clinic",
       "name": "Clinic",
       "category": "medical",
@@ -546,7 +521,6 @@
       "unlockedBy": "medical"
     },
     {
-      "_tuning": true,
       "id": "mortuary",
       "name": "Mortuary",
       "category": "medical",
@@ -562,7 +536,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "store",
       "name": "Store",
       "category": "logistics",
@@ -575,7 +548,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "dock",
       "name": "Dock",
       "category": "logistics",
@@ -589,7 +561,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "dispatch",
       "name": "Dispatch",
       "category": "logistics",
@@ -603,7 +574,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "refuse",
       "name": "Refuse point",
       "category": "logistics",
@@ -618,7 +588,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "intake_hall",
       "name": "Intake hall",
       "category": "admin",
@@ -636,7 +605,6 @@
       "graded": false
     },
     {
-      "_tuning": true,
       "id": "hearing_room",
       "name": "Hearing room",
       "category": "admin",

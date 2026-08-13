@@ -592,8 +592,19 @@ interface AgentSprites {
 }
 
 /**
+ * PRD 7.5 sprite pool ceiling. At 400 agents × 5 sprites, we cap at 2000
+ * sprites per set (active + pooled). Beyond this the pool stops growing and
+ * the oldest pooled sprites are not returned.
+ */
+export const AGENT_SPRITE_POOL_CEILING = 2000
+
+/**
  * Draws every agent: body + tinted uniform, optional mood pin, optional
  * selection ring; at zoom ≤ 0.5, a coloured 4px dot instead.
+ *
+ * T8.19: uses a sprite pool with a ceiling to avoid unbounded allocation.
+ * Sprites are returned to the pool when agents leave, then reused when new
+ * agents arrive, avoiding per-frame `new Sprite()` calls.
  */
 export class AgentLayer {
   readonly container: Container
@@ -605,6 +616,12 @@ export class AgentLayer {
   readonly #figures: Container
   readonly #agents = new Map<number, RenderAgent>()
   readonly #sprites = new Map<number, AgentSprites>()
+
+  /**
+   * T8.19: pool of recyclable sprite sets. FIFO: oldest pooled sets are
+   * reused first, and dropped silently when the pool reaches its ceiling.
+   */
+  readonly #pool: AgentSprites[] = []
 
   #dotMode = false
 
@@ -756,7 +773,21 @@ export class AgentLayer {
     }
   }
 
+  /**
+   * T8.19: acquires a sprite set from the pool or creates a fresh one.
+   * When the pool is non-empty, the oldest set is reused (FIFO), which
+   * avoids per-frame Sprite construction. Fresh sprites are only created
+   * when the pool is exhausted.
+   */
   #createSprites(id: number): AgentSprites {
+    const pooled = this.#pool.shift()
+    if (pooled !== undefined) {
+      for (const sprite of Object.values(pooled)) {
+        sprite.visible = false
+      }
+      return pooled
+    }
+
     const label = String(id)
     const body = new Sprite({ label: `agent-body-${label}` })
     const uniform = new Sprite({ label: `agent-uniform-${label}` })
@@ -773,13 +804,34 @@ export class AgentLayer {
     return { body, uniform, mood, selection, dot }
   }
 
+  /**
+   * T8.19: returns sprites to the pool for reuse. Sprites are hidden but
+   * remain children of the figures container. When the pool is at its
+   * ceiling, excess sprites are silently dropped (destroyed).
+   */
   #destroySprites(id: number): void {
     const sprites = this.#sprites.get(id)
     if (sprites === undefined) return
     this.#sprites.delete(id)
+
     for (const sprite of Object.values(sprites)) {
-      this.#figures.removeChild(sprite)
-      sprite.destroy()
+      sprite.visible = false
     }
+
+    const totalActive = this.#sprites.size * 5
+    const currentPool = this.#pool.length * 5
+    if (totalActive + currentPool < AGENT_SPRITE_POOL_CEILING) {
+      this.#pool.push(sprites)
+    } else {
+      for (const sprite of Object.values(sprites)) {
+        this.#figures.removeChild(sprite)
+        sprite.destroy()
+      }
+    }
+  }
+
+  /** T8.19: current pool depth for diagnostics. */
+  get poolSize(): number {
+    return this.#pool.length
   }
 }

@@ -1,7 +1,6 @@
 {
   "contracts": [
     {
-      "_tuning": true,
       "id": "fit_for_purpose",
       "name": "Fit for Purpose",
       "description": "Stand up the minimum viable prison: somewhere to sleep, somewhere to eat, and a kitchen that can feed them.",
@@ -24,7 +23,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "administration",
       "name": "Administration",
       "description": "Put a management structure in place so the estate can be run rather than merely occupied.",
@@ -46,7 +44,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "duty_of_care",
       "name": "Duty of Care",
       "description": "Demonstrate that the people in your custody are kept clean and treated when injured.",
@@ -72,7 +69,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "education_trial",
       "name": "Education Trial",
       "description": "Run a literacy pilot and show that it reaches enough inmates to be worth funding at scale.",
@@ -95,7 +91,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "staff_welfare",
       "name": "Staff Welfare",
       "description": "No advance on this one. Look after your staff for a week and the payment follows.",
@@ -115,7 +110,6 @@
     },
 
     {
-      "_tuning": true,
       "id": "secure_estate",
       "name": "Secure Estate",
       "description": "Bring contraband under control and prove the estate can be watched as well as walled.",
@@ -138,7 +132,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "industry_partnership",
       "name": "Industry Partnership",
       "description": "A manufacturer will fund a workshop wing if you can staff it at scale.",
@@ -158,7 +151,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "clean_hands",
       "name": "Clean Hands",
       "description": "An inspection is coming. The floors are the first thing they will look at.",
@@ -181,7 +173,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "good_order",
       "name": "Good Order",
       "description": "Show that decent housing and consistent policy produce a quiet prison.",
@@ -201,7 +192,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "rescue_package",
       "name": "Rescue Package",
       "description": "An emergency grant, offered once, when the books say you will not survive the week.",
@@ -213,6 +203,278 @@
         {
           "label": "Return the balance to $10,000",
           "predicate": { "type": "balanceAtLeast", "min": 10000 }
+        }
+      ]
+    },
+
+    {
+      "id": "yard_time",
+      "name": "Yard Time",
+      "description": "Outdoor exercise reduces tension. Prove it with a fenced yard and some equipment.",
+      "advance": 8000,
+      "completion": 15000,
+      "todoItems": [
+        {
+          "label": "Build an exercise yard",
+          "predicate": { "type": "roomCount", "roomId": "exercise_yard", "min": 1 }
+        },
+        {
+          "label": "Install 4 weight benches",
+          "predicate": { "type": "objectCount", "objectId": "weight_bench", "min": 4 }
+        },
+        {
+          "label": "Keep mean exercise need below 50",
+          "predicate": { "type": "needBelow", "needId": "exercise", "maxMean": 50 }
+        }
+      ]
+    },
+    {
+      "id": "faith_provision",
+      "name": "Faith Provision",
+      "description": "A quiet place for reflection. The chaplain says it calms them down.",
+      "advance": 6000,
+      "completion": 12000,
+      "todoItems": [
+        {
+          "label": "Build a chapel",
+          "predicate": { "type": "roomCount", "roomId": "chapel", "min": 1 }
+        },
+        {
+          "label": "Install 8 pews",
+          "predicate": { "type": "objectCount", "objectId": "pew", "min": 8 }
+        },
+        {
+          "label": "Hold 30 inmates",
+          "predicate": { "type": "populationAtLeast", "min": 30 }
+        }
+      ]
+    },
+    {
+      "id": "legal_compliance",
+      "name": "Legal Compliance",
+      "description": "Run parole hearings properly. The oversight board is watching.",
+      "advance": 10000,
+      "completion": 20000,
+      "prerequisites": ["legal"],
+      "todoItems": [
+        {
+          "label": "Build a hearing room",
+          "predicate": { "type": "roomCount", "roomId": "hearing_room", "min": 1 }
+        },
+        {
+          "label": "Hire a legal officer",
+          "predicate": { "type": "staffHired", "staffId": "legal_officer", "min": 1 }
+        },
+        {
+          "label": "Hold 40 inmates",
+          "predicate": { "type": "populationAtLeast", "min": 40 }
+        }
+      ]
+    },
+    {
+      "id": "perimeter_security",
+      "name": "Perimeter Security",
+      "description": "Zero escapes for a fortnight. Fences, dogs, and attentive staff.",
+      "advance": 15000,
+      "completion": 30000,
+      "prerequisites": ["canine"],
+      "todoItems": [
+        {
+          "label": "Build a kennel",
+          "predicate": { "type": "roomCount", "roomId": "kennel", "min": 1 }
+        },
+        {
+          "label": "Employ 2 dog handlers",
+          "predicate": { "type": "staffHired", "staffId": "k9_officer", "min": 2 }
+        },
+        {
+          "label": "14 days without an escape",
+          "predicate": { "type": "daysWithout", "incident": "escape", "days": 14 }
+        }
+      ]
+    },
+    {
+      "id": "medical_expansion",
+      "name": "Medical Expansion",
+      "description": "Handle injuries and overdoses in-house. The state will fund clinic beds.",
+      "advance": 12000,
+      "completion": 25000,
+      "prerequisites": ["medical"],
+      "todoItems": [
+        {
+          "label": "Install 4 clinic beds",
+          "predicate": { "type": "objectCount", "objectId": "clinic_bed", "min": 4 }
+        },
+        {
+          "label": "Hire 2 medics",
+          "predicate": { "type": "staffHired", "staffId": "medic", "min": 2 }
+        },
+        {
+          "label": "14 days without a death",
+          "predicate": { "type": "daysWithout", "incident": "death", "days": 14 }
+        }
+      ]
+    },
+    {
+      "id": "rehabilitation_focus",
+      "name": "Rehabilitation Focus",
+      "description": "Build a reform-focused wing with education and counselling.",
+      "advance": 20000,
+      "completion": 45000,
+      "prerequisites": ["education", "welfare"],
+      "todoItems": [
+        {
+          "label": "Build 2 classrooms",
+          "predicate": { "type": "roomCount", "roomId": "classroom", "min": 2 }
+        },
+        {
+          "label": "30 inmates complete Basic Literacy",
+          "predicate": { "type": "programCompletions", "programId": "basic_literacy", "min": 30 }
+        },
+        {
+          "label": "10 inmates complete Vocational Certificate",
+          "predicate": { "type": "programCompletions", "programId": "vocational_certificate", "min": 10 }
+        }
+      ]
+    },
+    {
+      "id": "population_milestone_50",
+      "name": "Fifty Strong",
+      "description": "Show you can run a mid-sized facility without losing control.",
+      "advance": 5000,
+      "completion": 15000,
+      "todoItems": [
+        { "label": "Hold 50 inmates", "predicate": { "type": "populationAtLeast", "min": 50 } },
+        {
+          "label": "7 days without a riot",
+          "predicate": { "type": "daysWithout", "incident": "riot", "days": 7 }
+        },
+        {
+          "label": "Hold morale at 50",
+          "predicate": { "type": "staffMoraleAtLeast", "min": 50 }
+        }
+      ]
+    },
+    {
+      "id": "population_milestone_100",
+      "name": "Century",
+      "description": "A hundred souls under one roof. Scale brings complexity.",
+      "advance": 10000,
+      "completion": 30000,
+      "todoItems": [
+        { "label": "Hold 100 inmates", "predicate": { "type": "populationAtLeast", "min": 100 } },
+        {
+          "label": "14 days without a death",
+          "predicate": { "type": "daysWithout", "incident": "death", "days": 14 }
+        },
+        {
+          "label": "Keep mean food need below 45",
+          "predicate": { "type": "needBelow", "needId": "food", "maxMean": 45 }
+        }
+      ]
+    },
+    {
+      "id": "financial_stability",
+      "name": "Financial Stability",
+      "description": "Maintain a healthy reserve while running at capacity.",
+      "advance": 0,
+      "completion": 25000,
+      "prerequisites": ["finance"],
+      "todoItems": [
+        {
+          "label": "Hold balance above $25,000",
+          "predicate": { "type": "balanceAtLeast", "min": 25000 }
+        },
+        { "label": "Hold 30 inmates", "predicate": { "type": "populationAtLeast", "min": 30 } },
+        {
+          "label": "7 days without a riot",
+          "predicate": { "type": "daysWithout", "incident": "riot", "days": 7 }
+        }
+      ]
+    },
+    {
+      "id": "laundry_operation",
+      "name": "Laundry Operation",
+      "description": "Clean uniforms improve morale and reduce disease.",
+      "advance": 6000,
+      "completion": 10000,
+      "prerequisites": ["inmate_labour"],
+      "todoItems": [
+        {
+          "label": "Build a laundry",
+          "predicate": { "type": "roomCount", "roomId": "laundry", "min": 1 }
+        },
+        {
+          "label": "Install 2 washing machines",
+          "predicate": { "type": "objectCount", "objectId": "washing_machine", "min": 2 }
+        },
+        {
+          "label": "Keep mean clothing need below 35",
+          "predicate": { "type": "needBelow", "needId": "clothing", "maxMean": 35 }
+        }
+      ]
+    },
+    {
+      "id": "visitor_programme",
+      "name": "Visitor Programme",
+      "description": "Family contact reduces tension. Build visitation facilities.",
+      "advance": 8000,
+      "completion": 18000,
+      "todoItems": [
+        {
+          "label": "Build a visit hall",
+          "predicate": { "type": "roomCount", "roomId": "visit_hall", "min": 1 }
+        },
+        {
+          "label": "Install 6 visit tables",
+          "predicate": { "type": "objectCount", "objectId": "visit_table", "min": 6 }
+        },
+        {
+          "label": "Keep mean family need below 50",
+          "predicate": { "type": "needBelow", "needId": "family", "maxMean": 50 }
+        }
+      ]
+    },
+    {
+      "id": "control_centre",
+      "name": "Control Centre",
+      "description": "Centralise monitoring with a proper control room and CCTV network.",
+      "advance": 10000,
+      "completion": 22000,
+      "prerequisites": ["security_office"],
+      "todoItems": [
+        {
+          "label": "Build a control room",
+          "predicate": { "type": "roomCount", "roomId": "control_room", "min": 1 }
+        },
+        {
+          "label": "Install 20 cameras",
+          "predicate": { "type": "objectCount", "objectId": "camera", "min": 20 }
+        },
+        {
+          "label": "Install 4 monitor banks",
+          "predicate": { "type": "objectCount", "objectId": "monitor_bank", "min": 4 }
+        }
+      ]
+    },
+    {
+      "id": "maximum_security_wing",
+      "name": "Maximum Security Wing",
+      "description": "House dangerous inmates safely. Higher payments justify the investment.",
+      "advance": 15000,
+      "completion": 35000,
+      "todoItems": [
+        {
+          "label": "Hold 80 inmates",
+          "predicate": { "type": "populationAtLeast", "min": 80 }
+        },
+        {
+          "label": "Build 10 graded cells (grade 4+)",
+          "predicate": { "type": "roomGrade", "roomId": "cell", "minGrade": 4, "count": 10 }
+        },
+        {
+          "label": "7 days without misconduct",
+          "predicate": { "type": "daysWithout", "incident": "misconduct", "days": 7 }
         }
       ]
     }

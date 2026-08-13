@@ -43,6 +43,10 @@ export function doorTypeIndex(type: DoorType): number {
   return DOOR_TYPES.indexOf(type)
 }
 
+export function isDoorType(value: string): value is DoorType {
+  return (DOOR_TYPES as readonly string[]).includes(value)
+}
+
 /**
  * The `passability` bits a door contributes.
  *
@@ -130,6 +134,18 @@ export class DoorRegistry {
       hasher.writeUint32(door.tileIndex)
       hasher.writeUint32(doorTypeIndex(door.type))
       hasher.writeBoolean(door.locked)
+    }
+  }
+
+  serialise(): readonly { readonly tileIndex: number; readonly type: DoorType; readonly locked: boolean }[] {
+    return this.entries()
+  }
+
+  restore(doors: readonly { readonly tileIndex: number; readonly type: string; readonly locked: boolean }[]): void {
+    this.#doors.clear()
+    for (const entry of doors) {
+      if (!isDoorType(entry.type)) continue
+      this.place(entry.tileIndex, entry.type, entry.locked)
     }
   }
 }

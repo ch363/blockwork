@@ -1,36 +1,59 @@
 /**
- * Capture a live `InmateWorld` into `SaveState` field snapshots (save v3).
+ * Capture a live `InmateWorld` into `SaveState` (save v5).
  *
  * The grid itself is shared by reference into the returned state — callers that
  * need a detached snapshot should clone buffers before mutating further.
  */
 
 import type { RngState } from '../core/rng'
-import type { JsonObject } from '../core/commands'
 import type { EconomySnapshot } from '../entities/economy'
 import type { ContractBookSnapshot } from '../entities/contracts'
+import type { InmateEntity } from '../entities/inmate'
 import type { InmateWorld } from '../systems/intakeSystem'
 import { isSectorAccessMode } from '../world/sectors'
 import type { UnfilledReason } from '../systems/postSystem'
 
 import type {
+  CellGradesStateSnapshot,
+  CleaningStateSnapshot,
   CombatStateSnapshot,
+  ConstructionStateSnapshot,
   ContrabandStateSnapshot,
   ContractState,
+  DeliveriesStateSnapshot,
+  DoorsStateSnapshot,
   EconomyState,
   EmergencyStateSnapshot,
+  EntityRegistryState,
   EscapesStateSnapshot,
+  EscortsStateSnapshot,
   FireStateSnapshot,
+  FogStateSnapshot,
+  GradingStateSnapshot,
+  IntakeStateSnapshot,
+  JobsStateSnapshot,
+  LabourStateSnapshot,
+  LaundryStateSnapshot,
   LogEntry,
   MapSettings,
+  MealsStateSnapshot,
+  MoraleStateSnapshot,
+  NeedsRuntimeStateSnapshot,
+  OfficesStateSnapshot,
   PostsState,
   PunishmentsStateSnapshot,
   RiotStateSnapshot,
+  RoutineRuntimeStateSnapshot,
   RoutineState,
   SectorsState,
   SerialisedEntity,
+  SerialisedInmateEntity,
+  SerialisedObjectEntity,
   SerialisedRoom,
+  SerialisedStaffDuty,
+  SerialisedStaffEntity,
   StandingOrdersState,
+  SupplyStateSnapshot,
   UtilitiesStateSnapshot,
 } from './format'
 import type { SaveState } from './state'
@@ -111,81 +134,90 @@ function capturePosts(world: InmateWorld): PostsState {
   }
 }
 
-/** Minimal entity snapshot so Phase 4 id references stay meaningful after load. */
+function captureInmate(entity: InmateEntity): SerialisedInmateEntity {
+  const inmate = entity.inmate
+  return {
+    id: entity.id,
+    kind: 'inmate',
+    name: inmate.name,
+    portraitSeed: inmate.portraitSeed,
+    category: inmate.category,
+    convictions: inmate.convictions.map((c) => ({ id: c.id, years: c.years })),
+    sentenceHours: inmate.sentenceHours,
+    servedHours: inmate.servedHours,
+    traits: [...inmate.traits],
+    reputations: inmate.reputations.map((r) => ({ id: r.id, revealed: r.revealed })),
+    needs: Array.from(inmate.needs),
+    addictions: inmate.addictions.map((a) => ({ substance: a.substance, strength: a.strength })),
+    suppression: inmate.suppression,
+    entitlement: inmate.entitlement,
+    cellId: inmate.cellId,
+    jobId: inmate.jobId,
+    misconductLog: inmate.misconductLog.map((entry) => ({
+      tick: entry.tick,
+      kind: entry.kind,
+      punishment: entry.punishment,
+      durationHours: entry.durationHours,
+    })),
+    grades: { ...inmate.grades },
+    reoffendChance: inmate.reoffendChance,
+    status: [...inmate.status],
+    health: inmate.health,
+    inventory: [...inmate.inventory],
+    money: inmate.money,
+    aptitude: inmate.aptitude,
+    x: entity.x,
+    y: entity.y,
+    tx: entity.tx,
+    ty: entity.ty,
+    accessMask: entity.accessMask,
+  }
+}
+
+function captureStaff(entity: ReturnType<InmateWorld['staff']['get']> & object): SerialisedStaffEntity {
+  return {
+    id: entity.id,
+    kind: 'staff',
+    defId: entity.staff.defId,
+    name: entity.staff.name,
+    officeRoomId: entity.staff.officeRoomId,
+    assignedAreaId: entity.staff.assignedAreaId,
+    pinnedTile: entity.staff.pinnedTile,
+    duty: { ...entity.staff.duty } as SerialisedStaffDuty,
+    wanderCooldown: entity.staff.wanderCooldown,
+    breakPending: entity.staff.breakPending,
+    breakCooldownMinutes: entity.staff.breakCooldownMinutes,
+    needs: Array.from(entity.staff.needs),
+    x: entity.x,
+    y: entity.y,
+    tx: entity.tx,
+    ty: entity.ty,
+  }
+}
+
+function captureObject(entity: ReturnType<InmateWorld['objects']['get']> & object): SerialisedObjectEntity {
+  return {
+    id: entity.id,
+    kind: 'object',
+    tileIndex: entity.tileIndex,
+    tx: entity.tx,
+    ty: entity.ty,
+    defId: entity.object.defId,
+    rotation: entity.object.rotation,
+    roomId: entity.object.roomId,
+    hasPower: entity.object.hasPower,
+    hasWater: entity.object.hasWater,
+    hp: entity.object.hp,
+    tiles: [...entity.object.tiles],
+    footprint: { ...entity.object.footprint },
+  }
+}
+
 function captureEntities(world: InmateWorld): readonly SerialisedEntity[] {
   const entities: SerialisedEntity[] = []
-
-  for (const inmate of world.inmates.all()) {
-    entities.push({
-      id: inmate.id,
-      kind: 'inmate',
-      category: inmate.inmate.category,
-      traits: [...inmate.inmate.traits],
-      needs: Array.from(inmate.inmate.needs),
-      health: inmate.inmate.health,
-      cellId: inmate.inmate.cellId,
-      inventory: [...inmate.inmate.inventory],
-      money: inmate.inmate.money,
-      suppression: inmate.inmate.suppression,
-      accessMask: inmate.accessMask,
-      tx: inmate.tx,
-      ty: inmate.ty,
-      x: inmate.x,
-      y: inmate.y,
-      name: inmate.inmate.name,
-      portraitSeed: inmate.inmate.portraitSeed,
-      sentenceHours: inmate.inmate.sentenceHours,
-      servedHours: inmate.inmate.servedHours,
-      entitlement: inmate.inmate.entitlement,
-      aptitude: inmate.inmate.aptitude,
-      reoffendChance: inmate.inmate.reoffendChance,
-      grades: { ...inmate.inmate.grades },
-      status: [...inmate.inmate.status],
-      nextInmateId: world.inmates.nextId,
-    })
-  }
-
-  for (const staff of world.staff.all()) {
-    entities.push({
-      id: staff.id,
-      kind: 'staff',
-      defId: staff.staff.defId,
-      name: staff.staff.name,
-      officeRoomId: staff.staff.officeRoomId,
-      assignedAreaId: staff.staff.assignedAreaId,
-      pinnedTile: staff.staff.pinnedTile,
-      duty: { ...staff.staff.duty } as JsonObject,
-      wanderCooldown: staff.staff.wanderCooldown,
-      breakPending: staff.staff.breakPending,
-      breakCooldownMinutes: staff.staff.breakCooldownMinutes,
-      needs: Array.from(staff.staff.needs),
-      tx: staff.tx,
-      ty: staff.ty,
-      x: staff.x,
-      y: staff.y,
-      nextStaffId: world.staff.nextId,
-    })
-  }
-
-  for (const object of world.objects.all()) {
-    entities.push({
-      id: object.id,
-      kind: 'object',
-      tileIndex: object.tileIndex,
-      tx: object.tx,
-      ty: object.ty,
-      defId: object.object.defId,
-      rotation: object.object.rotation,
-      roomId: object.object.roomId,
-      hasPower: object.object.hasPower,
-      hasWater: object.object.hasWater,
-      hp: object.object.hp,
-      tiles: [...object.object.tiles],
-      footprint: { ...object.object.footprint },
-      nextObjectId: world.objects.nextId,
-    })
-  }
-
+  for (const inmate of world.inmates.all()) entities.push(captureInmate(inmate))
+  for (const staff of world.staff.all()) entities.push(captureStaff(staff))
+  for (const object of world.objects.all()) entities.push(captureObject(object))
   return entities
 }
 
@@ -201,6 +233,105 @@ function captureRooms(world: InmateWorld): {
       tiles: [...room.tiles],
       bounds: { ...room.bounds },
       properties: { ...room.properties },
+    })),
+  }
+}
+
+function captureUtilities(world: InmateWorld): UtilitiesStateSnapshot {
+  const cableTiles: number[] = []
+  for (let i = 0; i < world.power.hasCable.length; i += 1) {
+    if ((world.power.hasCable[i] ?? 0) !== 0) cableTiles.push(i)
+  }
+  const pipeTiles: number[] = []
+  for (let i = 0; i < world.water.hasPipe.length; i += 1) {
+    if ((world.water.hasPipe[i] ?? 0) !== 0) pipeTiles.push(i)
+  }
+  return {
+    cableTiles,
+    pipeTiles,
+    shedBranches: [...world.power.shedBranches].sort((a, b) => a - b),
+    waterMultipliers: [...world.water.useMultiplierByBranch.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([branchId, multiplier]) => ({ branchId, multiplier })),
+  }
+}
+
+function captureFog(world: InmateWorld): FogStateSnapshot {
+  const revealedTiles: number[] = []
+  for (let i = 0; i < world.fog.revealed.length; i += 1) {
+    if (world.fog.revealed[i] === 1) revealedTiles.push(i)
+  }
+  return { revealedTiles }
+}
+
+function captureLaundry(world: InmateWorld): LaundryStateSnapshot {
+  const mapEntries = (map: Map<number, number>): readonly { readonly key: number; readonly value: number }[] =>
+    [...map.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([key, value]) => ({ key, value: Math.round(value) }))
+  return {
+    uniformsDistributed: world.laundry.uniformsDistributed,
+    lastAccrualDay: world.laundry.lastAccrualDay,
+    routingOverrides: [...world.laundry.routingOverrides.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([laundryId, housingId]) => ({ laundryId, housingId })),
+    uniformDirtiness: mapEntries(world.laundry.uniformDirtiness),
+    bedDirty: mapEntries(world.laundry.bedDirty),
+    basketDirty: mapEntries(world.laundry.basketDirty),
+    pendingWash: mapEntries(world.laundry.pendingWash),
+    washedReady: mapEntries(world.laundry.washedReady),
+    ironedReady: mapEntries(world.laundry.ironedReady),
+    bedClean: mapEntries(world.laundry.bedClean),
+  }
+}
+
+function captureCellGrades(world: InmateWorld): CellGradesStateSnapshot {
+  return {
+    grades: [...world.cellGrades.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([roomId, grade]) => ({ roomId, grade })),
+  }
+}
+
+function captureIntake(world: InmateWorld): IntakeStateSnapshot {
+  return {
+    continuous: world.intake.continuous,
+    nextBusAtTick: world.intake.nextBusAtTick,
+    requestedCounts: [...world.intake.requestedCounts.entries()]
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([category, count]) => ({ category, count })),
+  }
+}
+
+function captureConstruction(world: InmateWorld): ConstructionStateSnapshot {
+  const queueSnap = world.sites.serialise()
+  return {
+    nextSiteId: queueSnap.nextId,
+    sites: queueSnap.sites.map((site) => ({ ...site })),
+    spendOwed: world.spendOwed,
+    refundsOwed: world.refundsOwed,
+  }
+}
+
+function captureDoors(world: InmateWorld): DoorsStateSnapshot {
+  return { doors: world.doors.serialise() }
+}
+
+function captureEntityRegistry(world: InmateWorld): EntityRegistryState {
+  return {
+    nextInmateId: world.inmates.nextId,
+    nextStaffId: world.staff.nextId,
+    nextObjectId: world.objects.nextId,
+    staffHireCounts: world.staff.serialiseHireCounts(),
+  }
+}
+
+function captureOffices(world: InmateWorld): OfficesStateSnapshot {
+  return {
+    claims: world.offices.all().map((claim) => ({
+      roomId: claim.roomId,
+      staffId: claim.staffId,
+      displayName: claim.displayName,
     })),
   }
 }
@@ -292,16 +423,6 @@ export function captureInmateWorld(
     prices: contrabandSnap.prices.map((p) => ({ ...p })),
   }
 
-  const cableTiles: number[] = []
-  for (let i = 0; i < world.power.hasCable.length; i += 1) {
-    if ((world.power.hasCable[i] ?? 0) !== 0) cableTiles.push(i)
-  }
-  const pipeTiles: number[] = []
-  for (let i = 0; i < world.water.hasPipe.length; i += 1) {
-    if ((world.water.hasPipe[i] ?? 0) !== 0) pipeTiles.push(i)
-  }
-  const utilities: UtilitiesStateSnapshot = { cableTiles, pipeTiles }
-
   const standing = {
     misconduct: Object.fromEntries(
       Object.entries(world.standingOrders.misconduct).map(([kind, order]) => [
@@ -318,10 +439,81 @@ export function captureInmateWorld(
     mealVariety: world.standingOrders.mealVariety,
   } as StandingOrdersState
 
+  const labourSnap = world.labour.serialise()
+  const labour: LabourStateSnapshot = { ...labourSnap }
+  const moraleSnap = world.morale.serialise()
+  const morale: MoraleStateSnapshot = {
+    value: moraleSnap.value,
+    wageMultiplier: moraleSnap.wageMultiplier,
+    lastDangerContribution: moraleSnap.lastDangerContribution,
+    deaths: [...moraleSnap.deaths],
+    injured: [...moraleSnap.injured],
+    strike: {
+      phase: moraleSnap.strike.phase,
+      endsAtTick: moraleSnap.strike.endsAtTick,
+      cooldownUntilTick: moraleSnap.strike.cooldownUntilTick,
+      refuseCount: moraleSnap.strike.refuseCount,
+      payDemandOpen: moraleSnap.strike.payDemandOpen,
+      demandedRaise: moraleSnap.strike.demandedRaise,
+    },
+    hasStruckBefore: moraleSnap.hasStruckBefore,
+  }
+  const needsSnap = world.needsRuntime.serialise()
+  const needsRuntime: NeedsRuntimeStateSnapshot = { ...needsSnap }
+  const routineSnap = world.routineRuntime.serialise()
+  const routineRuntime: RoutineRuntimeStateSnapshot = { ...routineSnap }
+  const jobsSnap = world.jobs.serialise()
+  const jobs: JobsStateSnapshot = {
+    nextId: jobsSnap.nextId,
+    jobs: jobsSnap.jobs.map((job) => ({ ...job })),
+  }
+  const mealsSnap = world.meals.serialise()
+  const meals: MealsStateSnapshot = {
+    ...mealsSnap,
+    prepSessions: mealsSnap.prepSessions.map((session) => ({ ...session })),
+  }
+  const supplySnap = world.supply.serialise()
+  const supply: SupplyStateSnapshot = {
+    nextOrderId: supplySnap.nextOrderId,
+    orders: supplySnap.orders.map((order) => ({ ...order })),
+    dockFree: [...supplySnap.dockFree],
+    dockReserved: supplySnap.dockReserved.map((entry) => ({
+      siteId: entry.siteId,
+      stock: [...entry.stock],
+    })),
+    storeStock: [...supplySnap.storeStock],
+    binRefuse: [...supplySnap.binRefuse],
+    refuseZone: [...supplySnap.refuseZone],
+    carries: supplySnap.carries.map((mission) => ({ ...mission })),
+  }
+  const deliveriesSnap = world.deliveries.serialise()
+  const deliveries: DeliveriesStateSnapshot = {
+    nextTruckId: deliveriesSnap.nextTruckId,
+    nextTruckAt: deliveriesSnap.nextTruckAt,
+    pending: deliveriesSnap.pending.map((line) => ({ ...line })),
+    scheduled: deliveriesSnap.scheduled.map((truck) => ({
+      id: truck.id,
+      arriveTick: truck.arriveTick,
+      refuseUnits: truck.refuseUnits,
+      lines: truck.lines.map((line) => ({ ...line })),
+    })),
+  }
+  const escorts: EscortsStateSnapshot = { ...world.escorts.serialise() }
+
+  const settings: MapSettings =
+    options.settings ??
+    ({
+      staffNeeds: world.settings.staffNeeds,
+      firstOrderGrace: world.settings.firstOrderGrace,
+      randomEvents: world.settings.randomEvents,
+      failures: { ...world.settings.failures },
+      mutators: { ...world.settings.mutators },
+    } as MapSettings)
+
   return {
     seed: options.seed,
     playedTicks: options.playedTicks,
-    settings: options.settings ?? {},
+    settings,
     grid: world.grid,
     entities: captureEntities(world),
     rooms: rooms.rooms,
@@ -332,7 +524,7 @@ export function captureInmateWorld(
     grading: {
       ...world.grading.serialise(),
       averageCellGrade: world.averageCellGrade,
-    },
+    } satisfies GradingStateSnapshot,
     programs: world.programs.serialise(),
     grades: world.grades.serialise(),
     parole: world.parole.serialise(),
@@ -349,7 +541,33 @@ export function captureInmateWorld(
     escapes,
     combat,
     punishments,
-    utilities,
+    utilities: captureUtilities(world),
+    entityRegistry: captureEntityRegistry(world),
+    doors: captureDoors(world),
+    construction: captureConstruction(world),
+    intake: captureIntake(world),
+    cellGrades: captureCellGrades(world),
+    incomeOwed: world.incomeOwed,
+    staffOnlyRoomIds: [...world.staffOnlyRoomIds].sort((a, b) => a - b),
+    intakeSearchedInmateIds: [...world.intakeSearchedInmateIds].sort((a, b) => a - b),
+    staffNeedsEnabled: world.settings.staffNeeds,
+    fog: captureFog(world),
+    offices: captureOffices(world),
+    escorts,
+    jobs,
+    labour,
+    morale,
+    needsRuntime,
+    routineRuntime,
+    meals,
+    supply,
+    deliveries,
+    cleaning: {
+      cleanRemainder: world.cleaning.cleanRemainder,
+      noCleanersNotified: world.cleaning.noCleanersNotified,
+      dirtRemoved: world.cleaning.dirtRemoved,
+    } satisfies CleaningStateSnapshot,
+    laundry: captureLaundry(world),
     dangerLevel: world.dangerLevel,
     riotActive: world.riotActive,
     lockdownActive: world.lockdownActive,

@@ -96,60 +96,25 @@ export interface TerrainTileAppearance {
 }
 
 /**
- * Placeholder floors, taken from the terrain and floor swatches in
- * `docs/04-ui-mockups.html`. Index 0 is bare ground, matching the reserved
- * empty slot of the simulation's material table.
- *
- * This is presentation for materials that do not exist yet. T1.1 introduces
- * `packages/data/materials.json`, and the appearance of each material belongs
- * there; this list exists so the renderer has something to draw before it.
+ * Bare ground: what index 0 of the material table means on `floorMaterial`.
+ * An unbuilt map is a field rather than a wasteland. Uses the palette's earth
+ * swatch so the whole app re-tints from one table.
  */
-export const PLACEHOLDER_TERRAIN_PALETTE: readonly TerrainTileAppearance[] = [
-  { colour: 0x4a4034, grain: 0.1 },
-  { colour: 0x3a5040, grain: 0.12 },
-  { colour: 0x2f343b, grain: 0.06 },
-  { colour: 0x3f4550, grain: 0.07 },
-  { colour: 0x4a5261, grain: 0.05 },
-  { colour: 0x58616f, grain: 0.05 },
-  { colour: 0x6a5844, grain: 0.09 },
-  { colour: 0x6b4b3c, grain: 0.09 },
-]
-
-/**
- * The last of the placeholder floor table (T6.6).
- *
- * `materialDefSchema` now carries an `appearance`, so the live game resolves
- * colours through `materialAppearances` instead. This survives as the fallback
- * for a render with no data to hand.
- *
- * @deprecated Prefer `materialAppearances`.
- */
-export const PLACEHOLDER_FLOOR_APPEARANCES: Readonly<Record<string, TerrainTileAppearance>> = {
-  concrete_floor: { colour: 0x4a5261, grain: 0.05 },
-  ceramic_tile: { colour: 0x58616f, grain: 0.04 },
-  polished_stone: { colour: 0x646d7c, grain: 0.03 },
-  timber_board: { colour: 0x6a5844, grain: 0.09 },
-  linoleum: { colour: 0x525b68, grain: 0.05 },
-  grass: { colour: 0x3a5040, grain: 0.12 },
-  gravel: { colour: 0x4d5158, grain: 0.16 },
-  asphalt: { colour: 0x2f343b, grain: 0.06 },
-  paving_slab: { colour: 0x3f4550, grain: 0.07 },
-  sprint_track: { colour: 0x6b4b3c, grain: 0.09 },
-  churned_mud: { colour: 0x4a4034, grain: 0.14 },
+export const DEFAULT_GROUND_APPEARANCE: TerrainTileAppearance = {
+  colour: swatchColour('earth'),
+  grain: 0.12,
 }
 
 /**
- * Bare ground: what index 0 of the material table means on `floorMaterial`.
- *
- * Grass rather than mud. An unbuilt map is a field, and the mockup's
- * `.stage` background is `--terrain-grass`; opening on a brown expanse would
- * read as a wasteland the player has to fix rather than a site they get to
- * build on.
+ * Fallback floor when a material lacks an appearance entry.
  */
-export const BARE_GROUND_APPEARANCE: TerrainTileAppearance = { colour: 0x3a5040, grain: 0.12 }
+export const DEFAULT_FLOOR_APPEARANCE: TerrainTileAppearance = {
+  colour: swatchColour('concrete'),
+  grain: 0.05,
+}
 
-/** A floor material with no placeholder colour still has to be visible. */
-const UNKNOWN_FLOOR_APPEARANCE: TerrainTileAppearance = { colour: 0x4a5261, grain: 0.05 }
+/** @deprecated Use `DEFAULT_GROUND_APPEARANCE`. */
+export const BARE_GROUND_APPEARANCE: TerrainTileAppearance = DEFAULT_GROUND_APPEARANCE
 
 /**
  * Turns the simulation's index-ordered material ids into a floor palette.
@@ -165,11 +130,14 @@ const UNKNOWN_FLOOR_APPEARANCE: TerrainTileAppearance = { colour: 0x4a5261, grai
  */
 export function terrainPalette(
   materialIds: readonly string[],
-  appearances: Readonly<Record<string, TerrainTileAppearance>> = PLACEHOLDER_FLOOR_APPEARANCES,
+  appearances: ReadonlyMap<string, TerrainTileAppearance> | Readonly<Record<string, TerrainTileAppearance>>,
 ): readonly TerrainTileAppearance[] {
+  const lookup = appearances instanceof Map
+    ? (id: string) => appearances.get(id)
+    : (id: string) => (appearances as Readonly<Record<string, TerrainTileAppearance>>)[id]
   return materialIds.map((id, index) => {
-    if (index === 0) return BARE_GROUND_APPEARANCE
-    return appearances[id] ?? UNKNOWN_FLOOR_APPEARANCE
+    if (index === 0) return DEFAULT_GROUND_APPEARANCE
+    return lookup(id) ?? DEFAULT_FLOOR_APPEARANCE
   })
 }
 
@@ -710,11 +678,8 @@ export function terrainPaletteFor(
   materialIds: readonly string[],
   appearances: ReadonlyMap<string, TerrainTileAppearance>,
 ): readonly TerrainTileAppearance[] {
-  const ground: TerrainTileAppearance = { colour: swatchColour('earth'), grain: 0.12 }
   return [
-    ground,
-    ...materialIds.map(
-      (id) => appearances.get(id) ?? { colour: swatchColour('concrete'), grain: 0.05 },
-    ),
+    DEFAULT_GROUND_APPEARANCE,
+    ...materialIds.map((id) => appearances.get(id) ?? DEFAULT_FLOOR_APPEARANCE),
   ]
 }

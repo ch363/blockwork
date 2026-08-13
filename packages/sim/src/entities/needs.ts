@@ -182,6 +182,19 @@ export function createInmateNeedState(needCount: number): InmateNeedState {
   }
 }
 
+/** Serializable per-inmate needs runtime (save v5). */
+export interface NeedsRuntimeSnapshot {
+  readonly inmates: readonly {
+    readonly inmateId: number
+    readonly usingObjectId: number
+    readonly lockedUp: boolean
+    readonly seekingWeapon: boolean
+    readonly diggingTunnel: boolean
+    readonly starveMinutes: number
+    readonly criticalLatch: readonly number[]
+  }[]
+}
+
 /**
  * Runtime map keyed by inmate id. Lives on `InmateWorld` so ActivitySystem
  * (T2.6) can claim objects without reaching into the needs system.
@@ -271,6 +284,52 @@ export class NeedsRuntime {
       hasher.writeUint32(state.criticalLatch.length)
       for (let i = 0; i < state.criticalLatch.length; i += 1) {
         hasher.writeUint32(state.criticalLatch[i] ?? 0)
+      }
+    }
+  }
+
+  serialise(): NeedsRuntimeSnapshot {
+    const ids = [...this.#byInmate.keys()].sort((a, b) => a - b)
+    return {
+      inmates: ids.flatMap((inmateId) => {
+        const state = this.#byInmate.get(inmateId)
+        if (state === undefined) return []
+        return [
+          {
+            inmateId,
+            usingObjectId: state.usingObjectId,
+            lockedUp: state.lockedUp,
+            seekingWeapon: state.seekingWeapon,
+            diggingTunnel: state.diggingTunnel,
+            starveMinutes: state.starveMinutes,
+            criticalLatch: Array.from(state.criticalLatch),
+          },
+        ]
+      }),
+    }
+  }
+
+  restore(snapshot: NeedsRuntimeSnapshot): void {
+    this.#byInmate.clear()
+    this.#usersByObject.clear()
+    for (const entry of snapshot.inmates) {
+      const state = createInmateNeedState(this.needCount)
+      state.usingObjectId = entry.usingObjectId
+      state.lockedUp = entry.lockedUp
+      state.seekingWeapon = entry.seekingWeapon
+      state.diggingTunnel = entry.diggingTunnel
+      state.starveMinutes = entry.starveMinutes
+      for (let i = 0; i < state.criticalLatch.length && i < entry.criticalLatch.length; i += 1) {
+        state.criticalLatch[i] = entry.criticalLatch[i] ?? 0
+      }
+      this.#byInmate.set(entry.inmateId, state)
+      if (state.usingObjectId !== NO_OBJECT) {
+        let users = this.#usersByObject.get(state.usingObjectId)
+        if (users === undefined) {
+          users = new Set()
+          this.#usersByObject.set(state.usingObjectId, users)
+        }
+        users.add(entry.inmateId)
       }
     }
   }

@@ -438,6 +438,8 @@ export const balanceSchema = z.strictObject({
      * indefinite — homicide default). Finite holds use a positive hour count.
      */
     indefiniteHours: count,
+    /** Hours of isolation when the player manually punishes via inspector. */
+    defaultManualIsolationHours: positiveCount,
   }),
 
   danger: def({
@@ -755,6 +757,31 @@ export const balanceSchema = z.strictObject({
      * `supply` / `deliveries`.
      */
     stubMaterialDelivery: z.boolean(),
+    /**
+     * Default for a new prison's first-order grace (T8.4): auto-deliver
+     * construction materials until the player designates a Store.
+     */
+    firstOrderGraceDefault: z.boolean(),
+  }),
+
+  /**
+   * Opening layout for a brand-new prison (T8.4): delivery zone, approach road,
+   * starter maintenance crew and seed stock for the first Store.
+   */
+  opening: def({
+    dockWidth: positiveCount,
+    dockHeight: positiveCount,
+    edgeMargin: count,
+    roadLength: positiveCount,
+    roadWidth: positiveCount,
+    roadMaterial: id,
+    starterMaintenanceCount: count,
+    starterStock: z.array(
+      z.strictObject({
+        itemId: id,
+        units: positiveCount,
+      }),
+    ),
   }),
 
   rooms: def({

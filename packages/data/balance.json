@@ -16,7 +16,6 @@
     "tileWorldUnits": 32
   },
   "needs": {
-    "_tuning": true,
     "defaultThresholds": {
       "medium": 40,
       "high": 65,
@@ -32,17 +31,16 @@
     "exposureDamagePerMinute": 0.1
   },
   "misconduct": {
-    "_tuning": true,
     "evaluationMinutes": 10,
     "baseRatePer10MinutesByCategory": {
-      "minimum": 0.0008,
-      "medium": 0.003,
-      "maximum": 0.008,
-      "supermax": 0.012,
+      "minimum": 0.001,
+      "medium": 0.004,
+      "maximum": 0.01,
+      "supermax": 0.015,
       "protective": 0.002,
-      "condemned": 0.006
+      "condemned": 0.008
     },
-    "criticalNeedStep": 0.02,
+    "criticalNeedStep": 0.025,
     "suppressionFactor": 0.4,
     "instigatorFactor": 0.5,
     "guardProximityMultiplier": 0.35,
@@ -108,7 +106,6 @@
     }
   },
   "grading": {
-    "_tuning": true,
     "evaluationHours": 1,
     "windowObjectId": "window",
     "custom": {
@@ -125,7 +122,6 @@
     "defaultSectorGrade": 5
   },
   "entitlement": {
-    "_tuning": true,
     "start": 2,
     "max": 10,
     "perCleanDay": 1,
@@ -133,7 +129,6 @@
     "reassignmentPeriodHours": 1
   },
   "suppression": {
-    "_tuning": true,
     "lockdownMinutesPerPoint": 30,
     "isolationMinutesPerPoint": 15,
     "armedOfficerPerHour": 0.5,
@@ -149,37 +144,35 @@
     "max": 100
   },
   "punishment": {
-    "_tuning": true,
     "mealFoodRelief": 55,
-    "indefiniteHours": 0
+    "indefiniteHours": 0,
+    "defaultManualIsolationHours": 24
   },
   "danger": {
-    "_tuning": true,
     "recomputeMinutes": 6,
     "weights": {
-      "criticalNeeds": 0.3,
-      "misconduct": 0.2,
+      "criticalNeeds": 0.35,
+      "misconduct": 0.25,
       "armedInmates": 0.15,
-      "staffMorale": 0.15,
+      "staffMorale": 0.1,
       "guardCoverage": 0.1,
-      "maxSecurityShare": 0.1
+      "maxSecurityShare": 0.05
     },
     "misconductWindowHours": 6,
-    "misconductScale": 400,
+    "misconductScale": 350,
     "armedScale": 300,
     "maxSecurityCategories": ["maximum", "supermax", "protective", "condemned"]
   },
   "riot": {
-    "_tuning": true,
     "checkMinutes": 10,
-    "baseProbability": 0.0002,
-    "dangerPivot": 50,
-    "dangerExponent": 3,
-    "agitatorFactor": 1,
+    "baseProbability": 0.0003,
+    "dangerPivot": 45,
+    "dangerExponent": 2.5,
+    "agitatorFactor": 1.2,
     "lockdownFactor": 0.2,
     "spreadTiles": 5,
     "containedMinutes": 10,
-    "spreadBaseProbability": 0.2,
+    "spreadBaseProbability": 0.25,
     "spreadMoodPivot": 50,
     "objectDamageHpPerMinute": 12,
     "doorBreakMinutes": 4,
@@ -187,7 +180,6 @@
     "destructiveTraitDamageMultiplier": 2
   },
   "tunnels": {
-    "_tuning": true,
     "tilesPerHourBase": 0.4,
     "tilesPerHourVariance": 0.1,
     "dogDetectionChance": 0.25,
@@ -207,7 +199,6 @@
     "rngStream": "tunnels"
   },
   "morale": {
-    "_tuning": true,
     "weights": {
       "needSatisfaction": 0.6,
       "wage": 0.2,
@@ -237,7 +228,6 @@
     "refuseStrikeChanceBonus": 0.35
   },
   "staffNeeds": {
-    "_tuning": true,
     "breakThreshold": 55,
     "breakResumeBelow": 25,
     "breakSeekTimeoutMinutes": 20,
@@ -247,17 +237,16 @@
     "staffOnlyCanteenDefIds": ["mess_hall"]
   },
   "economy": {
-    "_tuning": true,
-    "startingFunds": 30000,
+    "startingFunds": 35000,
     "taxRate": 0.12,
     "taxReliefRateMultiplier": 0.6,
     "offshoreRateMultiplier": 0.5,
-    "utilityCostPerWattHour": 0.004,
-    "utilityCostPerWaterUnit": 0.06,
+    "utilityCostPerWattHour": 0.003,
+    "utilityCostPerWaterUnit": 0.05,
     "loan": {
-      "startingCap": 2500,
+      "startingCap": 5000,
       "maxCap": 250000,
-      "hourlyInterestRate": 0.0015
+      "hourlyInterestRate": 0.0012
     },
     "contractCancellationPenalty": 0.1,
     "maxConcurrentContracts": 2,
@@ -288,7 +277,6 @@
     "mealsPerServingCounter": 80
   },
   "logistics": {
-    "_tuning": true,
     "truckIntervalHours": 2,
     "truckCapacity": 40,
     "dirt": {
@@ -315,7 +303,6 @@
     }
   },
   "pathfinding": {
-    "_tuning": true,
     "astarSearchesPerTick": 8,
     "flowFieldsPerTick": 1,
     "doorQueueThreshold": 2,
@@ -326,7 +313,6 @@
     }
   },
   "staff": {
-    "_tuning": true,
     "fogRadiusTiles": 5,
     "doorOpenRadiusTiles": 2,
     "escortPickupTiles": 1,
@@ -334,11 +320,9 @@
     "wanderRadiusTiles": 8
   },
   "sectors": {
-    "_tuning": true,
     "defaultAccess": "shared"
   },
   "posts": {
-    "_tuning": true,
     "assignmentPeriodHours": 1,
     "stationSpacingTiles": 2,
     "arriveTiles": 1,
@@ -346,21 +330,20 @@
     "maxWaypoints": 24
   },
   "labour": {
-    "_tuning": true,
     "workshop": {
       "basic": {
         "productId": "basic_furniture",
         "inputItemId": "timber",
         "inputUnits": 2,
-        "workerMinutesPerUnit": 45,
-        "salePrice": 130
+        "workerMinutesPerUnit": 40,
+        "salePrice": 150
       },
       "fine": {
         "productId": "fine_furniture",
         "inputItemId": "timber",
         "inputUnits": 3,
-        "workerMinutesPerUnit": 90,
-        "salePrice": 340,
+        "workerMinutesPerUnit": 80,
+        "salePrice": 380,
         "requiresProductionId": "fine_furniture"
       }
     },
@@ -370,11 +353,11 @@
       "fellWorkerMinutes": 30
     },
     "commissary": {
-      "visitChancePerHour": 0.2,
-      "spendPerVisit": 15,
+      "visitChancePerHour": 0.25,
+      "spendPerVisit": 18,
       "luxuryRelief": 25,
-      "restockUnitCost": 45,
-      "goodsPerRestock": 10
+      "restockUnitCost": 40,
+      "goodsPerRestock": 12
     },
     "freedomReliefPerHour": 4,
     "prerequisites": {
@@ -387,7 +370,6 @@
     }
   },
   "jobs": {
-    "_tuning": true,
     "agingPerTick": 0.01,
     "minTravelTime": 1,
     "supply": {
@@ -398,7 +380,6 @@
     }
   },
   "intake": {
-    "_tuning": true,
     "busIntervalHours": 24,
     "maxPerBus": 8,
     "convictionCount": {
@@ -417,19 +398,31 @@
     }
   },
   "construction": {
-    "_tuning": true,
     "undoDepth": 50,
     "materialRefundOnDemolish": 0.5,
     "foundationFloorMaterial": "concrete_floor",
     "demolishMinutesFraction": 0.5,
-    "stubMaterialDelivery": false
+    "stubMaterialDelivery": false,
+    "firstOrderGraceDefault": true
+  },
+  "opening": {
+    "dockWidth": 3,
+    "dockHeight": 6,
+    "edgeMargin": 2,
+    "roadLength": 12,
+    "roadWidth": 3,
+    "roadMaterial": "asphalt",
+    "starterMaintenanceCount": 2,
+    "starterStock": [
+      { "itemId": "brick_wall", "units": 400 },
+      { "itemId": "concrete_floor", "units": 400 },
+      { "itemId": "concrete_wall", "units": 200 }
+    ]
   },
   "rooms": {
-    "_tuning": true,
     "enclosureFillLimit": 4096
   },
   "programs": {
-    "_tuning": true,
     "difficultyBase": {
       "easy": 0.85,
       "intermediate": 0.65,
@@ -448,7 +441,6 @@
     "enrolmentCapMultiplier": 1
   },
   "grades": {
-    "_tuning": true,
     "recomputeHours": 1,
     "punishment": {
       "isolationWeight": 3,
@@ -473,19 +465,18 @@
     }
   },
   "reoffend": {
-    "base": 0.55,
-    "basicLiteracy": 0.1,
-    "vocational": 0.2,
-    "joinery": 0.15,
-    "activeAddiction": 0.3,
-    "suppressionExposure": 0.2,
-    "healthGrade": 0.1,
-    "misconductRate": 0.15,
-    "min": 0.02,
-    "max": 0.95
+    "base": 0.50,
+    "basicLiteracy": 0.08,
+    "vocational": 0.12,
+    "joinery": 0.10,
+    "activeAddiction": 0.18,
+    "suppressionExposure": 0.12,
+    "healthGrade": 0.08,
+    "misconductRate": 0.10,
+    "min": 0.20,
+    "max": 0.70
   },
   "parole": {
-    "_tuning": true,
     "eligibilityFraction": 0.5,
     "hearingHours": 4,
     "deniedAngryHours": 24,
@@ -502,7 +493,6 @@
     "statisticsWindowDays": 30
   },
   "utilities": {
-    "_tuning": true,
     "utilitiesEnabled": true,
     "sheddingPriority": ["comfort", "production", "security", "lifeSafety"],
     "temperatureDiffusionTicks": 60,
@@ -519,7 +509,6 @@
     "temperatureDiffusionRate": 0.35
   },
   "intelligence": {
-    "_tuning": true,
     "passMinutes": 6,
     "recruitCost": 250,
     "maxInformants": 12,
@@ -541,9 +530,8 @@
     "phoneTapRevealChance": 0.35
   },
   "contraband": {
-    "_tuning": true,
     "theftCheckMinutes": 6,
-    "theftBaseChance": 0.02,
+    "theftBaseChance": 0.025,
     "guardSuppressionFactor": 0.65,
     "guardsInRoomSaturateAt": 2,
     "traitTheftModifiers": {
@@ -677,7 +665,6 @@
     }
   },
   "combat": {
-    "_tuning": true,
     "maxHealth": 100,
     "incapHealthThreshold": 30,
     "defaultWeaponId": "fists",
@@ -759,7 +746,6 @@
     }
   },
   "routine": {
-    "_tuning": true,
     "sleepForbiddenFromHour": 8,
     "sleepForbiddenUntilHour": 20,
     "travelTimeWeight": 0.35,
@@ -1059,7 +1045,6 @@
     "land_purchase"
   ],
   "emergency": {
-    "_tuning": true,
     "sectorLockdownSuppressionPerHour": 2,
     "fullLockdownSuppressionPerHour": 4,
     "riotSquadDefId": "riot_team",
@@ -1075,7 +1060,6 @@
     "inmatesPerGuardForCoverage": 8
   },
   "fire": {
-    "_tuning": true,
     "maxIntensity": 255,
     "intensityGrowthPerTick": 4,
     "spreadChancePerTick": 0.12,

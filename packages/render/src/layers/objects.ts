@@ -52,52 +52,41 @@ import type { Texture } from 'pixi.js'
 export const OBJECT_ATLAS_CELL_PX = 32
 
 /**
- * Footprint classes the placeholder atlas knows how to draw.
+ * Object silhouette shapes for the procedural atlas. Each shape has a distinct
+ * visual signature that identifies the object type at a glance (PRD 7.7).
  *
- * Anything larger than 2x2 falls back to `large`, which is a 3x3 cell drawn
- * scaled to the footprint. Real art will replace the class with a per-
- * definition sprite; the class only exists so the placeholder set stays small.
+ * Shapes are category-based so similar objects read consistently:
+ *   - `bed`: horizontal mattress rectangle with headboard notch
+ *   - `seating`: chair-like shape with back rest
+ *   - `table`: rectangular surface with leg insets
+ *   - `fixture`: circular sanitation/plumbing items (toilet, sink, shower)
+ *   - `cabinet`: tall storage with shelf lines
+ *   - `appliance`: blocky kitchen/utility equipment with control panel
+ *   - `workstation`: L-shaped or complex work surface
+ *   - `decor`: irregular organic shape for plants, statues etc
+ *   - `square`: generic 1x1 fallback
+ *   - `wide`: generic 2x1 fallback
+ *   - `tall`: generic 1x2 fallback
+ *   - `block`: generic 2x2 fallback
+ *   - `large`: generic >2x2 fallback
  */
-export const OBJECT_SHAPES = ['square', 'wide', 'tall', 'block', 'large', 'fixture'] as const
+export const OBJECT_SHAPES = [
+  'square', 'wide', 'tall', 'block', 'large',
+  'fixture', 'bed', 'seating', 'table', 'cabinet', 'appliance', 'workstation', 'decor',
+] as const
 export type ObjectShape = (typeof OBJECT_SHAPES)[number]
 
-/** How a definition looks while the real art is still placeholder. */
+/** How a definition looks. */
 export interface ObjectAppearance {
   /** Tint as `0xRRGGBB`, applied to the greyscale silhouette. */
   readonly colour: number
   readonly shape: ObjectShape
 }
 
-/**
- * The last of the placeholder table (T6.6).
- *
- * Every definition now carries an `appearance` in `objects.json`, so the live
- * game never reaches this: `appearanceFromDef` resolves the swatch and shape
- * the content author chose. What remains is a fallback for a caller that has
- * no `GameData` to hand — a unit test of the layer itself, most of the time.
- *
- * @deprecated Prefer `appearanceFromDef`. Kept so a data-free render still
- * draws something recognisable rather than a screen of identical squares.
- */
-export const PLACEHOLDER_OBJECT_APPEARANCES: Readonly<Record<string, ObjectAppearance>> = {
-  bed: { colour: 0x8fa0b5, shape: 'wide' },
-  bunk_bed: { colour: 0x7f91a8, shape: 'wide' },
-  comfort_bed: { colour: 0x9aabbe, shape: 'wide' },
-  toilet: { colour: 0xb7c4d2, shape: 'fixture' },
-  sink: { colour: 0xa8b8c6, shape: 'fixture' },
-  shower: { colour: 0x7fb2c4, shape: 'fixture' },
-  shower_head: { colour: 0x7fb2c4, shape: 'fixture' },
-  table: { colour: 0x8a6a46, shape: 'wide' },
-  bench: { colour: 0x8a6a46, shape: 'wide' },
-  chair: { colour: 0x7a5a3c, shape: 'square' },
-  cooker: { colour: 0x9aa7b6, shape: 'wide' },
-  fridge: { colour: 0x9aa7b6, shape: 'tall' },
-  freezer: { colour: 0x8a97a6, shape: 'block' },
-  serving_table: { colour: 0xc9a24b, shape: 'wide' },
-  bookshelf: { colour: 0x6e5a3e, shape: 'wide' },
-  desk: { colour: 0x8a6a46, shape: 'wide' },
-  workshop_saw: { colour: 0x9aa7b6, shape: 'block' },
-  weight_bench: { colour: 0x5e7a62, shape: 'wide' },
+/** Default fallback appearance for unknown objects. */
+export const DEFAULT_OBJECT_APPEARANCE: ObjectAppearance = {
+  colour: swatchColour('concrete'),
+  shape: 'square',
 }
 
 /** An object as the renderer needs it. */
@@ -140,28 +129,30 @@ export function objectShapeForSize(width: number, height: number): ObjectShape {
   return 'large'
 }
 
-/** A stable placeholder colour from a definition id. */
+/** A stable colour from a definition id for testing fallbacks. */
 export function objectColourForId(defId: string): number {
   const hash = spriteHash(defId)
   // Kept in the muted institutional range of the mockup palette.
   const hueBand = hash % 5
   const bases = [0x8fa0b5, 0x9aa7b6, 0x8a6a46, 0x7fb2c4, 0x6e7a88] as const
-  // Bounded by the tuple length.
   return bases[hueBand] as number
 }
 
+/**
+ * Fallback appearance for an id with no content data. Used by tests that
+ * do not load `GameData`. Returns a hash-derived colour with generic shape.
+ */
 export function defaultObjectAppearance(defId: string): ObjectAppearance {
-  const known = PLACEHOLDER_OBJECT_APPEARANCES[defId]
-  if (known !== undefined) return known
   return { colour: objectColourForId(defId), shape: 'square' }
 }
 
 /**
- * The appearance a definition actually declares (T6.6).
+ * The appearance a definition declares in `objects.json`.
  *
- * This is the live path. Colour comes from the palette by swatch name, so the
- * whole game re-tints from one table; shape falls back to the footprint class,
- * because a 2×1 that forgot to say `wide` is still obviously wide.
+ * Colour comes from the palette by swatch name, so the whole game re-tints
+ * from one table; shape can be a category (bed, fixture, appliance) or a
+ * footprint class (wide, tall). When omitted, shape falls back to the
+ * footprint class — a 2×1 that forgot to say `wide` is still obviously wide.
  */
 export function appearanceFromDef(def: {
   readonly size?: { readonly w: number; readonly h: number } | undefined
@@ -204,10 +195,11 @@ export function objectAppearances(
 }
 
 /**
- * Draws the six placeholder silhouettes into a single-row atlas.
+ * Draws the per-category silhouettes into a single-row atlas.
  *
  * Greyscale on purpose: each sprite is tinted at draw time, so one cell serves
- * every definition that shares a footprint class.
+ * every definition that shares a shape. Each shape is visually distinct so
+ * object types are identifiable at a glance (PRD 7.7).
  */
 export function createObjectAtlas(cellPx: number = OBJECT_ATLAS_CELL_PX): SpriteAtlas {
   if (!Number.isInteger(cellPx) || cellPx < 8) {
@@ -221,18 +213,25 @@ export function createObjectAtlas(cellPx: number = OBJECT_ATLAS_CELL_PX): Sprite
 
   for (const [index, shape] of OBJECT_SHAPES.entries()) {
     const originX = index * cellPx
+    const cx = originX + cellPx / 2
+    const cy = cellPx / 2
     context.fillStyle = greyColour(210)
+    context.strokeStyle = greyColour(160)
+    context.lineWidth = Math.max(1, cellPx * 0.04)
 
     switch (shape) {
       case 'square':
         context.fillRect(originX + pad, pad, cellPx - pad * 2, cellPx - pad * 2)
         break
+
       case 'wide':
         context.fillRect(originX + pad, pad + cellPx * 0.28, cellPx - pad * 2, cellPx * 0.44)
         break
+
       case 'tall':
         context.fillRect(originX + pad + cellPx * 0.28, pad, cellPx * 0.44, cellPx - pad * 2)
         break
+
       case 'block':
         context.fillRect(originX + pad, pad, cellPx - pad * 2, cellPx - pad * 2)
         context.fillStyle = greyColour(170)
@@ -243,13 +242,136 @@ export function createObjectAtlas(cellPx: number = OBJECT_ATLAS_CELL_PX): Sprite
           cellPx * 0.35,
         )
         break
+
       case 'large':
         context.fillRect(originX + pad * 0.5, pad * 0.5, cellPx - pad, cellPx - pad)
         break
+
       case 'fixture': {
+        // Circular with a bowl/basin indent — toilet, sink, shower
         const radius = (cellPx - pad * 2) / 2
         context.beginPath()
-        context.arc(originX + cellPx / 2, cellPx / 2, radius, 0, Math.PI * 2)
+        context.arc(cx, cy, radius, 0, Math.PI * 2)
+        context.fill()
+        context.fillStyle = greyColour(180)
+        context.beginPath()
+        context.arc(cx, cy, radius * 0.55, 0, Math.PI * 2)
+        context.fill()
+        break
+      }
+
+      case 'bed': {
+        // Horizontal mattress with headboard notch at top
+        const mattressH = cellPx * 0.38
+        const headboardH = cellPx * 0.12
+        context.fillRect(originX + pad, pad + headboardH, cellPx - pad * 2, mattressH)
+        // Headboard
+        context.fillStyle = greyColour(180)
+        context.fillRect(originX + pad, pad, cellPx - pad * 2, headboardH)
+        // Pillow indent
+        context.fillStyle = greyColour(220)
+        context.fillRect(
+          originX + pad + cellPx * 0.1,
+          pad + headboardH + cellPx * 0.04,
+          cellPx * 0.3,
+          cellPx * 0.12,
+        )
+        break
+      }
+
+      case 'seating': {
+        // Chair shape with back rest
+        const seatW = cellPx * 0.5
+        const seatH = cellPx * 0.4
+        const backH = cellPx * 0.2
+        // Seat
+        context.fillRect(cx - seatW / 2, cy, seatW, seatH)
+        // Back rest
+        context.fillStyle = greyColour(190)
+        context.fillRect(cx - seatW / 2, cy - backH, seatW, backH)
+        break
+      }
+
+      case 'table': {
+        // Rectangular surface with leg corners marked
+        const tableW = cellPx - pad * 2
+        const tableH = cellPx * 0.5
+        context.fillRect(originX + pad, cy - tableH / 2, tableW, tableH)
+        // Leg corners (darker)
+        context.fillStyle = greyColour(170)
+        const legSize = cellPx * 0.1
+        context.fillRect(originX + pad, cy - tableH / 2, legSize, legSize)
+        context.fillRect(originX + pad + tableW - legSize, cy - tableH / 2, legSize, legSize)
+        context.fillRect(originX + pad, cy + tableH / 2 - legSize, legSize, legSize)
+        context.fillRect(originX + pad + tableW - legSize, cy + tableH / 2 - legSize, legSize, legSize)
+        break
+      }
+
+      case 'cabinet': {
+        // Tall storage with shelf lines
+        const cabW = cellPx * 0.5
+        const cabH = cellPx - pad * 2
+        context.fillRect(cx - cabW / 2, pad, cabW, cabH)
+        // Shelf lines
+        context.strokeStyle = greyColour(170)
+        context.lineWidth = Math.max(1, cellPx * 0.03)
+        const shelfCount = 3
+        for (let i = 1; i < shelfCount; i += 1) {
+          const y = pad + (cabH / shelfCount) * i
+          context.beginPath()
+          context.moveTo(cx - cabW / 2 + 2, y)
+          context.lineTo(cx + cabW / 2 - 2, y)
+          context.stroke()
+        }
+        break
+      }
+
+      case 'appliance': {
+        // Blocky with control panel area
+        const appW = cellPx - pad * 2
+        const appH = cellPx * 0.55
+        context.fillRect(originX + pad, cy - appH / 2, appW, appH)
+        // Control panel strip
+        context.fillStyle = greyColour(165)
+        context.fillRect(originX + pad, cy - appH / 2, appW, cellPx * 0.12)
+        // Button dots
+        context.fillStyle = greyColour(140)
+        const buttonR = cellPx * 0.04
+        context.beginPath()
+        context.arc(originX + pad + cellPx * 0.2, cy - appH / 2 + cellPx * 0.06, buttonR, 0, Math.PI * 2)
+        context.arc(originX + pad + cellPx * 0.35, cy - appH / 2 + cellPx * 0.06, buttonR, 0, Math.PI * 2)
+        context.fill()
+        break
+      }
+
+      case 'workstation': {
+        // L-shaped work surface
+        const armW = cellPx * 0.35
+        const armH = cellPx - pad * 2
+        const topW = cellPx - pad * 2
+        const topH = cellPx * 0.35
+        // Vertical arm
+        context.fillRect(originX + pad, pad, armW, armH)
+        // Horizontal top
+        context.fillRect(originX + pad, pad, topW, topH)
+        // Detail line
+        context.strokeStyle = greyColour(180)
+        context.lineWidth = Math.max(1, cellPx * 0.03)
+        context.beginPath()
+        context.moveTo(originX + pad + armW, pad + topH)
+        context.lineTo(originX + pad + armW, pad + armH - cellPx * 0.1)
+        context.stroke()
+        break
+      }
+
+      case 'decor': {
+        // Organic irregular shape — plant pot / statue base
+        context.beginPath()
+        context.moveTo(cx, pad + cellPx * 0.1)
+        context.quadraticCurveTo(cx + cellPx * 0.35, cy - cellPx * 0.1, cx + cellPx * 0.3, cy)
+        context.quadraticCurveTo(cx + cellPx * 0.35, cy + cellPx * 0.2, cx, cellPx - pad - cellPx * 0.1)
+        context.quadraticCurveTo(cx - cellPx * 0.35, cy + cellPx * 0.2, cx - cellPx * 0.3, cy)
+        context.quadraticCurveTo(cx - cellPx * 0.35, cy - cellPx * 0.1, cx, pad + cellPx * 0.1)
         context.fill()
         break
       }

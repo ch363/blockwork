@@ -62,6 +62,7 @@ function harness(builders = 4): Harness {
     mapSize: MAP,
     data: DATA,
     workforce: uniformWorkforce(builders),
+    applyOpening: false,
     events: {
       emit(event) {
         events.push(event)
@@ -104,6 +105,7 @@ describe('createGame', () => {
         seed: SEED,
         mapSize: MAP,
         data: DATA,
+        applyOpening: false,
         events: {
           emit(event) {
             events.push(event)

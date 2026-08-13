@@ -17,6 +17,7 @@
 
 import type { JSX } from 'preact'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { Button } from '../controls/Button'
 
 export type MapSizePreset = 'small' | 'medium' | 'large' | 'huge'
@@ -41,6 +42,8 @@ export interface NewPrisonModel {
   readonly startingFunds: number
   readonly continuousIntake: boolean
   readonly randomEvents: boolean
+  /** First-order material grace until a Store is designated (T8.4). */
+  readonly firstOrderGrace: boolean
   readonly seedInput: string
   readonly failures: readonly ToggleModel[]
   readonly mutators: readonly ToggleModel[]
@@ -53,6 +56,7 @@ export interface NewPrisonProps {
   readonly onStartingFunds: (amount: number) => void
   readonly onContinuousIntake: (enabled: boolean) => void
   readonly onRandomEvents: (enabled: boolean) => void
+  readonly onFirstOrderGrace: (enabled: boolean) => void
   readonly onSeed: (input: string) => void
   readonly onFailure: (id: string, enabled: boolean) => void
   readonly onMutator: (id: string, enabled: boolean) => void
@@ -78,16 +82,20 @@ export function NewPrison({
   onStartingFunds,
   onContinuousIntake,
   onRandomEvents,
+  onFirstOrderGrace,
   onSeed,
   onFailure,
   onMutator,
   onStart,
   onCancel,
 }: NewPrisonProps): JSX.Element | null {
+  const open = model !== null
+  const trapRef = useFocusTrap({ active: open, onEscape: onCancel })
+
   if (model === null) return null
 
   return (
-    <div class="bw-newprison" role="dialog" aria-label="New prison">
+    <div ref={trapRef} class="bw-newprison" role="dialog" aria-label="New prison" aria-modal="true">
       <header>
         <h2>New prison</h2>
         <p>Everything here is fixed for the life of this prison. Choose carefully.</p>
@@ -177,6 +185,23 @@ export function NewPrison({
             <span>
               <b>Random events</b>
               <em>Inspections, weather and the occasional bad day.</em>
+            </span>
+          </label>
+          <label class="bw-newprison-toggle">
+            <input
+              type="checkbox"
+              checked={model.firstOrderGrace}
+              aria-label="Starter deliveries"
+              onChange={(event) =>
+                onFirstOrderGrace((event.currentTarget as HTMLInputElement).checked)
+              }
+            />
+            <span>
+              <b>Starter deliveries</b>
+              <em>
+                Early builds receive materials until you designate a Store. The south edge always
+                opens with a delivery dock, approach road and a maintenance crew.
+              </em>
             </span>
           </label>
         </section>

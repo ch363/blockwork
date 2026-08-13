@@ -42,5 +42,8 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Performance Gate (T8.19)
+        run: pnpm test -- --reporter=verbose tools/scenario/test/index.test.ts -t "performance-gate"
+
       - name: Build
         run: pnpm build

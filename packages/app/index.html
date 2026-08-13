@@ -7,9 +7,25 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="color-scheme" content="dark" />
     <title>Blockwork</title>
     <style>
+      /*
+       * Safe area insets for iPadOS notch and home indicator (T8.21).
+       *
+       * CSS env() variables are populated by Capacitor/WebKit when running in
+       * the native shell. On web they fall back to the second argument (0px).
+       * The shell stylesheet consumes these via custom properties so panels
+       * respect the hardware boundaries.
+       */
+      :root {
+        --safe-area-inset-top: env(safe-area-inset-top, 0px);
+        --safe-area-inset-right: env(safe-area-inset-right, 0px);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-area-inset-left: env(safe-area-inset-left, 0px);
+      }
+
       html,
       body {
         margin: 0;
@@ -22,14 +38,26 @@
         user-select: none;
         -webkit-touch-callout: none;
         touch-action: none;
+        /* Prevent rubber-banding on iOS */
+        overscroll-behavior: none;
       }
+
       #root {
         position: relative;
         height: 100%;
+        /* Apply safe area padding to the root container. The world view
+         * ignores this (it's fullscreen canvas) but all UI respects it. */
+        padding-top: var(--safe-area-inset-top);
+        padding-right: var(--safe-area-inset-right);
+        padding-bottom: var(--safe-area-inset-bottom);
+        padding-left: var(--safe-area-inset-left);
+        box-sizing: border-box;
       }
+
       #root canvas {
         display: block;
       }
+
       /*
        * Boot failures only. Everything else is styled by the shell stylesheet
        * the UI package injects; this has to work before that has run.
@@ -37,6 +65,8 @@
       .bw-boot-error {
         margin: 0;
         padding: 24px;
+        padding-top: max(24px, var(--safe-area-inset-top));
+        padding-left: max(24px, var(--safe-area-inset-left));
         color: #e05c5c;
         font:
           13px/1.6 ui-monospace,

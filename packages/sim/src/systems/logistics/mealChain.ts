@@ -320,6 +320,31 @@ export interface KitchenPrepSession {
   productionRemainder: number
 }
 
+/** Serializable meal logistics (save v5). */
+export interface MealLogisticsSnapshot {
+  readonly standingOrders: { readonly quantity: string; readonly variety: number }
+  readonly missedMeals: number
+  readonly mealsServed: number
+  readonly routingOverrides: readonly { readonly kitchenId: number; readonly messId: number }[]
+  readonly fridgeStock: readonly {
+    readonly id: number
+    readonly items: readonly { readonly itemId: string; readonly units: number }[]
+  }[]
+  readonly counterMeals: readonly { readonly id: number; readonly value: number }[]
+  readonly dirtyTrays: readonly { readonly id: number; readonly value: number }[]
+  readonly refuseStock: readonly { readonly id: number; readonly value: number }[]
+  readonly prepSessions: readonly {
+    readonly kitchenRoomId: number
+    readonly messRoomId: number
+    readonly prepStartTick: number
+    readonly mealStartTick: number
+    readonly needed: number
+    readonly produced: number
+    readonly rootCauseId: number
+    readonly productionRemainder: number
+  }[]
+}
+
 /**
  * Per-prison meal logistics: fridge / counter / tray / refuse stocks, routing
  * overrides, standing orders, and prep sessions.
@@ -537,6 +562,90 @@ export class MealLogistics {
       hasher.writeUint32(session.produced)
       hasher.writeUint32(session.rootCauseId)
       hasher.writeFloat64(session.productionRemainder)
+    }
+  }
+
+  serialise(): MealLogisticsSnapshot {
+    const mapStock = (map: Map<number, Map<string, number>>) =>
+      [...map.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([fridgeId, stock]) => ({
+          id: fridgeId,
+          items: [...stock.entries()]
+            .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+            .map(([itemId, units]) => ({ itemId, units })),
+        }))
+    const mapCounts = (map: Map<number, number>) =>
+      [...map.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([id, value]) => ({ id, value }))
+    return {
+      standingOrders: { ...this.standingOrders },
+      missedMeals: this.missedMeals,
+      mealsServed: this.mealsServed,
+      routingOverrides: [...this.routingOverrides.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([kitchenId, messId]) => ({ kitchenId, messId })),
+      fridgeStock: mapStock(this.fridgeStock),
+      counterMeals: mapCounts(this.counterMeals),
+      dirtyTrays: mapCounts(this.dirtyTrays),
+      refuseStock: mapCounts(this.refuseStock),
+      prepSessions: [...this.prepSessions.values()]
+        .sort((a, b) => a.kitchenRoomId - b.kitchenRoomId)
+        .map((session) => ({
+          kitchenRoomId: session.kitchenRoomId,
+          messRoomId: session.messRoomId,
+          prepStartTick: session.prepStartTick,
+          mealStartTick: session.mealStartTick,
+          needed: session.needed,
+          produced: session.produced,
+          rootCauseId: session.rootCauseId,
+          productionRemainder: session.productionRemainder,
+        })),
+    }
+  }
+
+  restore(snapshot: MealLogisticsSnapshot): void {
+    this.standingOrders = {
+      quantity: isMealQuantity(snapshot.standingOrders.quantity)
+        ? snapshot.standingOrders.quantity
+        : this.standingOrders.quantity,
+      variety: snapshot.standingOrders.variety,
+    }
+    this.missedMeals = snapshot.missedMeals
+    this.mealsServed = snapshot.mealsServed
+    this.routingOverrides.clear()
+    for (const route of snapshot.routingOverrides) {
+      this.routingOverrides.set(route.kitchenId, route.messId)
+    }
+    this.fridgeStock.clear()
+    for (const fridge of snapshot.fridgeStock) {
+      const stock = new Map<string, number>()
+      for (const item of fridge.items) stock.set(item.itemId, item.units)
+      this.fridgeStock.set(fridge.id, stock)
+    }
+    this.counterMeals.clear()
+    for (const entry of snapshot.counterMeals) this.counterMeals.set(entry.id, entry.value)
+    this.dirtyTrays.clear()
+    for (const entry of snapshot.dirtyTrays) this.dirtyTrays.set(entry.id, entry.value)
+    this.refuseStock.clear()
+    for (const entry of snapshot.refuseStock) this.refuseStock.set(entry.id, entry.value)
+    this.prepSessions.clear()
+    for (const session of snapshot.prepSessions) {
+      this.prepSessions.set(session.kitchenRoomId, {
+        kitchenRoomId: session.kitchenRoomId,
+        messRoomId: session.messRoomId,
+        prepStartTick: session.prepStartTick,
+        mealStartTick: session.mealStartTick,
+        mealHour: 0,
+        mealDay: 0,
+        needed: session.needed,
+        produced: session.produced,
+        rootCauseId: session.rootCauseId,
+        underCapacityEmitted: false,
+        shortfallEmitted: false,
+        productionRemainder: session.productionRemainder,
+      })
     }
   }
 }

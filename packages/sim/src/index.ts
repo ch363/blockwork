@@ -383,6 +383,12 @@ export type {
 } from './world/construction'
 
 export {
+  applyOpeningLayout,
+  firstOrderGraceActive,
+  syncFirstOrderGrace,
+} from './world/opening'
+
+export {
   EMPTY_ROOM_CONTENTS,
   MAX_ROOM_ID,
   NO_DESIGNATION,
@@ -521,6 +527,8 @@ export type {
 } from './entities/inmate'
 
 export {
+  INMATE_COMMANDS,
+  INMATE_EVENTS,
   INTAKE_COMMANDS,
   INTAKE_SYSTEM_NAME,
   INTAKE_SYSTEM_PERIOD,

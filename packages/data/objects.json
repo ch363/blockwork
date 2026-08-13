@@ -1,7 +1,6 @@
 {
   "objects": [
     {
-      "_tuning": true,
       "id": "bed",
       "name": "Bed",
       "cost": 200,
@@ -21,7 +20,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "bunk_bed",
       "name": "Bunk bed",
       "cost": 350,
@@ -41,7 +39,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "comfort_bed",
       "name": "Sprung bed",
       "cost": 600,
@@ -66,7 +63,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "foam_mattress",
       "name": "Foam mattress",
       "cost": 60,
@@ -86,7 +82,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "isolation_pallet",
       "name": "Isolation pallet",
       "cost": 90,
@@ -106,7 +101,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "bedside_cabinet",
       "name": "Bedside cabinet",
       "cost": 120,
@@ -126,7 +120,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "toilet",
       "name": "Toilet",
       "cost": 150,
@@ -146,7 +139,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "sink",
       "name": "Sink",
       "cost": 110,
@@ -166,7 +158,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "shower_head",
       "name": "Shower head",
       "cost": 180,
@@ -187,7 +178,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "floor_drain",
       "name": "Floor drain",
       "cost": 40,
@@ -200,7 +190,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "mirror",
       "name": "Mirror",
       "cost": 70,
@@ -220,7 +209,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "stool",
       "name": "Stool",
       "cost": 45,
@@ -239,7 +227,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "chair",
       "name": "Chair",
       "cost": 90,
@@ -265,7 +252,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "padded_chair",
       "name": "Padded chair",
       "cost": 240,
@@ -284,7 +270,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "bench",
       "name": "Bench",
       "cost": 80,
@@ -315,7 +300,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "couch",
       "name": "Couch",
       "cost": 320,
@@ -344,7 +328,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "bleacher",
       "name": "Bleacher",
       "cost": 260,
@@ -368,7 +351,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "table",
       "name": "Table",
       "cost": 130,
@@ -393,7 +375,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "long_table",
       "name": "Long table",
       "cost": 220,
@@ -410,7 +391,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "office_desk",
       "name": "Office desk",
       "cost": 260,
@@ -427,7 +407,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "sorting_desk",
       "name": "Sorting desk",
       "cost": 180,
@@ -445,7 +424,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "cooker",
       "name": "Cooker",
       "cost": 700,
@@ -466,7 +444,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "fridge",
       "name": "Fridge",
       "cost": 550,
@@ -479,7 +456,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "kitchen_sink",
       "name": "Kitchen sink",
       "cost": 200,
@@ -493,7 +469,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "serving_counter",
       "name": "Serving counter",
       "cost": 480,
@@ -518,7 +493,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "tray_rack",
       "name": "Tray rack",
       "cost": 120,
@@ -530,7 +504,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "food_crate",
       "name": "Food crate",
       "cost": 60,
@@ -542,7 +515,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "bench_saw",
       "name": "Bench saw",
       "cost": 900,
@@ -562,7 +534,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "sheet_press",
       "name": "Sheet press",
       "cost": 1100,
@@ -581,7 +552,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "workbench",
       "name": "Workbench",
       "cost": 260,
@@ -600,7 +570,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "timber_rack",
       "name": "Timber rack",
       "cost": 140,
@@ -612,7 +581,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "tool_cabinet",
       "name": "Tool cabinet",
       "cost": 300,
@@ -625,7 +593,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "washing_machine",
       "name": "Washing machine",
       "cost": 620,
@@ -640,7 +607,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "ironing_board",
       "name": "Ironing board",
       "cost": 140,
@@ -654,7 +620,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "laundry_basket",
       "name": "Laundry basket",
       "cost": 50,
@@ -667,7 +632,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "door_control_desk",
       "name": "Door control desk",
       "cost": 1200,
@@ -687,7 +651,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "metal_detector",
       "name": "Metal detector",
       "cost": 800,
@@ -701,7 +664,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "weapon_rack",
       "name": "Weapon rack",
       "cost": 900,
@@ -715,7 +677,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "staff_locker",
       "name": "Staff locker",
       "cost": 220,
@@ -727,7 +688,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "vest_rack",
       "name": "Vest rack",
       "cost": 400,
@@ -740,7 +700,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "stun_charger",
       "name": "Stun charger",
       "cost": 500,
@@ -754,7 +713,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "dog_crate",
       "name": "Dog crate",
       "cost": 260,
@@ -767,7 +725,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "watchtower_post",
       "name": "Watchtower post",
       "cost": 3200,
@@ -786,7 +743,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "alarm_siren",
       "name": "Alarm siren",
       "cost": 340,
@@ -800,7 +756,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "camera",
       "name": "Camera",
       "cost": 380,
@@ -815,7 +770,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "monitor_bank",
       "name": "Monitor bank",
       "cost": 900,
@@ -835,7 +789,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "phone_tap",
       "name": "Phone tap",
       "cost": 700,
@@ -850,7 +803,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "clinic_bed",
       "name": "Clinic bed",
       "cost": 700,
@@ -876,7 +828,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "medicine_cabinet",
       "name": "Medicine cabinet",
       "cost": 450,
@@ -891,7 +842,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "first_aid_station",
       "name": "First aid station",
       "cost": 200,
@@ -904,7 +854,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "mortuary_slab",
       "name": "Mortuary slab",
       "cost": 600,
@@ -923,7 +872,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "classroom_desk",
       "name": "Classroom desk",
       "cost": 160,
@@ -943,7 +891,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "whiteboard",
       "name": "Whiteboard",
       "cost": 220,
@@ -957,7 +904,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "bookshelf",
       "name": "Bookshelf",
       "cost": 240,
@@ -976,7 +922,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "library_counter",
       "name": "Library counter",
       "cost": 300,
@@ -994,7 +939,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "computer_station",
       "name": "Computer station",
       "cost": 800,
@@ -1015,7 +959,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "television",
       "name": "Television",
       "cost": 420,
@@ -1036,7 +979,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "radio",
       "name": "Radio",
       "cost": 140,
@@ -1056,7 +998,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "pool_table",
       "name": "Pool table",
       "cost": 560,
@@ -1080,7 +1021,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "arcade_cabinet",
       "name": "Arcade cabinet",
       "cost": 780,
@@ -1105,7 +1045,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "punch_bag",
       "name": "Punch bag",
       "cost": 300,
@@ -1124,7 +1063,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "weight_bench",
       "name": "Weight bench",
       "cost": 380,
@@ -1148,7 +1086,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "treadmill",
       "name": "Treadmill",
       "cost": 700,
@@ -1168,7 +1105,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "potted_plant",
       "name": "Potted plant",
       "cost": 60,
@@ -1187,7 +1123,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "wall_art",
       "name": "Wall art",
       "cost": 110,
@@ -1207,7 +1142,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "window",
       "name": "Window",
       "cost": 90,
@@ -1220,7 +1154,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "water_cooler",
       "name": "Water cooler",
       "cost": 190,
@@ -1240,7 +1173,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "generator",
       "name": "Generator",
       "cost": 2400,
@@ -1258,7 +1190,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "capacitor",
       "name": "Capacitor",
       "cost": 900,
@@ -1275,7 +1206,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "power_switch",
       "name": "Power switch",
       "cost": 120,
@@ -1288,7 +1218,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "water_pump",
       "name": "Water pump",
       "cost": 1800,
@@ -1307,7 +1236,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "pipe_valve",
       "name": "Pipe valve",
       "cost": 100,
@@ -1319,7 +1247,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "radiator",
       "name": "Radiator",
       "cost": 260,
@@ -1341,7 +1268,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "boiler",
       "name": "Boiler",
       "cost": 1400,
@@ -1360,7 +1286,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "sprinkler",
       "name": "Sprinkler",
       "cost": 200,
@@ -1374,7 +1299,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "ceiling_light",
       "name": "Ceiling light",
       "cost": 70,
@@ -1389,7 +1313,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "fire_extinguisher",
       "name": "Fire extinguisher",
       "cost": 90,
@@ -1402,7 +1325,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "storage_rack",
       "name": "Storage rack",
       "cost": 160,
@@ -1420,7 +1342,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "refuse_bin",
       "name": "Refuse bin",
       "cost": 70,
@@ -1433,7 +1354,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "dock_marker",
       "name": "Dock marker",
       "cost": 40,
@@ -1446,7 +1366,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "dispatch_marker",
       "name": "Dispatch marker",
       "cost": 40,
@@ -1459,7 +1378,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "sapling_bed",
       "name": "Sapling bed",
       "cost": 130,
@@ -1478,7 +1396,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "altar",
       "name": "Altar",
       "cost": 480,
@@ -1502,7 +1419,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "prayer_mat",
       "name": "Prayer mat",
       "cost": 60,
@@ -1521,7 +1437,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "pew",
       "name": "Pew",
       "cost": 150,
@@ -1545,7 +1460,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "filing_cabinet",
       "name": "Filing cabinet",
       "cost": 180,
@@ -1557,7 +1471,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "safe",
       "name": "Safe",
       "cost": 900,
@@ -1569,7 +1482,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "visit_table",
       "name": "Visit table",
       "cost": 200,
@@ -1593,7 +1505,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "visit_booth",
       "name": "Visit booth",
       "cost": 520,
@@ -1617,7 +1528,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "phone_booth",
       "name": "Phone booth",
       "cost": 340,
@@ -1637,7 +1547,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "shop_counter",
       "name": "Shop counter",
       "cost": 420,
@@ -1662,7 +1571,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "shop_shelf",
       "name": "Shop shelf",
       "cost": 190,
@@ -1674,7 +1582,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "mail_rack",
       "name": "Mail rack",
       "cost": 170,

@@ -1,7 +1,6 @@
 {
   "materials": [
     {
-      "_tuning": true,
       "id": "concrete_floor",
       "name": "Concrete",
       "surfaces": ["floor"],
@@ -16,7 +15,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "ceramic_tile",
       "name": "Ceramic tile",
       "surfaces": ["floor"],
@@ -31,7 +29,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "polished_stone",
       "name": "Polished stone",
       "surfaces": ["floor"],
@@ -46,7 +43,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "timber_board",
       "name": "Timber board",
       "surfaces": ["floor"],
@@ -61,7 +57,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "linoleum",
       "name": "Linoleum",
       "surfaces": ["floor"],
@@ -76,7 +71,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "grass",
       "name": "Grass",
       "surfaces": ["floor"],
@@ -91,7 +85,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "gravel",
       "name": "Gravel",
       "surfaces": ["floor"],
@@ -106,7 +99,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "asphalt",
       "name": "Asphalt",
       "surfaces": ["floor"],
@@ -121,7 +113,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "paving_slab",
       "name": "Paving slab",
       "surfaces": ["floor"],
@@ -136,7 +127,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "sprint_track",
       "name": "Sprint track",
       "surfaces": ["floor"],
@@ -151,7 +141,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "churned_mud",
       "name": "Churned mud",
       "surfaces": ["floor"],
@@ -166,7 +155,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "brick_wall",
       "name": "Brick",
       "surfaces": ["wall"],
@@ -181,7 +169,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "concrete_wall",
       "name": "Poured concrete",
       "surfaces": ["wall"],
@@ -196,7 +183,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "perimeter_wall",
       "name": "Perimeter wall",
       "surfaces": ["wall"],
@@ -211,7 +197,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "chain_fence",
       "name": "Chain fence",
       "surfaces": ["wall"],
@@ -226,7 +211,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "razor_fence",
       "name": "Razor fence",
       "surfaces": ["wall"],
@@ -241,7 +225,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "glass_partition",
       "name": "Glass partition",
       "surfaces": ["wall"],
@@ -256,7 +239,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "timber_partition",
       "name": "Timber partition",
       "surfaces": ["wall"],
@@ -271,7 +253,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "cracked_plaster",
       "name": "Cracked plaster",
       "surfaces": ["wall"],
@@ -286,7 +267,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "rusted_panel",
       "name": "Rusted panel",
       "surfaces": ["wall"],
@@ -301,7 +281,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "mildewed_brick",
       "name": "Mildewed brick",
       "surfaces": ["wall"],
@@ -316,7 +295,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "cable",
       "name": "Electrical cable",
       "surfaces": ["cable"],
@@ -331,7 +309,6 @@
       }
     },
     {
-      "_tuning": true,
       "id": "pipe",
       "name": "Water pipe",
       "surfaces": ["pipe"],
@@ -348,7 +325,6 @@
   ],
   "doors": [
     {
-      "_tuning": true,
       "id": "standard",
       "name": "Standard door",
       "cost": 100,
@@ -366,7 +342,6 @@
       "remoteControlled": false
     },
     {
-      "_tuning": true,
       "id": "secure",
       "name": "Secure door",
       "cost": 300,
@@ -384,7 +359,6 @@
       "remoteControlled": false
     },
     {
-      "_tuning": true,
       "id": "barred",
       "name": "Barred door",
       "cost": 250,
@@ -402,7 +376,6 @@
       "remoteControlled": false
     },
     {
-      "_tuning": true,
       "id": "staff",
       "name": "Staff door",
       "cost": 200,
@@ -420,7 +393,6 @@
       "remoteControlled": false
     },
     {
-      "_tuning": true,
       "id": "isolation",
       "name": "Isolation door",
       "cost": 400,
@@ -438,7 +410,6 @@
       "remoteControlled": false
     },
     {
-      "_tuning": true,
       "id": "remote",
       "name": "Remote door",
       "cost": 500,
@@ -458,91 +429,76 @@
   ],
   "supplies": [
     {
-      "_tuning": true,
       "id": "cleaning_kit",
       "name": "Cleaning kit",
       "unitCost": 20
     },
     {
-      "_tuning": true,
       "id": "sapling",
       "name": "Sapling",
       "unitCost": 35
     },
     {
-      "_tuning": true,
       "id": "uniform",
       "name": "Uniform",
       "unitCost": 25
     },
     {
-      "_tuning": true,
       "id": "bedding",
       "name": "Bedding",
       "unitCost": 30
     },
     {
-      "_tuning": true,
       "id": "ingredient_starch",
       "name": "Starch",
       "unitCost": 8
     },
     {
-      "_tuning": true,
       "id": "ingredient_protein",
       "name": "Protein",
       "unitCost": 18
     },
     {
-      "_tuning": true,
       "id": "ingredient_veg",
       "name": "Vegetables",
       "unitCost": 10
     },
     {
-      "_tuning": true,
       "id": "ingredient_dairy",
       "name": "Dairy",
       "unitCost": 14
     },
     {
-      "_tuning": true,
       "id": "ingredient_fruit",
       "name": "Fruit",
       "unitCost": 12
     },
     {
-      "_tuning": true,
       "id": "tray",
       "name": "Tray",
       "unitCost": 5
     },
     {
-      "_tuning": true,
       "id": "timber",
       "name": "Timber",
       "unitCost": 40
     },
     {
-      "_tuning": true,
       "id": "sheet_metal",
       "name": "Sheet metal",
       "unitCost": 55
     },
     {
-      "_tuning": true,
       "id": "medical_supplies",
       "name": "Medical supplies",
       "unitCost": 80
     },
     {
-      "_tuning": true,
       "id": "stationery",
       "name": "Stationery",
       "unitCost": 15
     },
     {
-      "_tuning": true,
       "id": "commissary_goods",
       "name": "Commissary goods",
       "unitCost": 45

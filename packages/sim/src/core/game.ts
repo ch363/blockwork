@@ -41,6 +41,7 @@ import { TILE_FIELD_BYTES, TILE_FIELDS, TileGrid } from '../world/tileGrid'
 import type { TileGridBuffers } from '../world/tileGrid'
 import { assertGridSize, tileCount } from '../world/coords'
 import { constructionCommandHandlers, refreshPassabilityRect } from '../world/construction'
+import { applyOpeningLayout } from '../world/opening'
 import { RoomRegistry } from '../world/rooms'
 import { detectAllRooms, roomCommandHandlers } from '../world/roomDetection'
 import { ObjectRegistry, objectCommandHandlers } from '../entities/objects'
@@ -200,6 +201,14 @@ export interface GameOptions {
    * finishing by magic. Tests pass `uniformWorkforce(n)` to stub headcount.
    */
   readonly workforce?: Workforce
+  /**
+   * When true (default), places the opening delivery zone, road, starter crew
+   * and first-order grace (T8.4). Load paths set this false and restore the
+   * saved world instead.
+   */
+  readonly applyOpening?: boolean
+  /** Overrides the default first-order grace from balance. */
+  readonly firstOrderGrace?: boolean
 }
 
 export interface Game {
@@ -222,6 +231,16 @@ export function createGame(options: GameOptions): Game {
     data,
     ...(options.buffers === undefined ? {} : { buffers: options.buffers }),
   })
+
+  const events = options.events ?? nullSink
+  if (options.applyOpening !== false) {
+    applyOpeningLayout(world, data, events, {
+      firstOrderGrace:
+        options.firstOrderGrace ?? data.balance.construction.firstOrderGraceDefault,
+    })
+  } else if (options.firstOrderGrace !== undefined) {
+    world.settings.firstOrderGrace = options.firstOrderGrace
+  }
 
   const blueprint = blueprintCommandHandlers(data)
 

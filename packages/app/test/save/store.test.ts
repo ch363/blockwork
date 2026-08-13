@@ -20,6 +20,7 @@ import type { SaveDescriptor, SaveSummary } from '../../src/save/store'
  * the right fixture here, and the format's own tests cover the rest.
  */
 function emptySaveFile(overrides: Partial<SaveFile> = {}): SaveFile {
+  // The store never inflates a payload — header + valid bytes are enough.
   return {
     version: CURRENT_SAVE_VERSION,
     seed: 1,
@@ -48,53 +49,51 @@ function emptySaveFile(overrides: Partial<SaveFile> = {}): SaveFile {
     economy: {
       balance: 0,
       loanPrincipal: 0,
-      insolvencyDeadlineTick: null,
+      loanInterestRate: 0,
+      creditRating: 1,
+      incomeToday: 0,
+      incomeYesterday: 0,
+      spendToday: 0,
+      spendYesterday: 0,
+      dayCursor: 0,
+      insolventSinceTick: null,
       entries: [],
+      nextEntryId: 1,
     },
-    directorate: { completed: [], active: [] },
-    grading: { roomGrades: [], lastEntitlementTick: [], averageCellGrade: 0 },
-    programs: { enrolments: [], completions: [], pins: [] },
-    grades: { confinement: [] },
-    parole: { queue: [], hearingsToday: 0, hearingDay: 0 },
-    release: {
-      released: [],
-      lifetimeReleased: 0,
-      lifetimeReoffended: 0,
-      paroleReoffences: [],
-      recidivismWarned: false,
-    },
+    grading: { averageCellGrade: 5, rooms: [] },
+    directorate: { researched: [], researching: null, researchProgress: 0 },
+    programs: { enrolments: [], sessions: [] },
+    grades: { inmates: [] },
+    parole: { queue: [], hearingsToday: 0, dayCursor: 0 },
+    release: { releases: [], reoffendRolls: [] },
     intelligence: {
       informants: [],
-      revealedStashIds: [],
-      revealedThrowInIds: [],
-      lastBlowRollDay: -1,
+      revealedStashes: [],
+      tappedPhones: [],
+      tipCooldownUntil: 0,
     },
-    contracts: { active: [], finished: [], revealed: [] },
-    routines: {},
+    contracts: { active: [], completed: [], available: [], nextId: 1 },
+    routines: { categories: [] },
     standingOrders: {
-      misconduct: {},
-      reassignmentStrictness: 'lenient',
-      mealQuantity: 'normal',
-      mealVariety: 2,
+      searchTriggers: [],
+      punishments: [],
+      mealQuantity: 'medium',
+      mealVariety: false,
     },
     posts: { nextPostId: 1, nextRouteId: 1, posts: [], routes: [] },
     contraband: {
-      nextStashId: 1,
-      nextThrowInId: 1,
-      confiscatedCount: 0,
-      pendingArrivalIds: [],
-      pendingDeliveryLines: [],
+      nextItemId: 1,
+      items: [],
       stashes: [],
-      throwIns: [],
-      prices: [],
+      thrownToday: 0,
+      dayCursor: 0,
     },
-    fire: { size: 8, burning: [], smoke: [], overloadedBranches: [] },
+    fire: { size: 8, intensity: '', smoke: '' },
     riot: {
       active: false,
-      riotingInmateIds: [],
-      quietMinutes: 0,
+      members: [],
+      doorProgress: [],
       startedAtTick: 0,
-      doorBreakProgress: [],
     },
     emergency: {
       sectorLockdowns: [],
@@ -140,7 +139,73 @@ function emptySaveFile(overrides: Partial<SaveFile> = {}): SaveFile {
       staffInventory: [],
     },
     punishments: { active: [], agitatorBoostUntil: [] },
-    utilities: { cableTiles: [], pipeTiles: [] },
+    utilities: { cableTiles: [], pipeTiles: [], shedBranches: [], waterMultipliers: [] },
+    entityRegistry: {
+      nextInmateId: 1,
+      nextStaffId: 1,
+      nextObjectId: 1,
+      staffHireCounts: [],
+    },
+    doors: { doors: [] },
+    construction: { nextSiteId: 1, sites: [], spendOwed: 0, refundsOwed: 0 },
+    intake: { continuous: true, nextBusAtTick: 0, requestedCounts: [] },
+    cellGrades: { grades: [] },
+    incomeOwed: 0,
+    staffOnlyRoomIds: [],
+    intakeSearchedInmateIds: [],
+    staffNeedsEnabled: true,
+    fog: { revealedTiles: [] },
+    offices: { claims: [] },
+    escorts: { nextId: 1, jobs: [] },
+    jobs: { nextId: 1, jobs: [] },
+    labour: {
+      assignments: [],
+      workerMinutes: [],
+      finishedGoods: [],
+      groveMinutes: [],
+      grownTrees: [],
+      commissaryGoods: 0,
+      lifetimeExportIncome: 0,
+      lifetimeCommissaryIncome: 0,
+    },
+    morale: {
+      value: 100,
+      wageMultiplier: 1,
+      lastDangerContribution: 0,
+      deaths: [],
+      injured: [],
+      strike: {
+        phase: 'none',
+        endsAtTick: 0,
+        cooldownUntilTick: 0,
+        refuseCount: 0,
+        payDemandOpen: false,
+        demandedRaise: 0,
+      },
+      hasStruckBefore: false,
+    },
+    needsRuntime: { inmates: [] },
+    routineRuntime: { inmates: [] },
+    meals: {
+      nextOrderId: 1,
+      servingsReady: 0,
+      ingredients: [],
+      orders: [],
+      cooksAssigned: 0,
+    },
+    supply: {
+      nextOrderId: 1,
+      orders: [],
+      dockFree: [],
+      dockReserved: [],
+      storeStock: [],
+      binRefuse: [],
+      refuseZone: [],
+      carries: [],
+    },
+    deliveries: { nextTruckId: 1, nextTruckAt: 0, pending: [], trucks: [] },
+    cleaning: { assignments: [] },
+    laundry: { baskets: [], cleanUniforms: 0 },
     dangerLevel: 0,
     riotActive: false,
     lockdownActive: false,
@@ -148,7 +213,7 @@ function emptySaveFile(overrides: Partial<SaveFile> = {}): SaveFile {
     log: [],
     rngState: { seed: 1, streams: [] },
     ...overrides,
-  }
+  } as SaveFile
 }
 
 function descriptor(playedTicks: number): SaveDescriptor {
@@ -332,5 +397,80 @@ describe('the save store (PRD 7.4)', () => {
     const reopened = await SaveStore.open(name)
     expect((await reopened.list()).map((save) => save.name)).toEqual(['Persisted'])
     reopened.close()
+  })
+})
+
+describe('SaveStore load path integration (T8.6)', () => {
+  it('round-trips a save through autosave, list, and read', async () => {
+    const bytes = await bytesFor(1800)
+
+    const written = await store.putAutosave(bytes, descriptor(1800))
+    expect(written.playedTicks).toBe(1800)
+    expect(written.kind).toBe('auto')
+
+    const summaries = await store.list()
+    expect(summaries).toHaveLength(1)
+    expect(summaries[0]?.key).toBe(written.key)
+
+    const restored = await store.read(written.key)
+    expect(restored).not.toBeNull()
+    expect(restored).toEqual(bytes)
+  })
+
+  it('round-trips a manual save through put, list, and read', async () => {
+    const bytes = await bytesFor(3600)
+
+    const written = await store.putManualSave('My Prison', bytes, descriptor(3600))
+    expect(written.name).toBe('My Prison')
+    expect(written.playedTicks).toBe(3600)
+
+    const summaries = await store.list()
+    expect(summaries).toHaveLength(1)
+    expect(summaries[0]?.name).toBe('My Prison')
+
+    const restored = await store.read(written.key)
+    expect(restored).not.toBeNull()
+    expect([...(restored ?? [])]).toEqual([...bytes])
+  })
+
+  it('supports multiple saves with distinct keys', async () => {
+    const bytes1 = await bytesFor(100)
+    const bytes2 = await bytesFor(200)
+    const bytes3 = await bytesFor(300)
+
+    await store.putAutosave(bytes1, descriptor(100))
+    await store.putManualSave('Prison A', bytes2, descriptor(200))
+    await store.putManualSave('Prison B', bytes3, descriptor(300))
+
+    const summaries = await store.list()
+    expect(summaries).toHaveLength(3)
+    expect(summaries.map((s) => s.playedTicks)).toEqual([300, 200, 100])
+
+    const readA = await store.read(manualSaveKey('Prison A'))
+    const readB = await store.read(manualSaveKey('Prison B'))
+    const readAuto = await store.read(autosaveKey(0))
+
+    expect(readA).toEqual(bytes2)
+    expect(readB).toEqual(bytes3)
+    expect(readAuto).toEqual(bytes1)
+  })
+
+  it('preserves exact bytes after page-like reopen cycle', async () => {
+    const name = `blockwork-saves-test-load-${counter}`
+    const localStore = await SaveStore.open(name)
+    const bytes = await bytesFor(7200)
+
+    await localStore.putAutosave(bytes, descriptor(7200))
+    localStore.close()
+
+    const reopenedStore = await SaveStore.open(name)
+    const summaries = await reopenedStore.list()
+    expect(summaries).toHaveLength(1)
+    expect(summaries[0]?.playedTicks).toBe(7200)
+
+    const restored = await reopenedStore.read(summaries[0]!.key)
+    expect(restored).not.toBeNull()
+    expect([...(restored ?? [])]).toEqual([...bytes])
+    reopenedStore.close()
   })
 })

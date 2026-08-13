@@ -51,6 +51,19 @@ export interface ScheduledTruck {
   readonly refuseUnits: number
 }
 
+/** Serializable delivery schedule (save v5). */
+export interface DeliveryScheduleSnapshot {
+  readonly nextTruckId: number
+  readonly nextTruckAt: number
+  readonly pending: readonly DeliveryLine[]
+  readonly scheduled: readonly {
+    readonly id: number
+    readonly arriveTick: number
+    readonly refuseUnits: number
+    readonly lines: readonly DeliveryLine[]
+  }[]
+}
+
 /* -------------------------------------------------------------------------- */
 /* Pure helpers (exported for tests)                                           */
 /* -------------------------------------------------------------------------- */
@@ -252,6 +265,36 @@ export class DeliverySchedule {
         hasher.writeUint32(line.orderId)
       }
     }
+  }
+
+  serialise(): DeliveryScheduleSnapshot {
+    return {
+      nextTruckId: this.#nextTruckId,
+      nextTruckAt: this.nextTruckAt,
+      pending: this.pending.map((line) => ({ ...line })),
+      scheduled: this.scheduled.map((truck) => ({
+        id: truck.id,
+        arriveTick: truck.arriveTick,
+        refuseUnits: truck.refuseUnits,
+        lines: truck.lines.map((line) => ({ ...line })),
+      })),
+    }
+  }
+
+  restore(snapshot: DeliveryScheduleSnapshot): void {
+    this.pending.length = 0
+    this.pending.push(...snapshot.pending.map((line) => ({ ...line })))
+    this.scheduled.length = 0
+    this.scheduled.push(
+      ...snapshot.scheduled.map((truck) => ({
+        id: truck.id,
+        arriveTick: truck.arriveTick,
+        refuseUnits: truck.refuseUnits,
+        lines: truck.lines.map((line) => ({ ...line })),
+      })),
+    )
+    this.#nextTruckId = snapshot.nextTruckId
+    this.nextTruckAt = snapshot.nextTruckAt
   }
 
   #addTruck(

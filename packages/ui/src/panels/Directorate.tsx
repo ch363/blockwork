@@ -26,6 +26,7 @@
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks'
 import type { JSX } from 'preact'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { Button } from '../controls/Button'
 import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
@@ -154,6 +155,7 @@ export function Directorate({
   const open = model !== null
   const [zoom, setZoom] = useState(1)
   const pinch = useRef<{ readonly distance: number; readonly zoom: number } | null>(null)
+  const trapRef = useFocusTrap({ active: open, onEscape: onClose })
 
   const visible = useMemo(() => {
     if (model === null) return []
@@ -206,10 +208,12 @@ export function Directorate({
 
   return (
     <div
+      ref={trapRef}
       class="bw-directorate-panel"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Directorate"
+      aria-modal={open ? 'true' : undefined}
     >
       {model !== null && (
         <>

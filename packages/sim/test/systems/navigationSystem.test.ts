@@ -16,7 +16,7 @@ const DATA = loadGameData()
 
 describe('Phase 2 pathing integration', () => {
   it('createGame worlds satisfy PathingWorld and register navigation/pathing/movement', () => {
-    const game = createGame({ seed: 1, mapSize: 32, data: DATA })
+    const game = createGame({ seed: 1, mapSize: 32, data: DATA, applyOpening: false })
     expect(isPathingWorld(game.world)).toBe(true)
     expect(game.simulation.systems.map((system) => system.name)).toEqual([
       'routine',
@@ -63,7 +63,7 @@ describe('Phase 2 pathing integration', () => {
   })
 
   it('moves an inmate toward an A* goal across open ground', () => {
-    const game = createGame({ seed: 2, mapSize: 24, data: DATA })
+    const game = createGame({ seed: 2, mapSize: 24, data: DATA, applyOpening: false })
     const { world, simulation } = game
     const grid = world.grid
 

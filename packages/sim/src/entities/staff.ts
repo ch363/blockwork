@@ -153,6 +153,21 @@ export interface EscortJob {
   pathIndex: number
 }
 
+/** Serializable escort queue (save v5). Path tiles are not persisted — rebuilt on tick. */
+export interface EscortQueueSnapshot {
+  readonly nextId: number
+  readonly jobs: readonly {
+    readonly id: number
+    readonly inmateId: number
+    readonly destinationTile: number
+    readonly purpose: string
+    readonly state: string
+    readonly claimedBy: number
+    readonly pathIndex: number
+    readonly pathLength: number
+  }[]
+}
+
 export class EscortJobQueue {
   readonly #jobs = new Map<number, EscortJob>()
   #nextId = 1
@@ -235,6 +250,40 @@ export class EscortJobQueue {
       hasher.writeUint32(job.claimedBy)
       hasher.writeUint32(job.pathIndex)
       hasher.writeUint32(job.path?.length ?? 0)
+    }
+  }
+
+  serialise(): EscortQueueSnapshot {
+    return {
+      nextId: this.#nextId,
+      jobs: this.all().map((job) => ({
+        id: job.id,
+        inmateId: job.inmateId,
+        destinationTile: job.destinationTile,
+        purpose: job.purpose,
+        state: job.state,
+        claimedBy: job.claimedBy,
+        pathIndex: job.pathIndex,
+        pathLength: job.path?.length ?? 0,
+      })),
+    }
+  }
+
+  restore(snapshot: EscortQueueSnapshot): void {
+    this.#jobs.clear()
+    this.#nextId = snapshot.nextId
+    for (const entry of snapshot.jobs) {
+      const job: EscortJob = {
+        id: entry.id,
+        inmateId: entry.inmateId,
+        destinationTile: entry.destinationTile,
+        purpose: entry.purpose as EscortPurpose,
+        state: entry.state as EscortJobState,
+        claimedBy: entry.claimedBy,
+        path: null,
+        pathIndex: entry.pathIndex,
+      }
+      this.#jobs.set(job.id, job)
     }
   }
 }
@@ -487,6 +536,17 @@ export class StaffRegistry {
       hasher.writeString(defId)
       hasher.writeUint32(count)
     }
+  }
+
+  serialiseHireCounts(): readonly { readonly defId: string; readonly count: number }[] {
+    return [...this.#hireCounts.entries()]
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([defId, count]) => ({ defId, count }))
+  }
+
+  restoreHireCounts(counts: readonly { readonly defId: string; readonly count: number }[]): void {
+    this.#hireCounts.clear()
+    for (const entry of counts) this.#hireCounts.set(entry.defId, entry.count)
   }
 }
 

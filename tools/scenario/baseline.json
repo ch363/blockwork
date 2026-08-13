@@ -1,0 +1,13 @@
+{
+  "$schema": "./baseline.schema.json",
+  "version": 1,
+  "created": "2026-08-13T17:00:00Z",
+  "updated": "2026-08-13T17:00:00Z",
+  "notes": "Initial baseline for T8.19 performance gate",
+  "stepMsBaseline": 8.5,
+  "config": {
+    "ticks": 1000,
+    "mapSize": 220,
+    "seed": 42424242
+  }
+}

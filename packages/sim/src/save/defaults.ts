@@ -7,25 +7,43 @@ import type { GameData } from '../data/loader'
 import { createDefaultStandingOrders } from '../entities/standingOrders'
 
 import type {
+  CellGradesStateSnapshot,
+  CleaningStateSnapshot,
   CombatStateSnapshot,
+  ConstructionStateSnapshot,
   ContrabandStateSnapshot,
   ContractState,
+  DeliveriesStateSnapshot,
+  DoorsStateSnapshot,
   DirectorateStateSnapshot,
   EconomyState,
   EmergencyStateSnapshot,
+  EntityRegistryState,
   EscapesStateSnapshot,
+  EscortsStateSnapshot,
   FireStateSnapshot,
+  FogStateSnapshot,
   GradingStateSnapshot,
   ProgramsStateSnapshot,
   ParoleStateSnapshot,
   ReleaseStateSnapshot,
   GradesStateSnapshot,
   IntelligenceStateSnapshot,
+  IntakeStateSnapshot,
+  JobsStateSnapshot,
+  LabourStateSnapshot,
+  LaundryStateSnapshot,
+  MealsStateSnapshot,
+  MoraleStateSnapshot,
+  NeedsRuntimeStateSnapshot,
+  OfficesStateSnapshot,
   PostsState,
   PunishmentsStateSnapshot,
   RiotStateSnapshot,
+  RoutineRuntimeStateSnapshot,
   SectorsState,
   StandingOrdersState,
+  SupplyStateSnapshot,
   UtilitiesStateSnapshot,
 } from './format'
 
@@ -181,7 +199,133 @@ export function emptyPunishmentsState(): PunishmentsStateSnapshot {
 }
 
 export function emptyUtilitiesState(): UtilitiesStateSnapshot {
-  return { cableTiles: [], pipeTiles: [] }
+  return { cableTiles: [], pipeTiles: [], shedBranches: [], waterMultipliers: [] }
+}
+
+export function emptyEntityRegistryState(): EntityRegistryState {
+  return { nextInmateId: 1, nextStaffId: 1, nextObjectId: 1, staffHireCounts: [] }
+}
+
+export function emptyDoorsState(): DoorsStateSnapshot {
+  return { doors: [] }
+}
+
+export function emptyConstructionState(): ConstructionStateSnapshot {
+  return { nextSiteId: 1, sites: [], spendOwed: 0, refundsOwed: 0 }
+}
+
+export function emptyIntakeState(): IntakeStateSnapshot {
+  return { continuous: true, nextBusAtTick: 0, requestedCounts: [] }
+}
+
+export function emptyCellGradesState(): CellGradesStateSnapshot {
+  return { grades: [] }
+}
+
+export function emptyFogState(): FogStateSnapshot {
+  return { revealedTiles: [] }
+}
+
+export function emptyOfficesState(): OfficesStateSnapshot {
+  return { claims: [] }
+}
+
+export function emptyEscortsState(): EscortsStateSnapshot {
+  return { nextId: 1, jobs: [] }
+}
+
+export function emptyJobsState(): JobsStateSnapshot {
+  return { nextId: 1, jobs: [] }
+}
+
+export function emptyLabourState(): LabourStateSnapshot {
+  return {
+    assignments: [],
+    workerMinutes: [],
+    finishedGoods: [],
+    groveMinutes: [],
+    grownTrees: [],
+    commissaryGoods: 0,
+    lifetimeExportIncome: 0,
+    lifetimeCommissaryIncome: 0,
+  }
+}
+
+export function emptyMoraleState(): MoraleStateSnapshot {
+  return {
+    value: 100,
+    wageMultiplier: 1,
+    lastDangerContribution: 0,
+    deaths: [],
+    injured: [],
+    strike: {
+      phase: 'none',
+      endsAtTick: 0,
+      cooldownUntilTick: 0,
+      refuseCount: 0,
+      payDemandOpen: false,
+      demandedRaise: 0,
+    },
+    hasStruckBefore: false,
+  }
+}
+
+export function emptyNeedsRuntimeState(): NeedsRuntimeStateSnapshot {
+  return { inmates: [] }
+}
+
+export function emptyRoutineRuntimeState(): RoutineRuntimeStateSnapshot {
+  return { inmates: [] }
+}
+
+export function emptyMealsState(): MealsStateSnapshot {
+  return {
+    standingOrders: { quantity: 'normal', variety: 1 },
+    missedMeals: 0,
+    mealsServed: 0,
+    routingOverrides: [],
+    fridgeStock: [],
+    counterMeals: [],
+    dirtyTrays: [],
+    refuseStock: [],
+    prepSessions: [],
+  }
+}
+
+export function emptySupplyState(): SupplyStateSnapshot {
+  return {
+    nextOrderId: 1,
+    orders: [],
+    dockFree: [],
+    dockReserved: [],
+    storeStock: [],
+    binRefuse: [],
+    refuseZone: [],
+    carries: [],
+  }
+}
+
+export function emptyDeliveriesState(): DeliveriesStateSnapshot {
+  return { nextTruckId: 1, nextTruckAt: 0, pending: [], scheduled: [] }
+}
+
+export function emptyCleaningState(): CleaningStateSnapshot {
+  return { cleanRemainder: 0, noCleanersNotified: false, dirtRemoved: 0 }
+}
+
+export function emptyLaundryState(): LaundryStateSnapshot {
+  return {
+    uniformsDistributed: 0,
+    lastAccrualDay: 0,
+    routingOverrides: [],
+    uniformDirtiness: [],
+    bedDirty: [],
+    basketDirty: [],
+    pendingWash: [],
+    washedReady: [],
+    ironedReady: [],
+    bedClean: [],
+  }
 }
 
 export function defaultStandingOrdersState(data: GameData = loadGameData()): StandingOrdersState {

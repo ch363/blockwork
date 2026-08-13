@@ -18,6 +18,7 @@
 
 import type { JSX } from 'preact'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
 
@@ -90,13 +91,16 @@ export function Alerts({
       : model.filter === null
         ? model.rows
         : model.rows.filter((row) => row.severity === model.filter)
+  const trapRef = useFocusTrap({ active: open, onEscape: onClose })
 
   return (
     <div
+      ref={trapRef}
       class="bw-alerts-panel"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Alerts"
+      aria-modal={open ? 'true' : undefined}
     >
       {model !== null && (
         <>

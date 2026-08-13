@@ -1,7 +1,6 @@
 {
   "staff": [
     {
-      "_tuning": true,
       "id": "warden",
       "name": "Warden",
       "hourlyWage": 90,
@@ -12,7 +11,6 @@
       "capabilities": ["administrate"]
     },
     {
-      "_tuning": true,
       "id": "security_director",
       "name": "Security Director",
       "hourlyWage": 70,
@@ -24,7 +22,6 @@
       "capabilities": ["administrate", "tutor"]
     },
     {
-      "_tuning": true,
       "id": "finance_officer",
       "name": "Finance Officer",
       "hourlyWage": 60,
@@ -36,7 +33,6 @@
       "capabilities": ["administrate"]
     },
     {
-      "_tuning": true,
       "id": "works_manager",
       "name": "Works Manager",
       "hourlyWage": 55,
@@ -48,7 +44,6 @@
       "capabilities": ["administrate", "tutor", "repair"]
     },
     {
-      "_tuning": true,
       "id": "counsellor",
       "name": "Counsellor",
       "hourlyWage": 50,
@@ -60,7 +55,6 @@
       "capabilities": ["administrate", "tutor"]
     },
     {
-      "_tuning": true,
       "id": "legal_officer",
       "name": "Legal Officer",
       "hourlyWage": 80,
@@ -72,7 +66,6 @@
       "capabilities": ["administrate", "hearing"]
     },
     {
-      "_tuning": true,
       "id": "officer",
       "name": "Officer",
       "hourlyWage": 22,
@@ -90,7 +83,6 @@
       "capabilities": ["escort", "openDoors", "patrol", "search", "detectContraband"]
     },
     {
-      "_tuning": true,
       "id": "armed_officer",
       "name": "Armed Officer",
       "hourlyWage": 38,
@@ -111,7 +103,6 @@
       "capabilities": ["armed", "escort", "openDoors", "patrol", "search", "riotControl"]
     },
     {
-      "_tuning": true,
       "id": "k9_officer",
       "name": "Dog Handler",
       "hourlyWage": 30,
@@ -131,7 +122,6 @@
       "capabilities": ["handleDog", "patrol", "search", "detectContraband", "openDoors"]
     },
     {
-      "_tuning": true,
       "id": "dog",
       "name": "Patrol Dog",
       "hourlyWage": 4,
@@ -142,7 +132,6 @@
       "capabilities": ["detectContraband", "patrol"]
     },
     {
-      "_tuning": true,
       "id": "tower_marksman",
       "name": "Tower Marksman",
       "hourlyWage": 45,
@@ -153,7 +142,6 @@
       "capabilities": ["armed", "marksman"]
     },
     {
-      "_tuning": true,
       "id": "riot_team",
       "name": "Riot Team",
       "hourlyWage": 150,
@@ -163,7 +151,6 @@
       "capabilities": ["riotControl", "armed", "escort"]
     },
     {
-      "_tuning": true,
       "id": "maintenance",
       "name": "Maintenance Worker",
       "hourlyWage": 20,
@@ -181,7 +168,6 @@
       "capabilities": ["build", "repair", "driveTruck"]
     },
     {
-      "_tuning": true,
       "id": "cleaner",
       "name": "Cleaner",
       "hourlyWage": 16,
@@ -200,7 +186,6 @@
       "capabilities": ["clean"]
     },
     {
-      "_tuning": true,
       "id": "groundskeeper",
       "name": "Groundskeeper",
       "hourlyWage": 16,
@@ -210,7 +195,6 @@
       "capabilities": ["cleanOutdoors"]
     },
     {
-      "_tuning": true,
       "id": "cook",
       "name": "Cook",
       "hourlyWage": 18,
@@ -228,7 +212,6 @@
       "capabilities": ["cook", "serve", "tutor"]
     },
     {
-      "_tuning": true,
       "id": "medic",
       "name": "Medic",
       "hourlyWage": 42,
@@ -247,7 +230,6 @@
       "capabilities": ["treat", "tutor"]
     },
     {
-      "_tuning": true,
       "id": "instructor",
       "name": "Instructor",
       "hourlyWage": 0,
@@ -258,7 +240,6 @@
       "capabilities": ["tutor"]
     },
     {
-      "_tuning": true,
       "id": "chaplain",
       "name": "Chaplain",
       "hourlyWage": 0,
@@ -268,7 +249,6 @@
       "capabilities": ["minister", "tutor"]
     },
     {
-      "_tuning": true,
       "id": "hearing_panel",
       "name": "Hearing Panel",
       "hourlyWage": 0,
@@ -279,7 +259,6 @@
       "capabilities": ["hearing"]
     },
     {
-      "_tuning": true,
       "id": "national_guard",
       "name": "National Guard",
       "hourlyWage": 0,
@@ -289,7 +268,6 @@
       "capabilities": ["riotControl", "armed", "escort"]
     },
     {
-      "_tuning": true,
       "id": "firefighter",
       "name": "Firefighter",
       "hourlyWage": 0,

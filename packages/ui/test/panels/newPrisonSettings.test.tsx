@@ -45,6 +45,7 @@ function newPrisonModel(patch: Partial<NewPrisonModel> = {}): NewPrisonModel {
     startingFunds: 30_000,
     continuousIntake: true,
     randomEvents: true,
+    firstOrderGrace: true,
     seedInput: '',
     failures: toggles(['escapes', 'insolvency', 'deaths'], true),
     mutators: toggles(['fires', 'contraband'], true),
@@ -64,6 +65,7 @@ function newPrison(model: NewPrisonModel, overrides: Partial<Record<string, unkn
       onStartingFunds={noop}
       onContinuousIntake={noop}
       onRandomEvents={noop}
+      onFirstOrderGrace={noop}
       onSeed={noop}
       onFailure={noop}
       onMutator={noop}
@@ -84,8 +86,9 @@ describe('New prison screen', () => {
       expect(host.textContent).toContain(formatFunds(30_000))
       expect(host.textContent).toContain('Continuous intake')
       expect(host.textContent).toContain('Random events')
-      // Failure conditions and mutators are individually listed.
-      expect(host.querySelectorAll('.bw-newprison-toggle')).toHaveLength(2 + 3 + 2)
+      expect(host.textContent).toContain('Starter deliveries')
+      // Intake (3) + failure conditions (3) + mutators (2).
+      expect(host.querySelectorAll('.bw-newprison-toggle')).toHaveLength(3 + 3 + 2)
     } finally {
       unmount(host)
     }

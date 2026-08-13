@@ -9,6 +9,7 @@
 import type { JSX } from 'preact'
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { Button } from '../controls/Button'
 import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
@@ -319,13 +320,16 @@ export function Reports({
   onTrace,
 }: ReportsProps): JSX.Element {
   const open = model !== null
+  const trapRef = useFocusTrap({ active: open, onEscape: onClose })
 
   return (
     <div
+      ref={trapRef}
       class="bw-reports-panel"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Reports"
+      aria-modal={open ? 'true' : undefined}
     >
       {model !== null && (
         <>

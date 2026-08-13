@@ -155,6 +155,17 @@ export interface StrikeSnapshot {
   readonly demandedRaise: number
 }
 
+/** Full morale state for save v5 (extends strike snapshot). */
+export interface MoraleSnapshot {
+  readonly value: number
+  readonly wageMultiplier: number
+  readonly lastDangerContribution: number
+  readonly deaths: readonly number[]
+  readonly injured: readonly number[]
+  readonly strike: StrikeSnapshot
+  readonly hasStruckBefore: boolean
+}
+
 /* -------------------------------------------------------------------------- */
 /* MoraleState                                                                 */
 /* -------------------------------------------------------------------------- */
@@ -357,6 +368,34 @@ export class MoraleState {
     hasher.writeUint32(this.#payDemandOpen ? 1 : 0)
     hasher.writeFloat64(this.#demandedRaise)
     hasher.writeUint32(this.#hasStruckBefore ? 1 : 0)
+  }
+
+  serialise(): MoraleSnapshot {
+    return {
+      value: this.value,
+      wageMultiplier: this.wageMultiplier,
+      lastDangerContribution: this.lastDangerContribution,
+      deaths: [...this.#deaths],
+      injured: [...this.#injured].sort((a, b) => a - b),
+      strike: this.snapshot(),
+      hasStruckBefore: this.#hasStruckBefore,
+    }
+  }
+
+  restore(snapshot: MoraleSnapshot): void {
+    this.value = snapshot.value
+    this.wageMultiplier = snapshot.wageMultiplier
+    this.lastDangerContribution = snapshot.lastDangerContribution
+    this.#deaths = [...snapshot.deaths]
+    this.#injured.clear()
+    for (const id of snapshot.injured) this.#injured.add(id)
+    this.#strikePhase = snapshot.strike.phase
+    this.#strikeEndsAtTick = snapshot.strike.endsAtTick
+    this.#cooldownUntilTick = snapshot.strike.cooldownUntilTick
+    this.#refuseCount = snapshot.strike.refuseCount
+    this.#payDemandOpen = snapshot.strike.payDemandOpen
+    this.#demandedRaise = snapshot.strike.demandedRaise
+    this.#hasStruckBefore = snapshot.hasStruckBefore
   }
 }
 

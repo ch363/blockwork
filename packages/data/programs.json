@@ -1,7 +1,6 @@
 {
   "programs": [
     {
-      "_tuning": true,
       "id": "alcohol_recovery_group",
       "name": "Alcohol Recovery Group",
       "costPerSession": 200,
@@ -20,7 +19,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "substance_treatment",
       "name": "Substance Treatment",
       "costPerSession": 200,
@@ -40,7 +38,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "anger_management",
       "name": "Anger Management",
       "costPerSession": 200,
@@ -56,7 +53,6 @@
       "effects": [{ "type": "traitMisconductMultiplier", "traitId": "violent", "value": 1.15 }]
     },
     {
-      "_tuning": true,
       "id": "workshop_induction",
       "name": "Workshop Induction",
       "costPerSession": 100,
@@ -71,7 +67,6 @@
       "effects": [{ "type": "unlockLabour", "assignment": "workshop" }]
     },
     {
-      "_tuning": true,
       "id": "joinery_apprenticeship",
       "name": "Joinery Apprenticeship",
       "costPerSession": 500,
@@ -91,7 +86,6 @@
       ]
     },
     {
-      "_tuning": true,
       "id": "kitchen_induction",
       "name": "Kitchen Induction",
       "costPerSession": 100,
@@ -106,7 +100,6 @@
       "effects": [{ "type": "unlockLabour", "assignment": "kitchen" }]
     },
     {
-      "_tuning": true,
       "id": "basic_literacy",
       "name": "Basic Literacy",
       "costPerSession": 300,
@@ -122,7 +115,6 @@
       "effects": [{ "type": "reoffend", "delta": -0.1 }]
     },
     {
-      "_tuning": true,
       "id": "vocational_certificate",
       "name": "Vocational Certificate",
       "costPerSession": 500,
@@ -139,7 +131,6 @@
       "effects": [{ "type": "reoffend", "delta": -0.2 }]
     },
     {
-      "_tuning": true,
       "id": "chaplaincy_service",
       "name": "Chaplaincy Service",
       "costPerSession": 250,
@@ -167,7 +158,6 @@
       "effects": [{ "type": "paroleHearing" }]
     },
     {
-      "_tuning": true,
       "id": "officer_stun_certification",
       "name": "Officer Stun Certification",
       "costPerSession": 100,

@@ -37,9 +37,9 @@ export type {
 
 export {
   BARE_GROUND_APPEARANCE,
+  DEFAULT_FLOOR_APPEARANCE,
+  DEFAULT_GROUND_APPEARANCE,
   MAX_TERRAIN_MATERIALS,
-  PLACEHOLDER_FLOOR_APPEARANCES,
-  PLACEHOLDER_TERRAIN_PALETTE,
   terrainPalette,
   TERRAIN_ATLAS_CELL_PX,
   TERRAIN_ATLAS_COLUMNS,
@@ -97,18 +97,20 @@ export {
 export type { SpriteAtlas, SpriteAtlasOptions } from './sprites/atlas'
 
 export {
+  DEFAULT_DOOR_APPEARANCES,
+  DEFAULT_WALL_APPEARANCE,
   DOOR_ATLAS_TYPES,
   DOOR_FRAMES,
   DOOR_ORIENTATIONS,
+  DOOR_SWING_FRAMES,
   MAX_WALL_MATERIALS,
-  PLACEHOLDER_DOOR_APPEARANCES,
-  PLACEHOLDER_WALL_APPEARANCES,
   WALL_ATLAS_CELL_PX,
   WALL_ATLAS_COLUMNS,
   WallLayer,
   createDoorAtlas,
   createWallShapeAtlas,
   doorAtlasCell,
+  doorFrameFromOpen,
   doorOrientation,
   wallPalette,
 } from './layers/walls'
@@ -122,10 +124,10 @@ export type {
 } from './layers/walls'
 
 export {
+  DEFAULT_OBJECT_APPEARANCE,
   OBJECT_ATLAS_CELL_PX,
   OBJECT_SHAPES,
   ObjectLayer,
-  PLACEHOLDER_OBJECT_APPEARANCES,
   createObjectAtlas,
   defaultObjectAppearance,
   objectColourForId,
@@ -151,6 +153,7 @@ export {
   AGENT_FLAG,
   AGENT_MOOD_NEED_IDS,
   AGENT_SELECTION_COLOUR,
+  AGENT_SPRITE_POOL_CEILING,
   AGENT_SPRITE_WORLD,
   AGENT_WALK_FRAMES,
   AgentLayer,
@@ -207,6 +210,27 @@ export type {
   OverlayTunnel,
   PrdOverlayMode,
 } from './layers/overlay'
+
+export {
+  EFFECT_ATLAS_CELL_PX,
+  EFFECT_PIN_COLOURS,
+  EFFECT_PULSE_FRAMES,
+  EFFECT_SELECTION_COLOUR,
+  EffectsLayer,
+  PIN_HOVER_OFFSET,
+  SELECTION_RING_RADIUS,
+  createEffectsAtlas,
+  effectsChevronCell,
+  effectsPinCell,
+  effectsSelectionCell,
+} from './layers/effects'
+export type {
+  EffectPathSegment,
+  EffectPin,
+  EffectPinSeverity,
+  EffectSelection,
+  EffectsLayerOptions,
+} from './layers/effects'
 
 export { BlockworkRenderer, LETTERBOX_COLOUR, MAX_RENDER_RESOLUTION } from './app'
 export type { BlockworkRendererOptions } from './app'

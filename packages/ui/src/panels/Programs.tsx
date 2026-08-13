@@ -14,6 +14,7 @@
 
 import type { JSX } from 'preact'
 
+import { useFocusTrap } from '../components/FocusTrap'
 import { Button } from '../controls/Button'
 import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
@@ -123,6 +124,7 @@ const ATTENDANCE_LABELS: Readonly<Record<ProgramRowModel['attendance'], string>>
 
 export function Programs({ model, onSelect, onClose, onPin, onUnpin }: ProgramsProps): JSX.Element {
   const open = model !== null
+  const trapRef = useFocusTrap({ active: open, onEscape: onClose })
   const selected =
     model === null || model.selectedId === null
       ? null
@@ -130,10 +132,12 @@ export function Programs({ model, onSelect, onClose, onPin, onUnpin }: ProgramsP
 
   return (
     <div
+      ref={trapRef}
       class="bw-programs-panel"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Programmes"
+      aria-modal={open ? 'true' : undefined}
     >
       {model !== null && (
         <>

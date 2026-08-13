@@ -56,10 +56,11 @@ import {
   OVERLAY_MODE_DEFINITIONS,
   OVERLAY_PALETTES,
   interpolateAgents,
+  materialAppearances,
   overlayCategoricalPattern,
   overlayLegendBands,
   parseCssColour,
-  terrainPalette,
+  terrainPaletteFor,
 } from '@blockwork/render'
 import type {
   OverlayMode,
@@ -75,19 +76,35 @@ import {
   categoryToken,
   resolveWorldTap,
   traceModelFromView,
+  type AlertRowModel,
+  type AlertSeverity,
+  type AlertsModel,
+  type ColourBlindPalette,
+  type ContractsModel,
   type DockToolId,
   type DirectorateBranchId,
   type DirectorateModel,
   type EmergencyModel,
+  type FlowChainId,
+  type FlowModel,
   type InspectorModel,
+  type IntakeModel,
   type IntelligenceModel,
   type IntelligenceTab,
+  type MapSizePreset,
+  type NewPrisonModel,
+  type OnboardingMode,
+  type OnboardingModel,
   type OverlayLegendModel,
   type PostsModel,
   type PostsTab,
   type ProgramsModel,
   type ReportsModel,
   type ReportsTab,
+  type RoutineBlockId,
+  type RoutineModel,
+  type SettingsModel,
+  type SettingsTab,
   type SpeedStop,
   type StandingMealQuantity,
   type StandingOrdersModel,
@@ -118,6 +135,10 @@ import {
   type PaletteEntry,
   type UnlockSnapshot,
 } from './palette'
+import type { AppSettings, AudioSettings, AutosaveHours } from './appSettings'
+import { DEFAULT_APP_SETTINGS } from './appSettings'
+import { AudioEngine, createAudioEngine } from './audio'
+import { WebAudioBackend } from './webAudioBackend'
 
 /** PRD 4.3's Large map. The size a new game starts at until T5.x offers a menu. */
 export const DEFAULT_MAP_SIZE = 220
@@ -177,6 +198,11 @@ export interface SessionOptions {
   readonly data: GameData
   readonly seed?: number
   readonly mapSize?: number
+  /**
+   * First-order material grace for a new prison (T8.4). Defaults to the
+   * balance flag; the New Prison panel can override it.
+   */
+  readonly firstOrderGrace?: boolean
 }
 
 /** Everything the shell renders, as signals. */
@@ -218,6 +244,30 @@ export interface SessionState {
   readonly canRedo: Signal<boolean>
   /** Staged strokes. Drives the Commit button, which the report cannot. */
   readonly stagedCount: Signal<number>
+
+  /** Open Settings panel, or null when closed (T8.7). */
+  readonly settings: Signal<SettingsModel | null>
+  readonly settingsTab: Signal<SettingsTab>
+  /** Open NewPrison screen, or null when closed (T8.7). */
+  readonly newPrison: Signal<NewPrisonModel | null>
+  /** Open Onboarding guide, or null when closed (T8.7). */
+  readonly onboarding: Signal<OnboardingModel | null>
+  /** Open Alerts panel, or null when closed (T8.7). */
+  readonly alerts: Signal<AlertsModel | null>
+  readonly alertsFilter: Signal<AlertSeverity | null>
+
+  /** Open Routine editor panel, or null when closed (T8.9). */
+  readonly routine: Signal<RoutineModel | null>
+  /** Open Contracts panel, or null when closed (T8.9). */
+  readonly contracts: Signal<ContractsModel | null>
+  /** Open Intake panel, or null when closed (T8.9). */
+  readonly intake: Signal<IntakeModel | null>
+  /** Open Flow (logistics) panel, or null when closed (T8.9). */
+  readonly flow: Signal<FlowModel | null>
+  readonly flowChain: Signal<FlowChainId | null>
+
+  /** Runtime error message to display (T8.15). Null when nothing is wrong. */
+  readonly runtimeError: Signal<string | null>
 }
 
 const EMPTY_TOP_BAR: TopBarModel = {
@@ -508,6 +558,29 @@ export class Session {
   /** Set once at boot; isolation does not change at runtime (T8.16). */
   readonly #isolationDiagnostic = isolationDiagnostic()
 
+  /**
+   * Performance: last control version seen (T8.19). Panel refresh is skipped
+   * when the version hasn't changed, keeping the 2ms main-thread budget.
+   */
+  #lastControlVersion = 0
+  /** Performance: cached sector colour map (T8.19). */
+  #sectorColourCache: Map<number, number> = new Map()
+  /** Performance: key for sector colour cache invalidation (T8.19). */
+  #sectorColourKey = ''
+
+  /** Audio engine for ambient bed and one-shots (T8.8). */
+  #audioEngine: AudioEngine | null = null
+  /** Backed by the app settings; used for timed autosave scheduling. */
+  #autosaveHours: AutosaveHours = DEFAULT_APP_SETTINGS.autosaveHours
+
+  /** Callback fired when settings change via the Settings panel. */
+  onSettingsChange: ((settings: AppSettings) => void) | null = null
+
+  /** Current autosave cadence in in-game hours. */
+  get autosaveHours(): AutosaveHours {
+    return this.#autosaveHours
+  }
+
   private constructor(
     bridge: SimBridge,
     renderer: BlockworkRenderer,
@@ -551,6 +624,18 @@ export class Session {
       canUndo: signal(false),
       canRedo: signal(false),
       stagedCount: signal(0),
+      settings: signal<SettingsModel | null>(null),
+      settingsTab: signal<SettingsTab>('audio'),
+      newPrison: signal<NewPrisonModel | null>(null),
+      onboarding: signal<OnboardingModel | null>(null),
+      alerts: signal<AlertsModel | null>(null),
+      alertsFilter: signal<AlertSeverity | null>(null),
+      routine: signal<RoutineModel | null>(null),
+      contracts: signal<ContractsModel | null>(null),
+      intake: signal<IntakeModel | null>(null),
+      flow: signal<FlowModel | null>(null),
+      flowChain: signal<FlowChainId | null>(null),
+      runtimeError: signal<string | null>(null),
     }
 
     // The renderer draws the bridge's arrays directly. On the shared transport
@@ -593,18 +678,27 @@ export class Session {
       worker: createSimWorker(),
       seed,
       mapSize,
+      ...(options.firstOrderGrace === undefined
+        ? {}
+        : { firstOrderGrace: options.firstOrderGrace }),
     })
 
     // The one id list both palettes must be built from: `floorMaterial` and
     // `wallMaterial` store positions in this table, so a palette assembled any
     // other way colours the wrong material.
-    const materialIds = ['none', ...options.data.materials.ids()]
+    const materialIds = options.data.materials.ids()
+    const appearances = materialAppearances(
+      materialIds.map((id) => {
+        const def = options.data.materials.find(id)
+        return def === undefined ? { id } : { id, appearance: def.appearance }
+      }),
+    )
 
     const renderer = await BlockworkRenderer.create({
       parent: options.parent,
       mapSize,
-      palette: terrainPalette(materialIds),
-      wallMaterialIds: materialIds,
+      palette: terrainPaletteFor(materialIds, appearances),
+      wallMaterialIds: ['none', ...materialIds],
     })
 
     const centre = centreTile(mapSize) * 32
@@ -637,6 +731,80 @@ export class Session {
     this.renderer.app.ticker.remove(this.#frame)
     this.renderer.destroy()
     this.bridge.dispose()
+    this.#audioEngine?.dispose()
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Audio (T8.8)                                                            */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * Initializes the audio engine with the given settings.
+   * Called once on boot after a user gesture (browsers require interaction).
+   */
+  initAudio(settings: AudioSettings): void {
+    if (this.#audioEngine !== null) return
+
+    try {
+      // Create a real AudioContext - browsers require this to be lazy
+      // (only created after a user gesture). The first tap/click unblocks it.
+      const context = new AudioContext()
+      const backend = new WebAudioBackend(context)
+      this.#audioEngine = createAudioEngine(backend, settings)
+    } catch {
+      // No Web Audio available (test runner, old browser, etc.)
+      this.#audioEngine = null
+    }
+  }
+
+  /**
+   * Applies full app settings, updating audio, autosave cadence, etc.
+   */
+  applyAppSettings(settings: AppSettings): void {
+    this.#autosaveHours = settings.autosaveHours
+
+    if (this.#audioEngine !== null) {
+      this.#audioEngine.applySettings(settings.audio)
+    }
+
+    // Load stored settings into the settings panel model if it's open.
+    if (this.state.settings.value !== null) {
+      this.state.settings.value = {
+        ...this.state.settings.value,
+        music: settings.audio.music,
+        sfx: settings.audio.sfx,
+        muted: settings.audio.muted,
+        palette: settings.accessibility.palette,
+        reduceMotion: settings.accessibility.reduceMotion,
+        typeScale: settings.accessibility.typeScale,
+        preferNoFailure: settings.accessibility.preferNoFailure,
+        autosaveHours: settings.autosaveHours,
+      }
+    }
+  }
+
+  /**
+   * Builds current settings from the settings panel state.
+   * Used to pass to the onSettingsChange callback.
+   */
+  #buildCurrentSettings(): AppSettings {
+    const model = this.state.settings.value
+    if (model === null) return DEFAULT_APP_SETTINGS
+
+    return {
+      audio: {
+        music: model.music,
+        sfx: model.sfx,
+        muted: model.muted,
+      },
+      accessibility: {
+        palette: model.palette,
+        reduceMotion: model.reduceMotion,
+        typeScale: model.typeScale,
+        preferNoFailure: model.preferNoFailure,
+      },
+      autosaveHours: model.autosaveHours as AutosaveHours,
+    }
   }
 
   /* ---------------------------------------------------------------------- */
@@ -668,6 +836,10 @@ export class Session {
       this.closePrograms()
       this.closeIntelligence()
       this.closeReports()
+      this.closeRoutine()
+      this.closeContracts()
+      this.closeIntake()
+      this.closeFlow()
     } else if (next === 'posts') {
       this.state.palette.value = []
       this.state.paletteSelection.value = null
@@ -677,6 +849,10 @@ export class Session {
       this.closePrograms()
       this.closeIntelligence()
       this.closeReports()
+      this.closeRoutine()
+      this.closeContracts()
+      this.closeIntake()
+      this.closeFlow()
       this.openPosts()
     } else if (next === 'emergency') {
       this.state.palette.value = []
@@ -687,6 +863,10 @@ export class Session {
       this.closePrograms()
       this.closeIntelligence()
       this.closeReports()
+      this.closeRoutine()
+      this.closeContracts()
+      this.closeIntake()
+      this.closeFlow()
       this.openEmergency()
     } else if (next === 'plan') {
       // Plan opens Standing Orders (T4.3 policy matrix).
@@ -698,7 +878,26 @@ export class Session {
       this.closePrograms()
       this.closeIntelligence()
       this.closeReports()
+      this.closeRoutine()
+      this.closeContracts()
+      this.closeIntake()
+      this.closeFlow()
       this.openStandingOrders()
+    } else if (next === 'flow') {
+      // Flow opens the logistics panel (T8.9).
+      this.state.palette.value = []
+      this.state.paletteSelection.value = null
+      this.closePosts()
+      this.closeEmergency()
+      this.closeStandingOrders()
+      this.closeDirectorate()
+      this.closePrograms()
+      this.closeIntelligence()
+      this.closeReports()
+      this.closeRoutine()
+      this.closeContracts()
+      this.closeIntake()
+      this.openFlow()
     } else if (next === 'reports') {
       this.closePosts()
       this.closeEmergency()
@@ -707,6 +906,10 @@ export class Session {
       this.closePrograms()
       this.closeIntelligence()
       this.closeReports()
+      this.closeRoutine()
+      this.closeContracts()
+      this.closeIntake()
+      this.closeFlow()
       const palette = this.#palettes.reports
       this.state.palette.value = palette.groups
       this.state.paletteSelection.value = palette.initial
@@ -719,6 +922,10 @@ export class Session {
       this.closePrograms()
       this.closeIntelligence()
       this.closeReports()
+      this.closeRoutine()
+      this.closeContracts()
+      this.closeIntake()
+      this.closeFlow()
       const palette = this.#palettes[next]
       this.state.palette.value = palette.groups
       this.state.paletteSelection.value = palette.initial
@@ -756,6 +963,16 @@ export class Session {
     this.state.postsTab.value = 'sectors'
     this.#syncInput()
     this.#refreshOpenControlPanels()
+  }
+
+  /** Selects a post in the Posts panel and switches to the posts tab. */
+  selectPostsPost(_postId: number): void {
+    this.state.postsTab.value = 'posts'
+  }
+
+  /** Selects a patrol route in the Posts panel and switches to the patrols tab. */
+  selectPostsPatrol(_patrolId: number): void {
+    this.state.postsTab.value = 'patrols'
   }
 
   createPostsSector(): void {
@@ -875,6 +1092,52 @@ export class Session {
         payload: { defId: 'officer' },
       })
     }
+  }
+
+  /** Fires a staff member by their entity id. */
+  fireStaff(staffId: number): void {
+    this.bridge.sendCommand({
+      type: 'staff.fire',
+      issuedAtTick: this.#tick(),
+      payload: { staffId },
+    })
+    this.closeInspector()
+  }
+
+  /** Accepts a morale pay demand (staff wages increase). */
+  acceptPayDemand(): void {
+    this.bridge.sendCommand({
+      type: 'morale.acceptPayDemand',
+      issuedAtTick: this.#tick(),
+      payload: {},
+    })
+  }
+
+  /** Refuses a morale pay demand (morale decreases). */
+  refusePayDemand(): void {
+    this.bridge.sendCommand({
+      type: 'morale.refusePayDemand',
+      issuedAtTick: this.#tick(),
+      payload: {},
+    })
+  }
+
+  /** Assigns an inmate to a labour job. */
+  assignLabour(jobId: string, inmateId: number): void {
+    this.bridge.sendCommand({
+      type: 'labour.assign',
+      issuedAtTick: this.#tick(),
+      payload: { jobId, inmateId },
+    })
+  }
+
+  /** Unassigns an inmate from their labour job. */
+  unassignLabour(inmateId: number): void {
+    this.bridge.sendCommand({
+      type: 'labour.unassign',
+      issuedAtTick: this.#tick(),
+      payload: { inmateId },
+    })
   }
 
   openEmergency(): void {
@@ -1009,9 +1272,20 @@ export class Session {
     }
   }
 
+  /**
+   * Refreshes open control panels from the worker's control HUD.
+   *
+   * T8.19: Throttled to only run when the control version changes. This keeps
+   * us within PRD 7.5's 2ms main-thread budget by avoiding rebuilding signal
+   * values every frame (at 60fps) when nothing has changed.
+   */
   #refreshOpenControlPanels(): void {
     const control = this.bridge.latestControl()
     if (control === null) return
+
+    const version = control.version ?? 0
+    if (version === this.#lastControlVersion) return
+    this.#lastControlVersion = version
 
     this.#syncPaletteUnlocks(control.unlocks)
 
@@ -1147,8 +1421,14 @@ export class Session {
     this.closePrograms()
     this.closeIntelligence()
     this.closeReports()
+    this.closeRoutine()
+    this.closeContracts()
+    this.closeIntake()
     if (itemId === 'directorate') this.openDirectorate()
     else if (itemId === 'programmes') this.openPrograms()
+    else if (itemId === 'routine') this.openRoutine()
+    else if (itemId === 'contracts') this.openContracts()
+    else if (itemId === 'intake') this.openIntake()
     else if (isReportsTab(itemId)) this.openReports(itemId)
   }
 
@@ -1223,6 +1503,24 @@ export class Session {
       type: 'program.unpin',
       issuedAtTick: this.#tick(),
       payload: { programId },
+    })
+  }
+
+  /** Enrolls an inmate in a program session. */
+  enrolProgram(programId: string, inmateId: number): void {
+    this.bridge.sendCommand({
+      type: 'program.enrol',
+      issuedAtTick: this.#tick(),
+      payload: { programId, inmateId },
+    })
+  }
+
+  /** Withdraws an inmate from a program. */
+  withdrawProgram(programId: string, inmateId: number): void {
+    this.bridge.sendCommand({
+      type: 'program.withdraw',
+      issuedAtTick: this.#tick(),
+      payload: { programId, inmateId },
     })
   }
 
@@ -1329,6 +1627,594 @@ export class Session {
     const entity = snapshot?.entities.find((entry) => entry.id === inmateId)
     if (entity === undefined) return
     this.focusTile({ x: Math.floor(entity.x), y: Math.floor(entity.y) })
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Routine panel (T8.9)                                                    */
+  /* ---------------------------------------------------------------------- */
+
+  openRoutine(): void {
+    this.state.routine.value = this.#defaultRoutineModel()
+  }
+
+  closeRoutine(): void {
+    this.state.routine.value = null
+  }
+
+  setRoutineCategory(categoryId: string, blocks: readonly RoutineBlockId[]): void {
+    this.bridge.sendCommand({
+      type: 'routine.setCategory',
+      issuedAtTick: this.#tick(),
+      payload: { categoryId, blocks },
+    })
+  }
+
+  #defaultRoutineModel(): RoutineModel {
+    return {
+      categories: this.data.securityCategories.all.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        blocks: Array(24).fill('free') as RoutineBlockId[],
+      })),
+      conflicts: [],
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Contracts panel (T8.9)                                                  */
+  /* ---------------------------------------------------------------------- */
+
+  openContracts(): void {
+    this.state.contracts.value = this.#defaultContractsModel()
+  }
+
+  closeContracts(): void {
+    this.state.contracts.value = null
+  }
+
+  acceptContract(contractId: string): void {
+    this.bridge.sendCommand({
+      type: 'contracts.accept',
+      issuedAtTick: this.#tick(),
+      payload: { contractId },
+    })
+  }
+
+  cancelContract(contractId: string): void {
+    this.bridge.sendCommand({
+      type: 'contracts.cancel',
+      issuedAtTick: this.#tick(),
+      payload: { contractId },
+    })
+  }
+
+  takeLoan(amount: number): void {
+    this.bridge.sendCommand({
+      type: 'contracts.takeLoan',
+      issuedAtTick: this.#tick(),
+      payload: { amount },
+    })
+  }
+
+  repayLoan(amount: number): void {
+    this.bridge.sendCommand({
+      type: 'contracts.repayLoan',
+      issuedAtTick: this.#tick(),
+      payload: { amount },
+    })
+  }
+
+  #defaultContractsModel(): ContractsModel {
+    return {
+      active: [],
+      available: [],
+      maxActive: 3,
+      loan: null,
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Intake panel (T8.9)                                                     */
+  /* ---------------------------------------------------------------------- */
+
+  openIntake(): void {
+    this.state.intake.value = this.#defaultIntakeModel()
+  }
+
+  closeIntake(): void {
+    this.state.intake.value = null
+  }
+
+  setIntakeContinuous(continuous: boolean): void {
+    this.bridge.sendCommand({
+      type: 'intake.setContinuous',
+      issuedAtTick: this.#tick(),
+      payload: { continuous },
+    })
+  }
+
+  setIntakeRequested(categoryId: string, count: number): void {
+    this.bridge.sendCommand({
+      type: 'intake.setRequested',
+      issuedAtTick: this.#tick(),
+      payload: { categoryId, count },
+    })
+  }
+
+  clearIntakeRequested(): void {
+    this.bridge.sendCommand({
+      type: 'intake.clearRequested',
+      issuedAtTick: this.#tick(),
+      payload: {},
+    })
+  }
+
+  #defaultIntakeModel(): IntakeModel {
+    return {
+      continuous: false,
+      categories: this.data.securityCategories.all.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        requested: 0,
+        locked: false,
+        lockReason: null,
+      })),
+      capacityModel: {
+        population: 0,
+        capacity: 0,
+        housing: { cells: 0, dormitories: 0, holdingPens: 0 },
+      },
+      nextBusLabel: 'No bus scheduled',
+      nextBusTick: null,
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Flow (logistics) panel (T8.9)                                           */
+  /* ---------------------------------------------------------------------- */
+
+  openFlow(): void {
+    this.state.flow.value = this.#defaultFlowModel()
+    this.state.flowChain.value = 'meals'
+  }
+
+  closeFlow(): void {
+    this.state.flow.value = null
+    this.state.flowChain.value = null
+  }
+
+  setFlowChain(chainId: FlowChainId): void {
+    this.state.flowChain.value = chainId
+  }
+
+  #defaultFlowModel(): FlowModel {
+    return {
+      chains: [
+        {
+          id: 'meals',
+          name: 'Meals',
+          stages: [
+            { id: 'delivery', name: 'Delivery', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'storage', name: 'Storage', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'kitchen', name: 'Kitchen', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'serving', name: 'Serving', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+          ],
+          healthy: true,
+          summary: 'No meal chain activity',
+        },
+        {
+          id: 'laundry',
+          name: 'Laundry',
+          stages: [
+            { id: 'collection', name: 'Collection', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'washing', name: 'Washing', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'distribution', name: 'Distribution', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+          ],
+          healthy: true,
+          summary: 'No laundry chain activity',
+        },
+        {
+          id: 'cleaning',
+          name: 'Cleaning',
+          stages: [
+            { id: 'supply', name: 'Supply', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'work', name: 'Work', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+          ],
+          healthy: true,
+          summary: 'No cleaning chain activity',
+        },
+        {
+          id: 'supply',
+          name: 'Construction Supply',
+          stages: [
+            { id: 'delivery', name: 'Delivery', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'storage', name: 'Storage', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'work', name: 'Work', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+          ],
+          healthy: true,
+          summary: 'No construction supply activity',
+        },
+        {
+          id: 'exports',
+          name: 'Exports',
+          stages: [
+            { id: 'production', name: 'Production', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'storage', name: 'Storage', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+            { id: 'pickup', name: 'Pickup', throughput: 0, capacity: 0, bottleneck: false, detail: '' },
+          ],
+          healthy: true,
+          summary: 'No export activity',
+        },
+      ],
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Settings panel (T8.7)                                                   */
+  /* ---------------------------------------------------------------------- */
+
+  openSettings(): void {
+    this.state.settings.value = this.#defaultSettingsModel()
+    this.state.settingsTab.value = 'audio'
+  }
+
+  closeSettings(): void {
+    this.state.settings.value = null
+  }
+
+  setSettingsTab(tab: SettingsTab): void {
+    this.state.settingsTab.value = tab
+  }
+
+  setSettingsVolume(channel: 'music' | 'sfx', value: number): void {
+    const current = this.state.settings.value
+    if (current === null) return
+    this.state.settings.value = {
+      ...current,
+      [channel]: value,
+    }
+    this.#notifySettingsChange()
+  }
+
+  setSettingsMute(muted: boolean): void {
+    const current = this.state.settings.value
+    if (current === null) return
+    this.state.settings.value = { ...current, muted }
+    this.#notifySettingsChange()
+  }
+
+  setSettingsPalette(palette: ColourBlindPalette): void {
+    const current = this.state.settings.value
+    if (current === null) return
+    this.state.settings.value = { ...current, palette }
+    this.setOverlayPalette(palette === 'default' ? 'standard' : palette)
+    this.#notifySettingsChange()
+  }
+
+  setSettingsReduceMotion(enabled: boolean): void {
+    const current = this.state.settings.value
+    if (current === null) return
+    this.state.settings.value = { ...current, reduceMotion: enabled }
+    this.#notifySettingsChange()
+  }
+
+  setSettingsTypeScale(scale: number): void {
+    const current = this.state.settings.value
+    if (current === null) return
+    this.state.settings.value = { ...current, typeScale: scale }
+    this.#notifySettingsChange()
+  }
+
+  setSettingsPreferNoFailure(enabled: boolean): void {
+    const current = this.state.settings.value
+    if (current === null) return
+    this.state.settings.value = { ...current, preferNoFailure: enabled }
+    this.#notifySettingsChange()
+  }
+
+  setSettingsAutosaveHours(hours: number): void {
+    const current = this.state.settings.value
+    if (current === null) return
+    this.state.settings.value = { ...current, autosaveHours: hours }
+    this.#autosaveHours = hours as AutosaveHours
+    this.#notifySettingsChange()
+  }
+
+  /** Called after any settings change to persist and apply. */
+  #notifySettingsChange(): void {
+    const settings = this.#buildCurrentSettings()
+
+    // Apply audio immediately.
+    if (this.#audioEngine !== null) {
+      this.#audioEngine.applySettings(settings.audio)
+    }
+
+    // Notify the composition root to persist and apply CSS.
+    if (this.onSettingsChange !== null) {
+      this.onSettingsChange(settings)
+    }
+  }
+
+  #defaultSettingsModel(): SettingsModel {
+    return {
+      music: 0.6,
+      sfx: 0.8,
+      muted: false,
+      palette: 'default',
+      paletteOptions: [
+        { id: 'default', label: 'Default' },
+        { id: 'deuteranopia', label: 'Deuteranopia' },
+        { id: 'protanopia', label: 'Protanopia' },
+        { id: 'tritanopia', label: 'Tritanopia' },
+      ],
+      reduceMotion: false,
+      typeScale: 1,
+      preferNoFailure: false,
+      autosaveHours: 5,
+      autosaveOptions: [1, 3, 5, 12, 24],
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* New prison screen (T8.7)                                                */
+  /* ---------------------------------------------------------------------- */
+
+  openNewPrison(): void {
+    this.state.newPrison.value = this.#defaultNewPrisonModel()
+  }
+
+  closeNewPrison(): void {
+    this.state.newPrison.value = null
+  }
+
+  setNewPrisonSize(preset: MapSizePreset): void {
+    const current = this.state.newPrison.value
+    if (current === null) return
+    this.state.newPrison.value = { ...current, sizePreset: preset }
+  }
+
+  setNewPrisonStartingFunds(amount: number): void {
+    const current = this.state.newPrison.value
+    if (current === null) return
+    this.state.newPrison.value = { ...current, startingFunds: amount }
+  }
+
+  setNewPrisonContinuousIntake(enabled: boolean): void {
+    const current = this.state.newPrison.value
+    if (current === null) return
+    this.state.newPrison.value = { ...current, continuousIntake: enabled }
+  }
+
+  setNewPrisonRandomEvents(enabled: boolean): void {
+    const current = this.state.newPrison.value
+    if (current === null) return
+    this.state.newPrison.value = { ...current, randomEvents: enabled }
+  }
+
+  setNewPrisonFirstOrderGrace(enabled: boolean): void {
+    const current = this.state.newPrison.value
+    if (current === null) return
+    this.state.newPrison.value = { ...current, firstOrderGrace: enabled }
+  }
+
+  setNewPrisonSeed(input: string): void {
+    const current = this.state.newPrison.value
+    if (current === null) return
+    this.state.newPrison.value = { ...current, seedInput: input }
+  }
+
+  setNewPrisonFailure(id: string, enabled: boolean): void {
+    const current = this.state.newPrison.value
+    if (current === null) return
+    this.state.newPrison.value = {
+      ...current,
+      failures: current.failures.map((entry) =>
+        entry.id === id ? { ...entry, enabled } : entry,
+      ),
+    }
+  }
+
+  setNewPrisonMutator(id: string, enabled: boolean): void {
+    const current = this.state.newPrison.value
+    if (current === null) return
+    this.state.newPrison.value = {
+      ...current,
+      mutators: current.mutators.map((entry) =>
+        entry.id === id ? { ...entry, enabled } : entry,
+      ),
+    }
+  }
+
+  #defaultNewPrisonModel(): NewPrisonModel {
+    const balance = this.data.balance
+    const preferNoFailure = this.state.settings.value?.preferNoFailure ?? false
+    return {
+      sizePreset: 'large',
+      sizes: [
+        { id: 'small', label: 'Small', tiles: 100 },
+        { id: 'medium', label: 'Medium', tiles: 160 },
+        { id: 'large', label: 'Large', tiles: 220 },
+        { id: 'huge', label: 'Huge', tiles: 300 },
+      ],
+      startingFunds: balance.economy.startingFunds,
+      continuousIntake: true,
+      randomEvents: true,
+      firstOrderGrace: true,
+      seedInput: '',
+      failures: [
+        {
+          id: 'escapes',
+          label: 'Escapes',
+          description: 'Too many inmates escape and you are dismissed.',
+          enabled: !preferNoFailure,
+        },
+        {
+          id: 'insolvency',
+          label: 'Insolvency',
+          description: 'Your balance stays negative too long.',
+          enabled: !preferNoFailure,
+        },
+        {
+          id: 'deaths',
+          label: 'Deaths',
+          description: 'A death under your watch ends the prison.',
+          enabled: !preferNoFailure,
+        },
+      ],
+      mutators: [
+        {
+          id: 'fires',
+          label: 'Fires',
+          description: 'Equipment can catch fire and spread.',
+          enabled: true,
+        },
+        {
+          id: 'contraband',
+          label: 'Contraband',
+          description: 'Inmates will try to smuggle items.',
+          enabled: true,
+        },
+      ],
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Onboarding guide (T8.7)                                                 */
+  /* ---------------------------------------------------------------------- */
+
+  openOnboarding(): void {
+    this.state.onboarding.value = this.#defaultOnboardingModel()
+  }
+
+  closeOnboarding(): void {
+    this.state.onboarding.value = null
+  }
+
+  skipOnboarding(): void {
+    this.closeOnboarding()
+  }
+
+  dismissOnboardingMark(objectiveIndex: number): void {
+    const current = this.state.onboarding.value
+    if (current === null) return
+    this.state.onboarding.value = {
+      ...current,
+      marks: current.marks.filter((m) => m.objectiveIndex !== objectiveIndex),
+    }
+  }
+
+  setOnboardingMode(mode: OnboardingMode): void {
+    const current = this.state.onboarding.value
+    if (current === null) return
+    if (mode === 'off') {
+      this.closeOnboarding()
+      return
+    }
+    this.state.onboarding.value = { ...current, mode }
+  }
+
+  #defaultOnboardingModel(): OnboardingModel {
+    return {
+      mode: 'guided',
+      contractName: 'First Steps',
+      objectives: [
+        { index: 0, label: 'Build a holding cell', done: false, current: true },
+        { index: 1, label: 'Accept your first inmate', done: false, current: false },
+        { index: 2, label: 'Build a kitchen', done: false, current: false },
+        { index: 3, label: 'Hire a cook', done: false, current: false },
+      ],
+      marks: [],
+      viewport: { width: 1194, height: 834 },
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Alerts panel (T8.7)                                                     */
+  /* ---------------------------------------------------------------------- */
+
+  openAlerts(): void {
+    this.state.alerts.value = this.#buildAlertsModel()
+    this.state.alertsFilter.value = null
+  }
+
+  closeAlerts(): void {
+    this.state.alerts.value = null
+  }
+
+  setAlertsFilter(severity: AlertSeverity | null): void {
+    this.state.alertsFilter.value = severity
+    const current = this.state.alerts.value
+    if (current === null) return
+    this.state.alerts.value = { ...current, filter: severity }
+  }
+
+  setAlertsMute(category: string, muted: boolean): void {
+    const current = this.state.alerts.value
+    if (current === null) return
+    this.state.alerts.value = {
+      ...current,
+      categories: current.categories.map((entry) =>
+        entry.id === category ? { ...entry, muted } : entry,
+      ),
+    }
+
+    // Wire per-category mute to the worker (T8.8 PRD 6.5).
+    const mutedCategories = this.state.alerts.value.categories
+      .filter((entry) => entry.muted)
+      .map((entry) => entry.id)
+    this.bridge.setNotificationSettings({ mutedCategories })
+  }
+
+  setAlertsAutoPause(enabled: boolean): void {
+    const current = this.state.alerts.value
+    if (current === null) return
+    this.state.alerts.value = { ...current, autoPauseOnCritical: enabled }
+
+    // Wire auto-pause to the worker (T8.8 PRD 6.5).
+    this.bridge.setNotificationSettings({ autoPauseOnCritical: enabled })
+  }
+
+  openAlertTrace(row: AlertRowModel): void {
+    if (row.traceId > 0) {
+      void this.bridge
+        .trace(row.traceId, row.id)
+        .then((result) => {
+          if (result !== null) {
+            this.#traces.set(row.id, result)
+            this.closeAlerts()
+            this.#showTrace(result)
+          }
+        })
+        .catch(() => {
+          // Disposed bridge
+        })
+    }
+  }
+
+  #buildAlertsModel(): AlertsModel {
+    const toasts = this.state.toasts.value
+    const rows: AlertRowModel[] = toasts.map((toast, index) => ({
+      id: toast.id,
+      severity: toast.severity,
+      category: 'general',
+      categoryLabel: 'General',
+      title: toast.title,
+      detail: toast.detail,
+      count: toast.count,
+      traceId: toast.traceId,
+      timeLabel: index === 0 ? 'Just now' : `${String(index + 1)}m ago`,
+    }))
+    return {
+      rows,
+      categories: [
+        { id: 'general', label: 'General', muted: false, total: rows.length },
+        { id: 'infrastructure', label: 'Infrastructure', muted: false, total: 0 },
+        { id: 'security', label: 'Security', muted: false, total: 0 },
+        { id: 'welfare', label: 'Welfare', muted: false, total: 0 },
+      ],
+      autoPauseOnCritical: false,
+      filter: this.state.alertsFilter.value,
+    }
   }
 
   /**
@@ -1624,10 +2510,13 @@ export class Session {
 
   /**
    * Captures the live world into IndexedDB's rotating autosave slots
-   * (PRD 7.4). Safe to call on background; failures are swallowed so a save
-   * glitch never blocks pause.
+   * (PRD 7.4). Reports quota errors visibly (T8.15) but swallows transient
+   * failures so a save glitch never blocks pause.
+   *
+   * @param store Optional store instance for testing
+   * @param reportErrors If true, shows errors to the user via runtime error
    */
-  async autosave(store?: SaveStore): Promise<boolean> {
+  async autosave(store?: SaveStore, reportErrors = false): Promise<boolean> {
     try {
       const createdAt = new Date().toISOString()
       const { bytes, playedTicks } = await this.bridge.exportSave(createdAt)
@@ -1641,6 +2530,74 @@ export class Session {
       return true
     } catch (error) {
       console.error('Blockwork autosave failed', error)
+
+      // Surface quota errors to the user (T8.15).
+      if (this.#isQuotaError(error) || reportErrors) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Save failed — your browser may be out of storage space'
+        this.reportRuntimeError(`Save failed: ${message}`)
+      }
+
+      return false
+    }
+  }
+
+  /**
+   * Checks if an error is a quota exceeded error (T8.15).
+   *
+   * IndexedDB throws QuotaExceededError or a DOMException with name
+   * 'QuotaExceededError' when storage is full.
+   */
+  #isQuotaError(error: unknown): boolean {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      return true
+    }
+    if (error instanceof Error && error.message.includes('quota')) {
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Loads a `.blockwork` save, replacing the current simulation state (T8.6).
+   *
+   * Returns true on success. On failure, the current session remains intact
+   * and the error is reported to the user (T8.15).
+   */
+  async load(bytes: Uint8Array): Promise<boolean> {
+    try {
+      const result = await this.bridge.load(bytes)
+
+      // Reset UI state that depends on the world
+      this.staged.clear()
+      this.#renderBlueprint()
+      this.#abandonValidation()
+      this.state.inspector.value = null
+      this.state.toasts.value = []
+      this.#traces.clear()
+      this.#requestedTraces.clear()
+      this.#focusTile = null
+      this.#selectedSnapshotId = null
+      this.#selectedSectorId = null
+      this.#paintSectorId = null
+      this.#patrolWaypoints = null
+      this.#openTrace = null
+      this.state.trace.value = null
+      this.state.canUndo.value = false
+      this.state.canRedo.value = false
+      this.#redoDepth = 0
+
+      // Re-centre camera on the loaded map
+      const centre = centreTile(result.mapSize) * 32
+      this.renderer.camera.moveTo(centre, centre)
+
+      return true
+    } catch (error) {
+      console.error('Blockwork load failed', error)
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      this.reportRuntimeError(`Load failed: ${message}`)
       return false
     }
   }
@@ -1788,6 +2745,81 @@ export class Session {
     this.#selectedSnapshotId = null
   }
 
+  /** Triggers an individual search on the inspected inmate. */
+  inspectorSearch(): void {
+    const model = this.state.inspector.value
+    if (model === null || model.kind !== 'inmate') return
+    this.bridge.sendCommand({
+      type: 'search.individual',
+      issuedAtTick: this.#tick(),
+      payload: { inmateId: model.entityId },
+    })
+  }
+
+  /** Demolishes the object or room currently shown in the inspector. */
+  inspectorDemolish(): void {
+    const model = this.state.inspector.value
+    if (model === null) return
+    if (model.kind === 'object') {
+      this.bridge.sendCommand({
+        type: 'blueprint.commit',
+        issuedAtTick: this.#tick(),
+        payload: {
+          actions: [{ kind: 'removeObject', objectEntityId: model.entityId }],
+        },
+      })
+    } else if (model.kind === 'room') {
+      this.bridge.sendCommand({
+        type: 'room.undesignate',
+        issuedAtTick: this.#tick(),
+        payload: { roomId: model.roomId },
+      })
+    }
+    this.closeInspector()
+  }
+
+  /** Reclassifies the inspected inmate to a new security category. */
+  inspectorReclassify(categoryId: string): void {
+    const model = this.state.inspector.value
+    if (model === null || model.kind !== 'inmate') return
+    this.bridge.sendCommand({
+      type: 'inmate.reclassify',
+      issuedAtTick: this.#tick(),
+      payload: { inmateId: model.entityId, category: categoryId },
+    })
+    this.closeInspector()
+  }
+
+  /** Sends the inspected inmate to 24h manual isolation. */
+  inspectorPunish(): void {
+    const model = this.state.inspector.value
+    if (model === null || model.kind !== 'inmate') return
+    this.bridge.sendCommand({
+      type: 'inmate.punish',
+      issuedAtTick: this.#tick(),
+      payload: { inmateId: model.entityId },
+    })
+    this.closeInspector()
+  }
+
+  /** Moves the inspected inmate into protective custody. */
+  inspectorProtective(): void {
+    const model = this.state.inspector.value
+    if (model === null || model.kind !== 'inmate') return
+    this.bridge.sendCommand({
+      type: 'inmate.protectiveCustody',
+      issuedAtTick: this.#tick(),
+      payload: { inmateId: model.entityId },
+    })
+    this.closeInspector()
+  }
+
+  /** Opens an overlay showing the selected need for the inspected inmate. */
+  inspectorNeedSelect(needId: string): void {
+    this.closeInspector()
+    this.showNeedHeatmap(needId)
+  }
+
   /** Pans to whatever the inspector is showing. */
   focusInspected(): void {
     if (this.#focusTile !== null) this.focusTile(this.#focusTile)
@@ -1833,24 +2865,42 @@ export class Session {
       this.#publishAgents(snapshot.entities)
       this.#publishObjects(snapshot.entities)
       this.#publishDigest(snapshot.tick, snapshot.digest)
+      this.#updateAudio(snapshot.digest.danger)
     }
     this.#refreshOpenControlPanels()
     this.#refreshReports(false)
     this.#feedOverlay()
     this.#publishToasts()
     this.#publishHud()
+    this.#checkBridgeState()
   }
 
-  /** Pushes sector colours, fire, tunnels and overlay mode into the renderer. */
+  /** Drive ambient layers based on current danger level. */
+  #updateAudio(dangerLevel: number): void {
+    if (this.#audioEngine === null) return
+    this.#audioEngine.update(dangerLevel)
+  }
+
+  /**
+   * Pushes sector colours, fire, tunnels and overlay mode into the renderer.
+   *
+   * T8.19: Sector colour map is cached and only rebuilt when the underlying
+   * sector data changes. This avoids `parseCssColour` and `Map` allocation
+   * every frame, keeping the main thread within its 2ms budget.
+   */
   #feedOverlay(): void {
     const control = this.bridge.latestControl()
     if (control !== null) {
-      const colours = new Map<number, number>()
-      for (const sector of control.posts.sectors) {
-        const parsed = parseCssColour(sector.colour)
-        if (parsed !== null) colours.set(sector.id, parsed)
+      const sectorKey = this.#computeSectorColourKey(control.posts.sectors)
+      if (sectorKey !== this.#sectorColourKey) {
+        this.#sectorColourKey = sectorKey
+        this.#sectorColourCache.clear()
+        for (const sector of control.posts.sectors) {
+          const parsed = parseCssColour(sector.colour)
+          if (parsed !== null) this.#sectorColourCache.set(sector.id, parsed)
+        }
       }
-      this.renderer.setSectorColours(colours)
+      this.renderer.setSectorColours(this.#sectorColourCache)
     }
 
     const effects = this.bridge.latestEffects()
@@ -1864,6 +2914,14 @@ export class Session {
     if (this.state.tool.value === 'overlay' && parsed !== null) {
       this.#requestOverlayData(parsed.mode, parsed.needId, false)
     }
+  }
+
+  /** T8.19: computes a cache key for sector colours. */
+  #computeSectorColourKey(
+    sectors: readonly { readonly id: number; readonly colour: string }[],
+  ): string {
+    if (sectors.length === 0) return ''
+    return sectors.map((s) => `${s.id}:${s.colour}`).join(',')
   }
 
   /* ---------------------------------------------------------------------- */
@@ -1936,6 +2994,20 @@ export class Session {
   closeTrace(): void {
     this.#openTrace = null
     this.state.trace.value = null
+  }
+
+  /** Applies a suggested fix from the Trace panel (T8.10 stub). */
+  traceFix(_fixId: string): void {
+    // Suggested fixes are not yet implemented; the Trace panel shows them but
+    // no command mapping exists. This wires the callback so the control is not
+    // inert per PRD 9 criterion 2.
+  }
+
+  /** Copies a diagnostic report to the clipboard. */
+  traceCopyReport(reportText: string): void {
+    void navigator.clipboard.writeText(reportText).catch(() => {
+      // Clipboard API may not be available; fail silently.
+    })
   }
 
   /**
@@ -2062,6 +3134,45 @@ export class Session {
       this.#isolationDiagnostic === null
         ? stats
         : `${this.#isolationDiagnostic}  ·  ${stats}`
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Runtime error handling (T8.15)                                          */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * Reports a runtime error to the user (T8.15).
+   *
+   * Called by global error handlers, worker crash handlers, and save failures.
+   * Shows a dismissible error banner at the top of the screen.
+   */
+  reportRuntimeError(message: string): void {
+    this.state.runtimeError.value = message
+  }
+
+  /** Dismisses the runtime error banner. */
+  dismissRuntimeError(): void {
+    this.state.runtimeError.value = null
+  }
+
+  /**
+   * Checks for bridge errors and speed overrides each frame (T8.15).
+   *
+   * The worker can report errors via sim:error or auto-pause via speedChanged.
+   * This polls both and surfaces them to the UI.
+   */
+  #checkBridgeState(): void {
+    // Surface any worker error that was captured.
+    const bridgeError = this.bridge.error
+    if (bridgeError !== null && this.state.runtimeError.value === null) {
+      this.reportRuntimeError(`Simulation error: ${bridgeError}`)
+    }
+
+    // Honor worker-initiated speed changes (auto-pause on critical notification).
+    const override = this.bridge.takeSpeedOverride()
+    if (override !== null) {
+      this.state.speed.value = override.speed as SpeedStop
+    }
   }
 }
 

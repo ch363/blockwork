@@ -329,6 +329,38 @@ export function assertSaveFile(save: JsonObject): asserts save is SaveFile {
   const utilities = requireObject(save['utilities'], 'utilities')
   requireArray(utilities['cableTiles'], 'utilities.cableTiles')
   requireArray(utilities['pipeTiles'], 'utilities.pipeTiles')
+  requireArray(utilities['shedBranches'], 'utilities.shedBranches')
+  requireArray(utilities['waterMultipliers'], 'utilities.waterMultipliers')
+
+  const entityRegistry = requireObject(save['entityRegistry'], 'entityRegistry')
+  requireInteger(entityRegistry['nextInmateId'], 'entityRegistry.nextInmateId', 1, UINT32_MAX)
+  requireInteger(entityRegistry['nextStaffId'], 'entityRegistry.nextStaffId', 1, UINT32_MAX)
+  requireInteger(entityRegistry['nextObjectId'], 'entityRegistry.nextObjectId', 1, UINT32_MAX)
+  requireArray(entityRegistry['staffHireCounts'], 'entityRegistry.staffHireCounts')
+
+  requireObject(save['doors'], 'doors')
+  requireObject(save['construction'], 'construction')
+  requireObject(save['intake'], 'intake')
+  requireObject(save['cellGrades'], 'cellGrades')
+  requireInteger(save['incomeOwed'], 'incomeOwed', 0, UINT32_MAX)
+  requireArray(save['staffOnlyRoomIds'], 'staffOnlyRoomIds')
+  requireArray(save['intakeSearchedInmateIds'], 'intakeSearchedInmateIds')
+  if (typeof save['staffNeedsEnabled'] !== 'boolean') {
+    throw invalid('staffNeedsEnabled', 'a boolean', save['staffNeedsEnabled'])
+  }
+  requireObject(save['fog'], 'fog')
+  requireObject(save['offices'], 'offices')
+  requireObject(save['escorts'], 'escorts')
+  requireObject(save['jobs'], 'jobs')
+  requireObject(save['labour'], 'labour')
+  requireObject(save['morale'], 'morale')
+  requireObject(save['needsRuntime'], 'needsRuntime')
+  requireObject(save['routineRuntime'], 'routineRuntime')
+  requireObject(save['meals'], 'meals')
+  requireObject(save['supply'], 'supply')
+  requireObject(save['deliveries'], 'deliveries')
+  requireObject(save['cleaning'], 'cleaning')
+  requireObject(save['laundry'], 'laundry')
 
   requireInteger(save['dangerLevel'], 'dangerLevel', 0, 100)
   if (typeof save['riotActive'] !== 'boolean') {
@@ -481,6 +513,28 @@ export function deserialiseSave(file: SaveFile): SaveState {
     combat: file.combat,
     punishments: file.punishments,
     utilities: file.utilities,
+    entityRegistry: file.entityRegistry,
+    doors: file.doors,
+    construction: file.construction,
+    intake: file.intake,
+    cellGrades: file.cellGrades,
+    incomeOwed: file.incomeOwed,
+    staffOnlyRoomIds: file.staffOnlyRoomIds,
+    intakeSearchedInmateIds: file.intakeSearchedInmateIds,
+    staffNeedsEnabled: file.staffNeedsEnabled,
+    fog: file.fog,
+    offices: file.offices,
+    escorts: file.escorts,
+    jobs: file.jobs,
+    labour: file.labour,
+    morale: file.morale,
+    needsRuntime: file.needsRuntime,
+    routineRuntime: file.routineRuntime,
+    meals: file.meals,
+    supply: file.supply,
+    deliveries: file.deliveries,
+    cleaning: file.cleaning,
+    laundry: file.laundry,
     dangerLevel: file.dangerLevel,
     riotActive: file.riotActive,
     lockdownActive: file.lockdownActive,

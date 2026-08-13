@@ -295,6 +295,22 @@ export function createInmateRoutineState(): InmateRoutineState {
   }
 }
 
+/** Serializable per-inmate routine runtime (save v5). */
+export interface RoutineRuntimeSnapshot {
+  readonly inmates: readonly {
+    readonly inmateId: number
+    readonly blockId: string | null
+    readonly permittedRooms: readonly string[]
+    readonly preferredNeed: string | null
+    readonly goalSetId: string | null
+    readonly goalTile: number
+    readonly lockedUp: boolean
+    readonly freeChoiceNeed: string | null
+    readonly freeChoiceRoomDef: string | null
+    readonly useMinutesRemaining: number
+  }[]
+}
+
 /**
  * Per-inmate Routine / Activity runtime, keyed by inmate id.
  *
@@ -334,6 +350,48 @@ export class RoutineRuntime {
       hasher.writeString(state.freeChoiceNeed ?? '')
       hasher.writeString(state.freeChoiceRoomDef ?? '')
       hasher.writeUint32(state.useMinutesRemaining)
+    }
+  }
+
+  serialise(): RoutineRuntimeSnapshot {
+    const ids = [...this.#byInmate.keys()].sort((a, b) => a - b)
+    return {
+      inmates: ids.flatMap((inmateId) => {
+        const state = this.#byInmate.get(inmateId)
+        if (state === undefined) return []
+        return [
+          {
+            inmateId,
+            blockId: state.blockId,
+            permittedRooms: [...state.permittedRooms],
+            preferredNeed: state.preferredNeed,
+            goalSetId: state.goalSetId,
+            goalTile: state.goalTile,
+            lockedUp: state.lockedUp,
+            freeChoiceNeed: state.freeChoiceNeed,
+            freeChoiceRoomDef: state.freeChoiceRoomDef,
+            useMinutesRemaining: state.useMinutesRemaining,
+          },
+        ]
+      }),
+    }
+  }
+
+  restore(snapshot: RoutineRuntimeSnapshot): void {
+    this.#byInmate.clear()
+    for (const entry of snapshot.inmates) {
+      const state = createInmateRoutineState()
+      state.blockId =
+        entry.blockId !== null && isRoutineBlockId(entry.blockId) ? entry.blockId : null
+      state.permittedRooms = [...entry.permittedRooms]
+      state.preferredNeed = entry.preferredNeed
+      state.goalSetId = entry.goalSetId
+      state.goalTile = entry.goalTile
+      state.lockedUp = entry.lockedUp
+      state.freeChoiceNeed = entry.freeChoiceNeed
+      state.freeChoiceRoomDef = entry.freeChoiceRoomDef
+      state.useMinutesRemaining = entry.useMinutesRemaining
+      this.#byInmate.set(entry.inmateId, state)
     }
   }
 }

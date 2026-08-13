@@ -23,10 +23,15 @@ import { isSectorAccessMode } from '../../world/sectors'
 
 import {
   defaultStandingOrdersState,
+  emptyCellGradesState,
+  emptyCleaningState,
   emptyCombatState,
+  emptyConstructionState,
   emptyContrabandState,
   emptyContractState,
+  emptyDeliveriesState,
   emptyDirectorateState,
+  emptyDoorsState,
   emptyGradingState,
   emptyProgramsState,
   emptyGradesState,
@@ -35,12 +40,25 @@ import {
   emptyIntelligenceState,
   emptyEconomyState,
   emptyEmergencyState,
+  emptyEntityRegistryState,
   emptyEscapesState,
+  emptyEscortsState,
   emptyFireState,
+  emptyFogState,
+  emptyIntakeState,
+  emptyJobsState,
+  emptyLabourState,
+  emptyLaundryState,
+  emptyMealsState,
+  emptyMoraleState,
+  emptyNeedsRuntimeState,
+  emptyOfficesState,
   emptyPostsState,
   emptyPunishmentsState,
   emptyRiotState,
+  emptyRoutineRuntimeState,
   emptySectorsState,
+  emptySupplyState,
   emptyUtilitiesState,
 } from '../defaults'
 
@@ -161,7 +179,12 @@ function normaliseUtilities(value: JsonValue | undefined): JsonObject {
     Array.isArray(value['cableTiles']) &&
     Array.isArray(value['pipeTiles'])
   ) {
-    return { cableTiles: value['cableTiles'], pipeTiles: value['pipeTiles'] }
+    return {
+      cableTiles: value['cableTiles'],
+      pipeTiles: value['pipeTiles'],
+      shedBranches: Array.isArray(value['shedBranches']) ? value['shedBranches'] : [],
+      waterMultipliers: Array.isArray(value['waterMultipliers']) ? value['waterMultipliers'] : [],
+    }
   }
   return emptyUtilitiesState()
 }
@@ -285,11 +308,75 @@ const migrateV3ToV4: Migration = (save) => ({
       : emptyIntelligenceState(),
 })
 
+/**
+ * v4 to v5: live-world runtimes that `InmateWorld.hashInto` treats as
+ * authoritative. A v4 save predates these fields, so every one defaults to
+ * "nothing has happened yet" — empty labour, full morale, no logistics stock,
+ * no fog, continuous intake with no pending bus requests.
+ */
+const migrateV4ToV5: Migration = (save) => ({
+  ...save,
+  version: 5,
+  utilities: normaliseUtilities(save['utilities']),
+  entityRegistry: isJsonObject(save['entityRegistry'])
+    ? save['entityRegistry']
+    : emptyEntityRegistryState(),
+  doors: isJsonObject(save['doors']) && Array.isArray(save['doors']['doors'])
+    ? save['doors']
+    : emptyDoorsState(),
+  construction: isJsonObject(save['construction']) && Array.isArray(save['construction']['sites'])
+    ? save['construction']
+    : emptyConstructionState(),
+  intake: isJsonObject(save['intake']) ? save['intake'] : emptyIntakeState(),
+  cellGrades: isJsonObject(save['cellGrades']) && Array.isArray(save['cellGrades']['grades'])
+    ? save['cellGrades']
+    : emptyCellGradesState(),
+  incomeOwed: typeof save['incomeOwed'] === 'number' ? save['incomeOwed'] : 0,
+  staffOnlyRoomIds: Array.isArray(save['staffOnlyRoomIds']) ? save['staffOnlyRoomIds'] : [],
+  intakeSearchedInmateIds: Array.isArray(save['intakeSearchedInmateIds'])
+    ? save['intakeSearchedInmateIds']
+    : [],
+  staffNeedsEnabled: typeof save['staffNeedsEnabled'] === 'boolean' ? save['staffNeedsEnabled'] : true,
+  fog: isJsonObject(save['fog']) && Array.isArray(save['fog']['revealedTiles'])
+    ? save['fog']
+    : emptyFogState(),
+  offices: isJsonObject(save['offices']) && Array.isArray(save['offices']['claims'])
+    ? save['offices']
+    : emptyOfficesState(),
+  escorts: isJsonObject(save['escorts']) && Array.isArray(save['escorts']['jobs'])
+    ? save['escorts']
+    : emptyEscortsState(),
+  jobs: isJsonObject(save['jobs']) && Array.isArray(save['jobs']['jobs'])
+    ? save['jobs']
+    : emptyJobsState(),
+  labour: isJsonObject(save['labour']) && Array.isArray(save['labour']['assignments'])
+    ? save['labour']
+    : emptyLabourState(),
+  morale: isJsonObject(save['morale']) ? save['morale'] : emptyMoraleState(),
+  needsRuntime: isJsonObject(save['needsRuntime']) && Array.isArray(save['needsRuntime']['inmates'])
+    ? save['needsRuntime']
+    : emptyNeedsRuntimeState(),
+  routineRuntime:
+    isJsonObject(save['routineRuntime']) && Array.isArray(save['routineRuntime']['inmates'])
+      ? save['routineRuntime']
+      : emptyRoutineRuntimeState(),
+  meals: isJsonObject(save['meals']) ? save['meals'] : emptyMealsState(),
+  supply: isJsonObject(save['supply']) && Array.isArray(save['supply']['orders'])
+    ? save['supply']
+    : emptySupplyState(),
+  deliveries: isJsonObject(save['deliveries']) && Array.isArray(save['deliveries']['pending'])
+    ? save['deliveries']
+    : emptyDeliveriesState(),
+  cleaning: isJsonObject(save['cleaning']) ? save['cleaning'] : emptyCleaningState(),
+  laundry: isJsonObject(save['laundry']) ? save['laundry'] : emptyLaundryState(),
+})
+
 /** Keyed by the version each function migrates *from*. */
 export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   1: migrateV1ToV2,
   2: migrateV2ToV3,
   3: migrateV3ToV4,
+  4: migrateV4ToV5,
 }
 
 /** The version each step in the chain starts from, ascending. */

@@ -45,6 +45,7 @@ import {
 import { FlowFieldCache } from '../pathfinding/flowField'
 import { RegionGraph } from '../pathfinding/regionGraph'
 import { refreshPassabilityRect } from '../world/construction'
+import { beginPunishment } from './punishmentSystem'
 import { MaterialTable } from '../world/materials'
 import { SectorRegistry } from '../world/sectors'
 import { detectAllRooms } from '../world/roomDetection'
@@ -139,6 +140,11 @@ export interface MapRuntimeSettings {
   mutators: Record<Mutator, boolean>
   /** Random events (T6.5). */
   randomEvents: boolean
+  /**
+   * First-order material grace (T8.4). Cleared once a Store exists so real
+   * logistics takes over.
+   */
+  firstOrderGrace: boolean
 }
 
 export function createMapRuntimeSettings(): MapRuntimeSettings {
@@ -148,6 +154,7 @@ export function createMapRuntimeSettings(): MapRuntimeSettings {
     failures: config.failures,
     mutators: config.mutators,
     randomEvents: true,
+    firstOrderGrace: true,
   }
 }
 
@@ -442,6 +449,7 @@ export class InmateWorld extends ObjectWorld {
     this.sectors.hashInto(hasher)
     this.posts.hashInto(hasher)
     hasher.writeUint32(this.settings.staffNeeds ? 1 : 0)
+    hasher.writeUint32(this.settings.firstOrderGrace ? 1 : 0)
     hasher.writeUint32(this.staffOnlyRoomIds.size)
     for (const roomId of [...this.staffOnlyRoomIds].sort((a, b) => a - b)) {
       hasher.writeUint32(roomId)
@@ -812,6 +820,18 @@ export const INTAKE_COMMANDS = {
   clearRequested: 'intake.clearRequested',
 } as const
 
+export const INMATE_COMMANDS = {
+  reclassify: 'inmate.reclassify',
+  punish: 'inmate.punish',
+  protectiveCustody: 'inmate.protectiveCustody',
+  search: 'inmate.search',
+} as const
+
+export const INMATE_EVENTS = {
+  reclassified: 'inmate.reclassified',
+  rejected: 'inmate.rejected',
+} as const
+
 export function intakeCommandHandlers(data: GameData): Readonly<Record<string, CommandHandler>> {
   return {
     [INTAKE_COMMANDS.setContinuous]: (command, context) => {
@@ -822,6 +842,15 @@ export function intakeCommandHandlers(data: GameData): Readonly<Record<string, C
     },
     [INTAKE_COMMANDS.clearRequested]: (command, context) => {
       handleClearRequested(command, context)
+    },
+    [INMATE_COMMANDS.reclassify]: (command, context) => {
+      handleReclassify(command, context, data)
+    },
+    [INMATE_COMMANDS.punish]: (command, context) => {
+      handlePunish(command, context, data)
+    },
+    [INMATE_COMMANDS.protectiveCustody]: (command, context) => {
+      handleProtectiveCustody(command, context, data)
     },
   }
 }
@@ -901,4 +930,128 @@ function readNonNegativeInt(payload: JsonValue, key: string): number | undefined
   const value = payload[key]
   if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) return undefined
   return value
+}
+
+/* -------------------------------------------------------------------------- */
+/* Inmate commands (T8.10)                                                     */
+/* -------------------------------------------------------------------------- */
+
+function handleReclassify(command: Command, context: SystemContext, data: GameData): void {
+  if (!isInmateWorld(context.world)) {
+    rejectInmate(context, command, 'wrong-world')
+    return
+  }
+  const inmateId = readNonNegativeInt(command.payload, 'inmateId')
+  const category = readString(command.payload, 'category')
+  if (inmateId === undefined || category === undefined) {
+    rejectInmate(context, command, 'malformed-payload')
+    return
+  }
+  if (!data.securityCategories.has(category)) {
+    rejectInmate(context, command, 'unknown-category')
+    return
+  }
+  if (!isUnlocked(data, context.world.directorate, 'securityCategories', category)) {
+    rejectInmate(context, command, 'locked')
+    return
+  }
+  const entity = context.world.inmates.get(inmateId)
+  if (entity === undefined) {
+    rejectInmate(context, command, 'unknown-inmate')
+    return
+  }
+
+  const oldCategory = entity.inmate.category
+  if (oldCategory === category) {
+    return
+  }
+
+  entity.inmate.category = category
+
+  context.events.emit({
+    tick: context.clock.tick,
+    kind: INMATE_EVENTS.reclassified,
+    subjectId: inmateId,
+    causeIds: [],
+    data: { inmateId, oldCategory, newCategory: category, manual: true },
+  })
+}
+
+function handlePunish(command: Command, context: SystemContext, data: GameData): void {
+  if (!isInmateWorld(context.world)) {
+    rejectInmate(context, command, 'wrong-world')
+    return
+  }
+  const inmateId = readNonNegativeInt(command.payload, 'inmateId')
+  if (inmateId === undefined) {
+    rejectInmate(context, command, 'malformed-payload')
+    return
+  }
+  const entity = context.world.inmates.get(inmateId)
+  if (entity === undefined) {
+    rejectInmate(context, command, 'unknown-inmate')
+    return
+  }
+
+  const durationHours = data.balance.punishment.defaultManualIsolationHours
+
+  beginPunishment({
+    world: context.world,
+    data,
+    events: context.events,
+    tick: context.clock.tick,
+    inmateId,
+    kind: 'isolation',
+    sourceMisconduct: 'complaint',
+    durationHours,
+  })
+}
+
+function handleProtectiveCustody(command: Command, context: SystemContext, data: GameData): void {
+  if (!isInmateWorld(context.world)) {
+    rejectInmate(context, command, 'wrong-world')
+    return
+  }
+  const inmateId = readNonNegativeInt(command.payload, 'inmateId')
+  if (inmateId === undefined) {
+    rejectInmate(context, command, 'malformed-payload')
+    return
+  }
+  if (!data.securityCategories.has('protective')) {
+    rejectInmate(context, command, 'protective-not-defined')
+    return
+  }
+  if (!isUnlocked(data, context.world.directorate, 'securityCategories', 'protective')) {
+    rejectInmate(context, command, 'locked')
+    return
+  }
+  const entity = context.world.inmates.get(inmateId)
+  if (entity === undefined) {
+    rejectInmate(context, command, 'unknown-inmate')
+    return
+  }
+
+  const oldCategory = entity.inmate.category
+  if (oldCategory === 'protective') {
+    return
+  }
+
+  entity.inmate.category = 'protective'
+
+  context.events.emit({
+    tick: context.clock.tick,
+    kind: INMATE_EVENTS.reclassified,
+    subjectId: inmateId,
+    causeIds: [],
+    data: { inmateId, oldCategory, newCategory: 'protective', manual: true, protective: true },
+  })
+}
+
+function rejectInmate(context: SystemContext, command: Command, reason: string): void {
+  context.events.emit({
+    tick: context.clock.tick,
+    kind: INMATE_EVENTS.rejected,
+    causeIds: [],
+    data: { command: command.type, reason },
+  })
 }

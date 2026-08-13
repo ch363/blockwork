@@ -36,6 +36,7 @@ import {
   DEFAULT_SNAPSHOT_LIMITS,
   MAX_SAVED_LOG_ENTRIES,
   SnapshotWriter,
+  TILE_FIELDS,
   actionFromJson,
   autoRouteUtility,
   buildTrace,
@@ -45,10 +46,12 @@ import {
   encodeTilePatch,
   isInmateWorld,
   isTruncated,
+  loadFromBytes,
   loadGameData,
   nextSequence,
   notificationKindId,
   parseTraceStrings,
+  restoreInmateWorld,
   saveToBytes,
   ticksToDay,
   ticksToTimeString,
@@ -153,6 +156,8 @@ export interface SimInitMessage {
    * `sim:tiles` messages instead.
    */
   readonly gridBuffers?: TileGridBuffers
+  /** First-order material grace for a new prison (T8.4). */
+  readonly firstOrderGrace?: boolean
 }
 
 export interface SimCommandMessage {
@@ -275,6 +280,19 @@ export interface SimSaveMessage {
   readonly createdAt: string
 }
 
+/**
+ * Restores the simulation from `.blockwork` bytes (T8.6 load path).
+ *
+ * Replaces the running game with the loaded state. On success the worker
+ * replies with `sim:loaded` carrying the restored map size.
+ */
+export interface SimLoadMessage {
+  readonly type: 'sim:load'
+  readonly requestId: number
+  /** The `.blockwork` container bytes, transferred from the main thread. */
+  readonly buffer: ArrayBuffer
+}
+
 /** Requests a fresh authoritative data texture for one PRD 6.4 overlay. */
 export interface SimOverlayMessage {
   readonly type: 'sim:overlay'
@@ -303,6 +321,7 @@ export type SimWorkerInbound =
   | SimReportsRequestMessage
   | SimNotificationSettingsMessage
   | SimSaveMessage
+  | SimLoadMessage
 
 export interface SimReadyMessage {
   readonly type: 'sim:ready'
@@ -525,6 +544,8 @@ export interface SimEffectsMessage {
 
 /** Panel summaries transferred with each snapshot (T4.1 / T4.3 / T4.6 / T5.x). */
 export interface ControlHudPayload {
+  /** T8.19: Monotonic version so main thread can skip unchanged refreshes. */
+  readonly version: number
   readonly posts: PostsModel
   readonly emergency: EmergencyModel
   readonly standingOrders: StandingOrdersModel
@@ -553,6 +574,15 @@ export interface SimSavedMessage {
   readonly playedTicks: number
 }
 
+export interface SimLoadedMessage {
+  readonly type: 'sim:loaded'
+  readonly requestId: number
+  readonly mapSize: number
+  readonly playedTicks: number
+  /** Material ids in table order, for the renderer's palette. */
+  readonly materialIds: readonly string[]
+}
+
 export interface SimOverlayResultMessage {
   readonly type: 'sim:overlayed'
   readonly requestId: number
@@ -579,6 +609,7 @@ export type SimWorkerOutbound =
   | SimReportsResultMessage
   | SimAutoRoutedMessage
   | SimSavedMessage
+  | SimLoadedMessage
   | SimSpeedChangedMessage
   | SimErrorMessage
 
@@ -791,6 +822,10 @@ export interface SimWorkerLoopOptions {
   readonly workforce?: Workforce
   readonly collectEntities?: EntityCollector
   readonly buildDigest?: DigestBuilder
+  /** First-order material grace for a new prison (T8.4). */
+  readonly firstOrderGrace?: boolean
+  /** When false, skip the opening dock / crew (load path). Default true. */
+  readonly applyOpening?: boolean
 }
 
 /**
@@ -824,6 +859,8 @@ export class SimWorkerLoop {
   #accumulatedMs = 0
   #lastNow: number | null = null
   #sequence = 0
+  /** T8.19: monotonic version for main-thread panel-refresh throttling. */
+  #controlVersion = 0
   /** Reused every frame: the encoder reads it synchronously and keeps nothing. */
   readonly #entities: SnapshotEntity[] = []
 
@@ -841,6 +878,10 @@ export class SimWorkerLoop {
       events: this.#relay,
       ...(options.gridBuffers === undefined ? {} : { buffers: options.gridBuffers }),
       ...(options.workforce === undefined ? {} : { workforce: options.workforce }),
+      ...(options.firstOrderGrace === undefined
+        ? {}
+        : { firstOrderGrace: options.firstOrderGrace }),
+      ...(options.applyOpening === undefined ? {} : { applyOpening: options.applyOpening }),
     })
     this.simulation = this.game.simulation
     this.world = this.game.world
@@ -1323,7 +1364,9 @@ export class SimWorkerLoop {
 
   /** Posts / Emergency / Standing Orders summaries for open panels. */
   #publishControl(): void {
-    const control = buildControlHud(this.world, this.game.data, this.simulation.clock, null)
+    this.#controlVersion += 1
+    const hud = buildControlHud(this.world, this.game.data, this.simulation.clock, null)
+    const control: ControlHudPayload = { version: this.#controlVersion, ...hud }
     this.#post({ type: 'sim:control', control }, [])
   }
 
@@ -1648,6 +1691,9 @@ export function startSimWorker(
             ...(message.chunkVersionBuffer === undefined
               ? {}
               : { chunkVersionBuffer: message.chunkVersionBuffer }),
+            ...(message.firstOrderGrace === undefined
+              ? {}
+              : { firstOrderGrace: message.firstOrderGrace }),
             ...(overrides.collectEntities === undefined
               ? {}
               : { collectEntities: overrides.collectEntities }),
@@ -1762,6 +1808,61 @@ export function startSimWorker(
             .catch((error: unknown) => {
               fail(error)
             })
+          break
+        }
+
+        case 'sim:load': {
+          if (loop === null) {
+            fail(new Error('cannot load before sim:init'))
+            break
+          }
+          void (async () => {
+            try {
+              const bytes = new Uint8Array(message.buffer)
+              const state = await loadFromBytes(bytes)
+
+              const buffers: Partial<Record<(typeof TILE_FIELDS)[number], ArrayBufferLike>> = {}
+              for (const field of TILE_FIELDS) {
+                buffers[field] = state.grid.array(field).buffer
+              }
+              const gridBuffers = buffers as TileGridBuffers
+
+              const oldLoop = loop
+              loop = new SimWorkerLoop({
+                seed: state.seed,
+                mapSize: state.grid.size,
+                limits: oldLoop.limits,
+                speed: oldLoop.speed,
+                post: (outbound, transfer) => {
+                  scope.postMessage(outbound, transfer)
+                },
+                gridBuffers,
+                applyOpening: false,
+                ...(overrides.collectEntities === undefined
+                  ? {}
+                  : { collectEntities: overrides.collectEntities }),
+                ...(overrides.buildDigest === undefined ? {} : { buildDigest: overrides.buildDigest }),
+              })
+
+              restoreInmateWorld(loop.world, state, loop.game.data)
+              loop.simulation.rng.restore(state.rngState)
+              loop.world.grid.markAllDirty()
+              loop.publish()
+
+              scope.postMessage(
+                {
+                  type: 'sim:loaded',
+                  requestId: message.requestId,
+                  mapSize: state.grid.size,
+                  playedTicks: state.playedTicks,
+                  materialIds: loop.materialIds,
+                },
+                [],
+              )
+            } catch (error) {
+              fail(error)
+            }
+          })()
           break
         }
 
