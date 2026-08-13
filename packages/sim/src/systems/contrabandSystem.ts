@@ -245,10 +245,7 @@ export function grantItem(options: {
   const stashChance = world.data.balance.contraband.stashInCellChance
   const cell = world.rooms.get(entity.inmate.cellId)
   const canStash =
-    options.preferStash &&
-    cell !== undefined &&
-    cell.tiles.length > 0 &&
-    rng.next() < stashChance
+    options.preferStash && cell !== undefined && cell.tiles.length > 0 && rng.next() < stashChance
 
   if (canStash && cell !== undefined) {
     const tile = cell.tiles[rng.nextInt(0, cell.tiles.length)]
@@ -292,17 +289,11 @@ export function grantItem(options: {
 /* Room theft                                                                  */
 /* -------------------------------------------------------------------------- */
 
-export function itemsSourcedFromRoom(
-  data: GameData,
-  roomDefId: string,
-): readonly ContrabandDef[] {
+export function itemsSourcedFromRoom(data: GameData, roomDefId: string): readonly ContrabandDef[] {
   return data.contraband.all.filter((item) => item.sourceRooms.includes(roomDefId))
 }
 
-export function itemsCraftableInRoom(
-  data: GameData,
-  roomDefId: string,
-): readonly ContrabandDef[] {
+export function itemsCraftableInRoom(data: GameData, roomDefId: string): readonly ContrabandDef[] {
   return data.contraband.all.filter((item) => item.craftableIn.includes(roomDefId))
 }
 
@@ -365,10 +356,7 @@ export function attemptRoomTheft(options: {
 /* Visit smuggling                                                             */
 /* -------------------------------------------------------------------------- */
 
-export function visitSmuggleChance(
-  world: InmateWorld,
-  room: Room,
-): number {
+export function visitSmuggleChance(world: InmateWorld, room: Room): number {
   const balance = world.data.balance.contraband
   const tables = world.objects.objectCount(room.id, VISIT_TABLE)
   const booths = world.objects.objectCount(room.id, VISIT_BOOTH)
@@ -479,8 +467,7 @@ export function arrangeThrowIn(options: {
       : pool[rng.nextInt(0, pool.length)]
   if (item === undefined) return undefined
 
-  const tile =
-    options.tileIndex !== undefined ? options.tileIndex : findPerimeterTile(world, rng)
+  const tile = options.tileIndex !== undefined ? options.tileIndex : findPerimeterTile(world, rng)
   if (tile === undefined) return undefined
 
   const delayMin = balance.throwInDelayMinutes.min
@@ -580,10 +567,7 @@ export interface DemandSupply {
 }
 
 /** Counts carried + stashed items (supply) and unmet category demand. */
-export function measureMarket(
-  world: InmateWorld,
-  itemId: string,
-): DemandSupply {
+export function measureMarket(world: InmateWorld, itemId: string): DemandSupply {
   let supply = 0
   let demand = 0
   for (const entity of world.inmates.all()) {
@@ -600,11 +584,7 @@ export function measureMarket(
   return { demand, supply }
 }
 
-export function inmateWantsItem(
-  data: GameData,
-  entity: InmateEntity,
-  itemId: string,
-): boolean {
+export function inmateWantsItem(data: GameData, entity: InmateEntity, itemId: string): boolean {
   const def = data.contraband.find(itemId)
   if (def === undefined) return false
   if (entity.inmate.traits.includes('hoarder')) return true
@@ -633,11 +613,7 @@ export function inmateWantsItem(
   return false
 }
 
-export function inmateSellsItem(
-  data: GameData,
-  entity: InmateEntity,
-  itemId: string,
-): boolean {
+export function inmateSellsItem(data: GameData, entity: InmateEntity, itemId: string): boolean {
   if (entity.inmate.traits.includes('hoarder')) return false
   if (entity.inmate.traits.includes('dealer')) return true
   return !inmateWantsItem(data, entity, itemId)

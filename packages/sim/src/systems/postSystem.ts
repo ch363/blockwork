@@ -450,11 +450,7 @@ function hashWindows(hasher: Fnv1aHasher, windows: readonly HourRange[]): void {
  * same world always produces the same stations, which is what makes the
  * assignment reproducible.
  */
-export function stationTilesFor(
-  world: InmateWorld,
-  data: GameData,
-  post: Post,
-): number[] {
+export function stationTilesFor(world: InmateWorld, data: GameData, post: Post): number[] {
   const spacing = data.balance.posts.stationSpacingTiles
   const candidates = postAreaTiles(world, post)
   const chosen: number[] = []
@@ -486,9 +482,7 @@ export function postAreaTiles(world: InmateWorld, post: Post): number[] {
   }
 
   if (post.sectorId !== NO_SECTOR) {
-    return world.sectors
-      .tilesOf(post.sectorId)
-      .filter((tile) => isStaffStandable(world, tile))
+    return world.sectors.tilesOf(post.sectorId).filter((tile) => isStaffStandable(world, tile))
   }
 
   return []
@@ -536,11 +530,7 @@ interface Assignable {
  * and breaks are real work and outrank standing still; idle and wander are
  * not, so a wandering officer is fair game.
  */
-export function isDeployable(
-  world: InmateWorld,
-  data: GameData,
-  staff: StaffEntity,
-): boolean {
+export function isDeployable(world: InmateWorld, data: GameData, staff: StaffEntity): boolean {
   if (staff.staff.pinnedTile !== NO_PIN) return false
   if (!isStaffAvailableForWork(world, data, staff)) return false
   const kind = staff.staff.duty.kind
@@ -586,26 +576,15 @@ export function assignPosts(
   }
 
   for (const route of world.posts.routes()) {
-    solve(
-      world,
-      data,
-      events,
-      tick,
-      hour,
-      roster,
-      claimed,
-      route,
-      route.waypoints,
-      (staff) => {
-        if (route.waypoints.length === 0) return false
-        staff.staff.duty = {
-          kind: 'patrol',
-          routeId: route.id,
-          waypointIndex: nearestWaypointIndex(world, route.waypoints, staff),
-        }
-        return true
-      },
-    )
+    solve(world, data, events, tick, hour, roster, claimed, route, route.waypoints, (staff) => {
+      if (route.waypoints.length === 0) return false
+      staff.staff.duty = {
+        kind: 'patrol',
+        routeId: route.id,
+        waypointIndex: nearestWaypointIndex(world, route.waypoints, staff),
+      }
+      return true
+    })
   }
 }
 
@@ -707,11 +686,7 @@ function nearestAnchorDistance(
  * the door and sector permissions, so "no permitted route exists" and "the
  * post is unreachable" are the same question.
  */
-function canReachAny(
-  world: InmateWorld,
-  staff: StaffEntity,
-  anchors: readonly number[],
-): boolean {
+function canReachAny(world: InmateWorld, staff: StaffEntity, anchors: readonly number[]): boolean {
   if (anchors.length === 0) return false
   const from = staff.ty * world.grid.size + staff.tx
   for (const tile of anchors) {
@@ -1267,4 +1242,3 @@ function readWindows(payload: JsonValue): readonly HourRange[] | undefined {
   }
   return out
 }
-

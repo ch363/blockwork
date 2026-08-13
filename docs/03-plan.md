@@ -1202,6 +1202,484 @@ Feature freeze. Full device matrix pass. Five external playtest sessions of 60 m
 
 ---
 
+## Phase 8 - Remediation and release
+
+**Goal:** close the gap between a finished simulation and a finished game.
+
+Phases 0 to 5 shipped. `packages/sim` holds 40 registered systems in PRD 4.4 order with 928 test cases and no violations of the hard rules. Phase 6 landed T6.1 to T6.5 and T6.7. What did not happen is the wiring: the composition root never connected large parts of the finished simulation to the finished interface, and three shipped tickets carry silent correctness holes that no test could see.
+
+Each ticket below names the ticket it repairs. Ticket IDs remain stable - these are new IDs, not renumbered old ones.
+
+**Exit criteria:** every system in PRD 5 is reachable through the interface, every `warn` or above notification produces a correct Trace, a save round-trips to an identical world hash, and the build installs on an iPad.
+
+---
+
+### T8.0 - Baseline and plan record
+
+**Goal:** a clean rollback point and a plan document that describes the remaining work.
+
+**Depends on:** nothing
+
+**Files:** `docs/03-plan.md`, `.claude/launch.json`
+
+**Spec:**
+- Branch off `main` and commit the in-flight Phase 6 work as one commit.
+- Append this Phase 8 section.
+- Remove the `security-check-web` launch configuration, which points at a directory that does not exist in this repository.
+
+**Acceptance:** `pnpm typecheck && pnpm lint && pnpm test && pnpm build` pass on the new branch.
+
+**Tests:** none - this ticket writes no product code.
+
+---
+
+### T8.1 - Money moves on build, demolish and hire
+
+**Goal:** stop the player building and hiring for free.
+
+**Depends on:** T8.0. **Repairs:** T1.5, T3.6
+
+**Files:** `packages/sim/src/core/blueprint.ts`, `packages/sim/src/systems/staffSystem.ts`, `packages/sim/src/entities/economy.ts`
+
+**Spec:**
+- `LEDGER_CATEGORIES` declares `construction`, `construction_refund` and `hire`. Nothing posts to any of them. Committing a priced blueprint leaves the balance untouched, as does hiring.
+- `projectRun` already computes `cost` and `refund` correctly. Post them through the existing `EconomyLedger.debit` / `.credit` at commit and at undo/demolish.
+- Refuse a commit the balance cannot cover, the way `directorateSystem` and `programSystem` already refuse, and emit a CausalEvent carrying the shortfall.
+- Debit the hire fee from `staff.json` under the `hire` category.
+
+**Acceptance:**
+- Committing a blueprint reduces the balance by exactly the figure the blueprint bar showed.
+- An unaffordable commit is refused and traceable.
+- Demolishing refunds `materialRefundOnDemolish` of the value.
+- Hiring debits; the insolvency path is now reachable by overbuilding.
+
+**Tests:** ledger entry sum equals balance across a build, demolish and hire sequence; unaffordable commit is rejected with the expected event; refund arithmetic matches `balance.json`.
+
+---
+
+### T8.2 - Objects render
+
+**Goal:** make placed furniture visible.
+
+**Depends on:** T8.0. **Repairs:** T1.6
+
+**Files:** `packages/app/src/game/session.ts`, `packages/render/src/layers/objects.ts`
+
+**Spec:** `ObjectLayer` is complete - y-sorting, frustum culling, chunk-local sort - and `setObjects()` has no caller anywhere in `packages/app`. `session.ts` exports `NO_RENDER_OBJECTS`, a permanently empty array, described in its own comment as a placeholder. Delete it and feed the layer from the snapshot's object entities on the frame loop, beside the existing agent feed.
+
+**Acceptance:** an object placed through the build tools appears in the world view and sorts correctly against agents and walls.
+
+**Tests:** a render test asserting a placed object reaches the layer's sprite pool and is culled when off-camera.
+
+---
+
+### T8.3 - Real construction workforce
+
+**Goal:** delete the last Phase 1 stub.
+
+**Depends on:** T8.2. **Repairs:** T1.2
+
+**Files:** `packages/app/src/game/session.ts`, `packages/app/src/worker/simWorker.ts`, `packages/sim/src/systems/constructionSystem.ts`
+
+**Spec:** `STUB_BUILDERS = 1` feeds a `builders` field on `sim:init` whose own doc comment says "Phase 2 brings agents and this goes away". Phase 2 shipped. Drive `constructionSystem`'s `Workforce` from real staff through the job system and remove the field from the message protocol.
+
+**Acceptance:** construction rate scales with the number of workers actually on site; no site progresses with nobody assigned.
+
+**Tests:** construction progress is zero with no workforce, and proportional to headcount with one.
+
+---
+
+### T8.4 - A new prison is startable
+
+**Goal:** a player can build the first thing.
+
+**Depends on:** T8.3
+
+**Files:** `packages/sim/src/core/mapSettings.ts`, `packages/app/src/game/session.ts`
+
+**Spec:** `balance.json` sets `stubMaterialDelivery: false`, so every construction site blocks on `materials` until the dock to store to site chain runs. A fresh map has no dock, no store and no guidance, so the first foundation never gets built. Define the opening state through `mapSettings`: a starting delivery zone and material stockpile, or an explicit first-order grace path. Whichever is chosen must be data-driven and must appear in the New Prison panel.
+
+**Acceptance:** from a brand-new prison, following only the Guided Contract, a player reaches a functioning holding cell without outside knowledge.
+
+**Tests:** a headless test that starts a default map, issues the Guided Contract's build sequence, and asserts a functional cell within the expected tick budget.
+
+---
+
+### T8.5 - The save format covers the whole world
+
+**Goal:** a save that actually contains the game.
+
+**Depends on:** T8.0. **Repairs:** T0.6
+
+**Files:** `packages/sim/src/save/{format,fromWorld,toWorld,state}.ts`, `packages/sim/src/save/migrations/index.ts`
+
+**Spec:**
+- `SaveFile` omits state that `InmateWorld.hashInto` treats as authoritative: `labour`, `morale`, `jobs`, `meals`, `supply`, `deliveries`, `cleaning`, `laundry`, `needsRuntime`, `routineRuntime`, `escorts`, `offices`, `fog`, the `intake` policy, `cellGrades`, undrained income and the staff-only room sets. `LabourRuntime.serialise()/restore()` and `MoraleState.snapshot()` already exist and are never called.
+- `toWorld` hardcodes `convictions: []`, `reputations: []`, `addictions: []`, `jobId: null` and `misconductLog: []`, so a load erases every inmate's history - the same history that drives security grade, parole, reoffend chance and combat.
+- `SerialisedEntity` is `{ id, kind }` plus an index signature, so the omissions are structurally legal and invisible to the type checker. Give it real fields.
+- Bump `CURRENT_SAVE_VERSION` to 5 with a migration step. Never break a save silently.
+
+**Acceptance:** a world saved after N ticks and reloaded produces an identical `world.hashInto` digest.
+
+**Tests:** the live-world round-trip test. `hashSaveState` only hashes what `SaveState` already declares, so it is self-consistent by construction and cannot catch this; the assertion must be against `world.hashInto`. A v4 save must migrate and load.
+
+---
+
+### T8.6 - Load path and pause menu
+
+**Goal:** a player can reach their own saves.
+
+**Depends on:** T8.5. **Repairs:** T0.6
+
+**Files:** `packages/app/src/game/session.ts`, `packages/app/src/worker/{bridge,simWorker}.ts`, `packages/ui/src/panels/`, `packages/app/src/App.tsx`
+
+**Spec:** `SaveStore` rotates five autosave slots and `save/file.ts` exports and imports `.blockwork` files. Neither can be read back: there is no `Session.load`, no `SaveStore.get` call and no interface route. Add `Session.load(bytes)` and a `sim:load` worker message, then build the pause menu behind the existing dead `onMenu` prop: Resume, Save, Load listing the store's descriptors, Export and Import, Settings, New Prison, Quit.
+
+**Acceptance:** save mid-game, reload the page, restore, and the prison is identical.
+
+**Tests:** panel test for the menu; an integration test round-tripping through `SaveStore`.
+
+---
+
+### T8.7 - Mount the finished panels
+
+**Goal:** four built panels reach the screen.
+
+**Depends on:** T8.6. **Repairs:** T6.3, T6.4, T6.5
+
+**Files:** `packages/ui/src/GameShell.tsx`, `packages/app/src/App.tsx`
+
+**Spec:** `Settings`, `NewPrison`, `Onboarding` and `Alerts` are written, styled in `shellCss.ts`, exported from the barrel and tested - and never rendered. Mount them and wire their callbacks. This also kills the dead Alerts and Menu buttons in the permanently visible top bar.
+
+**Acceptance:** every top-bar and dock control opens something.
+
+**Tests:** extend the shell test to assert each panel mounts and closes.
+
+---
+
+### T8.8 - Wire the orphaned app modules
+
+**Goal:** settings, audio, onboarding and notification policy take effect.
+
+**Depends on:** T8.7. **Repairs:** T6.3, T6.4, T6.5, T6.7
+
+**Files:** `packages/app/src/game/{appSettings,audio,webAudioBackend,onboarding,traceInbox}.ts`, `packages/app/src/game/session.ts`, `packages/app/src/main.tsx`
+
+**Spec:**
+- `appSettings.ts` is complete and imported by nothing. Apply `settingsCssVariables()` to the document, route the colour-blind palette through the existing `session.setOverlayPalette`, honour reduce motion and the 130% type scale, and act on `autosaveHours` - there is currently no timed autosave at all, only one on `visibilitychange`.
+- `audio.ts` and `webAudioBackend.ts` are complete and imported by nothing; no `AudioContext` is ever created and the game is silent.
+- `onboarding.ts` holds the whole Guided Contract state machine and is imported by nothing.
+- `bridge.setNotificationSettings()` has no caller, so the Alerts panel's per-category mute and auto-pause never reach the worker that implements them.
+- `traceInbox.ts` duplicates logic `session.ts` reimplements inline. Keep one.
+
+**Acceptance:** changing any setting changes the running game; the game makes sound; a new player sees the Guided Contract; muting a category silences it.
+
+**Tests:** settings application, autosave scheduling, notification settings reaching the worker.
+
+---
+
+### T8.9 - The four missing panels
+
+**Goal:** finish PRD 6.2.
+
+**Depends on:** T8.7
+
+**Files:** `packages/ui/src/panels/{Routine,Contracts,Intake,Flow}.tsx`, `packages/ui/src/index.ts`, `packages/app/src/game/{session,palette}.ts`
+
+**Spec:** four panels PRD 6.2 requires were never built, and their simulation commands are consequently unreachable.
+- **Routine editor** - 24-hour strip per category, drag to paint blocks, conflict strip below, per-category tabs. Sends `routine.setCategory`.
+- **Contracts** - active cards with checklists and progress, available list, loan controls. Sends `contracts.accept` and `contracts.cancel`.
+- **Intake** - requested counts per category, continuous toggle, capacity readout, next bus ETA. Sends `intake.setRequested`, `setContinuous` and `clearRequested`.
+- **Flow (logistics)** - chain diagram for meals, laundry, cleaning, construction supply and exports, throughput at each stage, bottleneck highlighted. Remove `'flow'` from `UNBUILT_TOOLS`.
+
+Follow the established pattern: presentational only, props in and callbacks out, `role="dialog"` with a label, empty and blocked states.
+
+**Acceptance:** each panel opens from the dock and its commands reach the simulation.
+
+**Tests:** one panel test each, in the style of `reports.test.tsx`.
+
+---
+
+### T8.10 - Inspector actions and the remaining commands
+
+**Goal:** close the last reachability gaps against PRD 9 criterion 2.
+
+**Depends on:** T8.9
+
+**Files:** `packages/app/src/App.tsx`, `packages/app/src/game/session.ts`, `packages/sim/src/systems/{misconductSystem,punishmentSystem}.ts`
+
+**Spec:**
+- The app never passes `onInspectorSearch`, `onInspectorDemolish`, `onInspectorReclassify`, `onInspectorPunish`, `onInspectorProtective`, `onInspectorNeedSelect`, `onTraceFix`, `onTraceCopyReport`, `onPostsSelectPost` or `onPostsSelectPatrol`. The panels guard them correctly with `disabled`, so the whole inmate action row and both Trace affordances render greyed out rather than broken. Pass them.
+- Search and demolish map to commands that exist. **Reclassify, manual punish and protective custody have no simulation command at all** - add them with CausalEvents, per PRD 6.2 and PRD 5.5's editable category.
+- Also wire `program.enrol` and `withdraw`, `labour.assign` and `unassign`, `staff.fire`, and `morale.acceptPayDemand` and `refusePayDemand`.
+
+**Acceptance:** no rendered control in the shipping app is inert. Every command handler registered in `core/game.ts` has a route from the interface.
+
+**Tests:** a test that enumerates registered command handlers and asserts each has a caller in `packages/app`.
+
+---
+
+### T8.11 - Redo
+
+**Goal:** finish the undo/redo pair PRD 3.3 requires.
+
+**Depends on:** T8.1. **Repairs:** T1.5
+
+**Files:** `packages/sim/src/core/undo.ts`, `packages/app/src/App.tsx`
+
+**Spec:** `onRedo` is an empty body, masked by a hardcoded `canRedo={false}`, so the button renders permanently disabled. Implement redo over the existing `CommitLedger`.
+
+**Acceptance:** undo then redo restores the world to its pre-undo hash, including the money movements from T8.1.
+
+**Tests:** build, undo, redo, assert hash equality and ledger balance.
+
+---
+
+### T8.12 - Every failure gets a Trace
+
+**Goal:** satisfy hard rule 5.
+
+**Depends on:** T8.0
+
+**Files:** `packages/sim/src/trace/causalEvent.ts`, `packages/data/traceStrings.json`, `packages/sim/src/systems/gradesSystem.ts`
+
+**Spec:** `TRACE_KINDS` and `traceStrings.json` are exactly in sync at 52 entries, but these emitted failures have no catalogue entry, so the Trace panel cannot reconstruct their chain:
+
+`economy.insolvencyStarted`, `insolvencyFailed`, `insolvencyCancelled`, `release.recidivismWarning`, `recidivismFailure` - **two of the seven PRD 5.15 failure conditions** - plus `pathing.unreachable`, `construction.blocked`, `supply.noDock`, `supply.noStore`, `objects.unsupplied`, `intake.noHousing`, `program.blocked`, `program.droppedOut`, `punishment.isolationOverflow`, `job.abandoned`, `intelligence.blown`, `meal.missed` and `staffNeeds.breakAbandoned`.
+
+Separately, `GRADES_EVENTS.recomputed` is declared and never emitted, so a grade change - which gates parole - is invisible.
+
+**Acceptance:** every emitted `warn` or `critical` kind resolves to trace copy with a suggested fix.
+
+**Tests:** extend the existing kind-coverage test to fail when any emitted kind lacks a catalogue entry, so this cannot regress.
+
+---
+
+### T8.13 - Balance numbers out of code
+
+**Goal:** satisfy hard rule 4.
+
+**Depends on:** T8.0
+
+**Files:** `packages/sim/src/entities/{standingOrders,combat}.ts`, `packages/sim/src/systems/logistics/supply.ts`, `packages/data/balance.json`, `packages/sim/src/data/schemas.ts`
+
+**Spec:**
+- `standingOrders.ts` hardcodes player-facing punishment durations (6/4/8/12/24/36 hours), `mealVariety` and the default punishment mapping. `balance.json` already has `misconduct` and `punishment` sections to hold them.
+- `supply.ts` hardcodes carry priorities and batch size; `balance.json` already has a `jobs` section.
+- `combat.ts` carries a `STUB_MELEE_DAMAGE` constant by that name.
+
+**Acceptance:** no balance number is defined in a system or entity module.
+
+**Tests:** schema tests for the new sections; existing system tests pass against data-sourced values.
+
+---
+
+### T8.14 - Dead code and duplicate state
+
+**Goal:** remove the traps.
+
+**Depends on:** T8.0
+
+**Files:** `packages/sim/src/entities/{securityState,inmate}.ts`, `packages/app/src/game/session.ts`, `packages/app/src/save/index.ts`
+
+**Spec:**
+- `securityState.ts` keeps a `staffHealth` map documented as a stub "until T4.5 owns health components". T4.5 shipped as `entities/health.ts`, so staff HP has two sources of truth.
+- `inmate.ts` types `programEnrolment` as the literal `null`, permanently; real enrolment lives in `ProgramRuntime`.
+- `session.ts` has an `if` block whose body is only comments, including an unresolved design debate.
+- `packages/app/src/save/index.ts` is a barrel nothing imports.
+
+**Acceptance:** one source of truth for staff health; no dead conditional; no unreferenced module.
+
+**Tests:** existing suites pass; add a staff-health test asserting the single source.
+
+---
+
+### T8.15 - Runtime error handling
+
+**Goal:** fail visibly instead of silently.
+
+**Depends on:** T8.7
+
+**Files:** `packages/ui/src/`, `packages/app/src/{main.tsx,App.tsx}`, `packages/app/src/worker/bridge.ts`, `packages/app/src/game/session.ts`
+
+**Spec:** the boot-error fallback in `main.tsx` is well built and is the only error handling in the app. After boot there is nothing: no error boundary, so a render throw in any panel blanks the whole app including the canvas; no `window.onerror`; no `unhandledrejection`; no worker `onerror` or `onmessageerror`. `bridge.#error` captures `sim:error` and nothing reads it, so a worker crash is swallowed. `takeSpeedOverride()` has no caller, so a worker-initiated auto-pause leaves the speed control showing a stale value. Save failures log to console and return `false` with no user-visible feedback.
+
+**Acceptance:** a panel throw is contained and reported; a worker crash surfaces; a failed save tells the player; an IndexedDB quota error is handled.
+
+**Tests:** error boundary containment; `sim:error` surfacing; save-failure feedback.
+
+---
+
+### T8.16 - Production cross-origin isolation
+
+**Goal:** ship the fast transport.
+
+**Depends on:** T8.0
+
+**Files:** `packages/app/vite.config.ts`, deployment configuration
+
+**Spec:** COOP and COEP headers are set on the dev server only, so any deployed build silently falls back from the `SharedArrayBuffer` transport to `postMessage`. The fallback is correct but it is a real performance cliff and nothing warns about it.
+
+**Acceptance:** a production build is cross-origin isolated; when it is not, the app says so.
+
+**Tests:** a test asserting the transport choice and that the diagnostic fires when isolation is absent.
+
+---
+
+### T8.17 - Modal focus management
+
+**Goal:** finish the keyboard and VoiceOver story.
+
+**Depends on:** T8.9
+
+**Files:** `packages/ui/src/panels/`, `packages/ui/src/theme/shellCss.ts`
+
+**Spec:** ARIA coverage is already strong - 44pt hit targets enforced and tested, an accessible-name audit that fails the build, correct `meter`, `tablist` and `radiogroup` roles, and colour never used as the sole channel. What is missing is a focus trap and focus restoration in every `role="dialog"` panel, and `:focus-visible` styling.
+
+**Acceptance:** Tab cannot escape an open modal; closing it restores focus to the control that opened it; focus is always visible.
+
+**Tests:** extend `accessibility.test.tsx` with trap and restoration cases.
+
+---
+
+### T8.18 - Scenario runner and the named scenarios
+
+**Goal:** build the highest-value test asset in PRD 8.
+
+**Depends on:** T8.6, T8.10. **Implements:** T7.1
+
+**Files:** `tools/scenario/`
+
+**Spec:** a headless scenario runner beside `tools/replay` and `tools/balance`, then the ten scenarios listed in T7.1, each asserting both the outcome and the expected Trace chain.
+
+**Acceptance:** all ten pass in CI.
+
+**Tests:** the scenarios are the tests.
+
+---
+
+### T8.19 - Performance gate and hotspots
+
+**Goal:** meet PRD 7.5 and keep meeting it.
+
+**Depends on:** T8.18. **Implements:** T6.9
+
+**Files:** `tools/scenario/`, `.github/workflows/ci.yml`, `packages/app/src/game/session.ts`, `packages/render/src/layers/agents.ts`
+
+**Spec:** a headless 400-agent, 1000-tick test that fails the build on a mean step-time regression over 10% from a recorded baseline. Then fix the top three hotspots. Two are known: `session.ts`'s frame callback refreshes control panels, reports, the overlay, toasts and the HUD **every frame** against a 2ms main-thread budget, rebuilding a sector-colour map as it goes; and the agent layer allocates five Pixi sprites per agent, 2000 at the target headcount, with no pool ceiling.
+
+**Acceptance:** every budget in PRD 7.5 is met on the baseline device.
+
+**Tests:** the CI gate itself.
+
+---
+
+### T8.20 - Test gaps and coverage floor
+
+**Goal:** stop trusting untested code.
+
+**Depends on:** T8.0
+
+**Files:** `packages/sim/test/`, `vitest.config.ts`
+
+**Spec:** `roomSystem.ts` has zero tests and is not imported by any test file, despite existing specifically to fix a silent room-staleness bug. `inmateAgents.ts` has none. `logistics/deliveries.ts` has no direct truck-schedule test though `batchOrdersIntoTrucks` and `nextTruckTick` are pure. `traceBuilder.ts`'s depth-8 DAG walk is untested by name. Coverage is collectable and not enforced.
+
+**Acceptance:** every system module has a dedicated test file; a coverage threshold fails CI when breached.
+
+**Tests:** as described.
+
+---
+
+### T8.21 - Capacitor packaging and device QA
+
+**Goal:** produce an app rather than a web bundle.
+
+**Depends on:** T8.15, T8.16. **Implements:** T6.8
+
+**Files:** `capacitor.config.ts`, `ios/`, `package.json`
+
+**Spec:** no Capacitor project exists - no config, no `ios/`, no `@capacitor/*` dependency - despite iPadOS being the stated ship target, and `pnpm build` produces only a web bundle. Build the Capacitor 6 iPadOS project with app icons, launch screen, landscape orientation lock with the PRD 6.1 portrait rail, safe-area handling, background and foreground autosave, and memory-warning handling. Add a `build:ios` script.
+
+**Acceptance:** the app installs and runs on the PRD 2.2 device matrix, including Apple Silicon Macs via Designed for iPad.
+
+**Tests:** manual device matrix; a smoke test that the iOS build command completes.
+
+---
+
+### T8.22 - Art pass
+
+**Goal:** replace the placeholders without introducing a single binary asset.
+
+**Depends on:** T8.2. **Implements:** T6.6, adapted
+
+**Files:** `packages/render/src/sprites/`, `packages/render/src/layers/`
+
+**Spec:** every atlas is generated at runtime and there are no image files in the repository at all, which is why hard rule 1 is trivially safe. Keep that and do a real design pass against PRD 7.7: per-object silhouettes replacing the six shared placeholder footprints and the hash-derived colours, the full 47-tile wall autotile set through the existing `autotile.ts`, a proper hinged door sweep in place of the stand-in, four-direction four-frame agent animation with the category tint on the uniform layer, and the floor material set. `sprites/palette.ts` already encodes the PRD 7.7 swatches. Remove every `PLACEHOLDER_*` table.
+
+**Acceptance:** at default zoom a player can identify category, activity and mood at a glance. No `PLACEHOLDER_` identifier remains.
+
+**Tests:** atlas generation determinism; autotile mask coverage across all 47 cases.
+
+---
+
+### T8.23 - Effects layer
+
+**Goal:** the sixth render layer.
+
+**Depends on:** T8.22. **Implements:** PRD 7.6 layer 6
+
+**Files:** `packages/render/src/layers/effects.ts`, `packages/render/src/app.ts`
+
+**Spec:** selection rings, path debug and notification pins. The renderer's own comment defers this layer to a later ticket; this is that ticket.
+
+**Acceptance:** selecting an entity rings it; a notification pins to its subject.
+
+**Tests:** layer test for ring placement and pin lifecycle.
+
+---
+
+### T8.24 - Balance pass
+
+**Goal:** numbers that produce a game.
+
+**Depends on:** T8.18. **Implements:** T7.2
+
+**Files:** `packages/data/*.json`
+
+**Spec:** **every content entry in the repository carries `_tuning: true`** - all 93 objects, 35 contraband items, 32 rooms, 22 staff roles, 19 needs, 10 contracts, 70 inmate entries and 32 of 38 balance sections. The loader deliberately surfaces the flag so a tuning pass can find them; no such pass has run. Sweep with `tools/balance` until a competent player is profitable by day 10, a neglectful player riots by day 20, and re-offending spans roughly 20% to 70% by play style. Clear each flag as its section is fixed. Expand `contracts.json`: 10 entries against a 3-concurrent cap means one playthrough sees almost the whole pool.
+
+**Acceptance:** the three curves hold across the scenario suite. No `_tuning` flag remains.
+
+**Tests:** scenario assertions on the three curves.
+
+---
+
+### T8.25 - Accessibility audit
+
+**Goal:** verify PRD 7.9 on hardware.
+
+**Depends on:** T8.17, T8.21. **Implements:** T6.10
+
+**Spec:** the mechanisms exist and become reachable once T8.8 lands. Verify with VoiceOver on device, at 130% dynamic type, under each colour-blind palette, and with Reduce Motion on.
+
+**Acceptance:** every PRD 7.9 requirement verified on device with notes.
+
+**Tests:** verification, not construction; record findings as tickets.
+
+---
+
+### T8.26 - Release candidate
+
+**Goal:** ship.
+
+**Depends on:** every preceding Phase 8 ticket. **Implements:** T7.3
+
+**Spec:** feature freeze, full device matrix pass, five 60-minute external playtest sessions with observation notes, blockers only.
+
+**Acceptance:** all seven PRD 9 success criteria demonstrably met.
+
+---
+
 ## Dependency graph summary
 
 ```
@@ -1224,6 +1702,18 @@ Phase 5: T5.1 -> T5.3 -> T5.4
          T5.7 (needs T5.1, T3.2)
 Phase 6: all tickets independent, T6.9 last
 Phase 7: after Phase 6
+Phase 8: T8.0 -> T8.1 -> T8.11
+                T8.2 -> T8.3 -> T8.4
+                T8.5 -> T8.6 -> T8.7 -> T8.8
+                                T8.7 -> T8.9 -> T8.10
+                                T8.7 -> T8.15 -> T8.21
+                                T8.9 -> T8.17
+         T8.12, T8.13, T8.14, T8.16, T8.20 independent of the chain
+         T8.6 + T8.10 -> T8.18 -> T8.19
+                         T8.18 -> T8.24
+         T8.2 -> T8.22 -> T8.23
+         T8.17 + T8.21 -> T8.25
+         everything -> T8.26
 ```
 
 ## Rough sizing
@@ -1238,6 +1728,9 @@ Phase 7: after Phase 6
 | 5 Depth | 7 | 12 to 18 |
 | 6 Polish | 10 | 14 to 20 |
 | 7 Release | 3 | 6 to 10 |
-| **Total** | **57** | **94 to 134** |
+| 8 Remediation | 27 | 34 to 46 |
+| **Total** | **84** | **128 to 180** |
 
 Assume roughly 1.5 agent sessions per ticket on average, with the pathfinding, contraband and grading tickets being the most likely to need a second pass.
+
+Phase 8 tickets run smaller than the average because most of them connect code that already exists and already has tests. The exceptions are T8.5 (save coverage), T8.9 (four new panels), T8.18 (scenario runner), T8.21 (Capacitor) and T8.22 (art), which are full-sized.

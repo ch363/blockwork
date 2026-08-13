@@ -161,10 +161,7 @@ describe('the idle gate (PRD 3.8)', () => {
 
   it('offers nothing once every objective is met', () => {
     const guide = new Onboarding('guided', 0)
-    guide.update(
-      objectivesFromContract({ ...CONTRACT, itemPassed: [true, true, true] }),
-      0,
-    )
+    guide.update(objectivesFromContract({ ...CONTRACT, itemPassed: [true, true, true] }), 0)
     const state = guide.state(COACH_MARK_IDLE_MS * 10)
     expect(state.currentIndex).toBeNull()
     expect(state.marks).toHaveLength(0)

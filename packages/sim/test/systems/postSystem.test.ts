@@ -51,7 +51,13 @@ function putFloorRect(world: InmateWorld, rect: Rect): number[] {
   return tiles
 }
 
-function hireOfficers(world: InmateWorld, events: RecordingSink, count: number, tx: number, ty: number): void {
+function hireOfficers(
+  world: InmateWorld,
+  events: RecordingSink,
+  count: number,
+  tx: number,
+  ty: number,
+): void {
   for (let i = 0; i < count; i += 1) {
     hireStaff({
       world,
@@ -225,9 +231,11 @@ describe('post satisfaction algorithm (T4.1)', () => {
         if (onEdge) {
           const index = world.grid.idx(x, y)
           world.grid.setAt('wallMaterial', index, world.materials.indexOf('brick_wall'))
-          world.grid.setAt('floorMaterial', index, world.materials.indexOf(
-            world.data.balance.construction.foundationFloorMaterial,
-          ))
+          world.grid.setAt(
+            'floorMaterial',
+            index,
+            world.materials.indexOf(world.data.balance.construction.foundationFloorMaterial),
+          )
           world.grid.setAt('outdoors', index, 0)
           refreshPassability(world, world.data, index)
         }
@@ -239,9 +247,11 @@ describe('post satisfaction algorithm (T4.1)', () => {
         if (onEdge) {
           const index = world.grid.idx(x, y)
           world.grid.setAt('wallMaterial', index, world.materials.indexOf('brick_wall'))
-          world.grid.setAt('floorMaterial', index, world.materials.indexOf(
-            world.data.balance.construction.foundationFloorMaterial,
-          ))
+          world.grid.setAt(
+            'floorMaterial',
+            index,
+            world.materials.indexOf(world.data.balance.construction.foundationFloorMaterial),
+          )
           world.grid.setAt('outdoors', index, 0)
           refreshPassability(world, world.data, index)
         }

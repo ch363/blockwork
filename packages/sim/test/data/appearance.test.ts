@@ -54,7 +54,9 @@ describe('object appearances (PRD 7.7)', () => {
 
   it('uses every silhouette class', () => {
     const shapes = new Set(
-      DATA.objects.all.flatMap((def) => (def.appearance?.shape === undefined ? [] : [def.appearance.shape])),
+      DATA.objects.all.flatMap((def) =>
+        def.appearance?.shape === undefined ? [] : [def.appearance.shape],
+      ),
     )
     expect([...shapes].sort()).toEqual([...OBJECT_SHAPES].sort())
   })

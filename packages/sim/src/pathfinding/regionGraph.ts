@@ -101,10 +101,7 @@ export function inmateAccessMask(data: GameData, categoryId: string): number {
 }
 
 /** The union of several categories' bits, for a sector restriction. */
-export function categoriesAccessMask(
-  data: GameData,
-  categoryIds: Iterable<string>,
-): number {
+export function categoriesAccessMask(data: GameData, categoryIds: Iterable<string>): number {
   let mask = 0
   for (const categoryId of categoryIds) mask |= categoryAccessBit(data, categoryId)
   return mask
@@ -660,9 +657,7 @@ export class RegionGraph {
     for (const edge of existing) {
       const list = this.#edges.get(edge.from)
       if (list === undefined) continue
-      const next = list.filter(
-        (entry) => !(entry.doorTile === doorTile && entry.to === edge.to),
-      )
+      const next = list.filter((entry) => !(entry.doorTile === doorTile && entry.to === edge.to))
       if (next.length === 0) this.#edges.delete(edge.from)
       else this.#edges.set(edge.from, next)
     }
@@ -694,8 +689,7 @@ export class RegionGraph {
     const neighbours = this.#adjacentRegions(grid, doorTile)
     if (neighbours.length < 2) return false
 
-    const doorMask =
-      accessMaskForDoor(def, door.locked) & sectorMaskAt(grid, sectors, doorTile)
+    const doorMask = accessMaskForDoor(def, door.locked) & sectorMaskAt(grid, sectors, doorTile)
     const written: RegionEdge[] = []
 
     for (let i = 0; i < neighbours.length; i += 1) {

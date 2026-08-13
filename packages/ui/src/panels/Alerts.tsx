@@ -144,10 +144,7 @@ export function Alerts({
                     onClick={() => onOpenTrace?.(row)}
                   >
                     <span class="ico">
-                      <Icon
-                        name={row.severity === 'critical' ? 'warning' : 'alerts'}
-                        size={16}
-                      />
+                      <Icon name={row.severity === 'critical' ? 'warning' : 'alerts'} size={16} />
                     </span>
                     <span class="txt">
                       <b>
@@ -185,10 +182,7 @@ export function Alerts({
                         checked={category.muted}
                         aria-label={`Mute ${category.label}`}
                         onChange={(event) =>
-                          onMute?.(
-                            category.id,
-                            (event.currentTarget as HTMLInputElement).checked,
-                          )
+                          onMute?.(category.id, (event.currentTarget as HTMLInputElement).checked)
                         }
                       />
                       <span>{category.label}</span>

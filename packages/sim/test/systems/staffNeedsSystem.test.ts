@@ -128,12 +128,7 @@ function makeWorld(size = 40): { world: InmateWorld; events: RecordingSink } {
   return { world, events }
 }
 
-function hireOfficer(
-  world: InmateWorld,
-  events: RecordingSink,
-  tx = 5,
-  ty = 5,
-): number {
+function hireOfficer(world: InmateWorld, events: RecordingSink, tx = 5, ty = 5): number {
   const result = hireStaff({
     world,
     defId: 'officer',
@@ -159,12 +154,7 @@ function buildBreakRoom(world: InmateWorld, events: RecordingSink, rect: Rect): 
   putRoomShell(world, rect)
   const interior = interiorOf(rect)
   designateRoom(roomDeps(world, events), interior, 'break_room')
-  const couch = placeObject(
-    objectDeps(world, events),
-    { x: interior.x, y: interior.y },
-    'couch',
-    0,
-  )
+  const couch = placeObject(objectDeps(world, events), { x: interior.x, y: interior.y }, 'couch', 0)
   const toilet = placeObject(
     objectDeps(world, events),
     { x: interior.x, y: interior.y + 1 },
@@ -185,22 +175,14 @@ function buildMessHall(world: InmateWorld, events: RecordingSink, rect: Rect): n
   putRoomShell(world, rect)
   const interior = interiorOf(rect)
   designateRoom(roomDeps(world, events), interior, 'mess_hall')
-  placeObject(
-    objectDeps(world, events),
-    { x: interior.x, y: interior.y },
-    'serving_counter',
-    0,
-  )
+  placeObject(objectDeps(world, events), { x: interior.x, y: interior.y }, 'serving_counter', 0)
   placeObject(objectDeps(world, events), { x: interior.x + 1, y: interior.y }, 'bench', 0)
   const room = [...world.rooms.all()].find((entry) => entry.defId === 'mess_hall')
   if (room === undefined) throw new Error('mess hall was not detected')
   return room.id
 }
 
-function runMinutes(
-  sim: Simulation,
-  minutes: number,
-): void {
+function runMinutes(sim: Simulation, minutes: number): void {
   for (let i = 0; i < minutes * TICKS_PER_MINUTE; i += 1) {
     sim.step()
   }
@@ -460,9 +442,7 @@ describe('strike lifecycle', () => {
     const events = new RecordingSink()
     const rng = new Rng(SEED).stream('morale')
 
-    expect(
-      state.maybeBeginStrike(0, 9, MORALE, rng, events),
-    ).toBe(true)
+    expect(state.maybeBeginStrike(0, 9, MORALE, rng, events)).toBe(true)
     expect(state.striking).toBe(true)
     expect(events.of(MORALE_EVENTS.strikeStarted)).toHaveLength(1)
     expect(events.of(MORALE_EVENTS.payDemand)).toHaveLength(1)
@@ -498,7 +478,9 @@ describe('strike lifecycle', () => {
     expect(events.of(MORALE_EVENTS.payDemandRefused)).toHaveLength(1)
 
     state.maybeEndStrike(MORALE.strikeHours * TICKS_PER_HOUR, MORALE, events)
-    state.tickCooldown(MORALE.strikeHours * TICKS_PER_HOUR + MORALE.strikeCooldownHours * TICKS_PER_HOUR)
+    state.tickCooldown(
+      MORALE.strikeHours * TICKS_PER_HOUR + MORALE.strikeCooldownHours * TICKS_PER_HOUR,
+    )
 
     // With refuse escalation the chance is high enough that a fresh stream
     // almost always retriggers within a modest number of rolls.

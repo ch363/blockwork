@@ -584,7 +584,6 @@ function checkBalance(
     )
   }
 
-  
   const staffTargetEmergency: Target = { file: 'staff', has: (id) => r.staff.has(id) }
   issues.ref(
     'balance',

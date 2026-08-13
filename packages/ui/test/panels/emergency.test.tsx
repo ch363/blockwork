@@ -105,8 +105,8 @@ describe('Emergency panel', () => {
       const squad = [...host.querySelectorAll('button')].find((b) =>
         (b.textContent ?? '').includes('Call squad'),
       )
-      expect(squad).toBeDefined()
-      squad!.click()
+      if (squad === undefined) throw new Error('Expected a "Call squad" button in the ladder.')
+      squad.click()
       expect(called).toEqual(['squad'])
     } finally {
       unmount(host)

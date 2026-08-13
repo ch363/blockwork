@@ -15,7 +15,6 @@ function toggleCheckbox(input: HTMLInputElement | null | undefined, checked: boo
   input.dispatchEvent(new Event('change', { bubbles: true }))
 }
 
-
 function row(patch: Partial<AlertRowModel> & { readonly id: number }): AlertRowModel {
   return {
     severity: 'warn',

@@ -24,7 +24,6 @@ function setInputValue(input: HTMLInputElement | null | undefined, value: string
   input.dispatchEvent(new Event('input', { bubbles: true }))
 }
 
-
 function toggles(ids: readonly string[], enabled: boolean): ToggleModel[] {
   return ids.map((id) => ({
     id,

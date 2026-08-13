@@ -94,11 +94,7 @@ export class PunishmentRuntime {
    * Accrues confinement time toward the next whole suppression point.
    * `minutesPerPoint` is the PRD cadence (30 lockdown / 15 isolation).
    */
-  accrueConfinementSuppression(
-    inmateId: number,
-    minutesPerPoint: number,
-    minutes: number,
-  ): number {
+  accrueConfinementSuppression(inmateId: number, minutesPerPoint: number, minutes: number): number {
     if (minutesPerPoint <= 0 || minutes <= 0) return 0
     const next = (this.#confinementMinutes.get(inmateId) ?? 0) + minutes
     const whole = Math.floor(next / minutesPerPoint)

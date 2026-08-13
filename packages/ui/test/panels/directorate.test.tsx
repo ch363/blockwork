@@ -15,7 +15,9 @@ import {
 import type { DirectorateModel, DirectorateNodeModel } from '../../src/panels/Directorate'
 import { mountShell, unmount } from '../helpers/mount'
 
-function node(patch: Partial<DirectorateNodeModel> & { readonly id: string }): DirectorateNodeModel {
+function node(
+  patch: Partial<DirectorateNodeModel> & { readonly id: string },
+): DirectorateNodeModel {
   return {
     name: patch.id,
     branch: 'root',

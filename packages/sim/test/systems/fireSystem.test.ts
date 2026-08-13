@@ -31,6 +31,7 @@ import type { Rect } from '../../src/world/construction'
 import { initialLockState } from '../../src/world/doors'
 import { designateRoom } from '../../src/world/roomDetection'
 import type { RoomDeps } from '../../src/world/roomDetection'
+import { definedOrThrow } from '../support/defined'
 
 const RAW_DATA = loadGameData()
 const DATA = {
@@ -187,12 +188,16 @@ describe('spread rates per material', () => {
     const timber = scenario()
     const shell = { x: 2, y: 2, width: 8, height: 8 }
     putRoomShell(timber.world, shell, 'timber_board')
-    designateRoom(roomDeps(timber.world, timber.events), {
-      x: 3,
-      y: 3,
-      width: 6,
-      height: 6,
-    }, 'dormitory')
+    designateRoom(
+      roomDeps(timber.world, timber.events),
+      {
+        x: 3,
+        y: 3,
+        width: 6,
+        height: 6,
+      },
+      'dormitory',
+    )
 
     const origin = timber.world.grid.idx(5, 5)
     expect(tileFlammability(timber.world, origin, DATA)).toBeGreaterThan(0.5)
@@ -210,12 +215,16 @@ describe('spread rates per material', () => {
 
     const concrete = scenario()
     putRoomShell(concrete.world, shell, 'concrete_floor')
-    designateRoom(roomDeps(concrete.world, concrete.events), {
-      x: 3,
-      y: 3,
-      width: 6,
-      height: 6,
-    }, 'dormitory')
+    designateRoom(
+      roomDeps(concrete.world, concrete.events),
+      {
+        x: 3,
+        y: 3,
+        width: 6,
+        height: 6,
+      },
+      'dormitory',
+    )
     const cold = concrete.world.grid.idx(5, 5)
     expect(tileFlammability(concrete.world, cold, DATA)).toBe(0)
     const lit = igniteTile({
@@ -234,16 +243,18 @@ describe('spread rates per material', () => {
   it('destroys a wooden-floored dormitory when unanswered', () => {
     const run = scenario()
     putRoomShell(run.world, { x: 2, y: 2, width: 8, height: 8 }, 'timber_board')
-    designateRoom(roomDeps(run.world, run.events), {
-      x: 3,
-      y: 3,
-      width: 6,
-      height: 6,
-    }, 'dormitory')
+    designateRoom(
+      roomDeps(run.world, run.events),
+      {
+        x: 3,
+        y: 3,
+        width: 6,
+        height: 6,
+      },
+      'dormitory',
+    )
     const bed = placeObject(objectDeps(run.world, run.events), { x: 4, y: 4 }, 'bed')
-    expect(bed).toBeDefined()
-    // Placement succeeded above.
-    const bedEntity = bed!
+    const bedEntity = definedOrThrow(bed, 'bed')
 
     igniteTile({
       world: run.world,
@@ -266,15 +277,18 @@ describe('damage application', () => {
   it('damages agents and objects on burning tiles', () => {
     const run = scenario()
     putRoomShell(run.world, { x: 2, y: 2, width: 6, height: 6 }, 'timber_board')
-    designateRoom(roomDeps(run.world, run.events), {
-      x: 3,
-      y: 3,
-      width: 4,
-      height: 4,
-    }, 'dormitory')
+    designateRoom(
+      roomDeps(run.world, run.events),
+      {
+        x: 3,
+        y: 3,
+        width: 4,
+        height: 4,
+      },
+      'dormitory',
+    )
     const bed = placeObject(objectDeps(run.world, run.events), { x: 4, y: 4 }, 'bed')
-    expect(bed).toBeDefined()
-    const bedEntity = bed!
+    const bedEntity = definedOrThrow(bed, 'bed')
     const inmate = placeInmate(run.world, 4, 4)
     const healthBefore = inmate.inmate.health
     const hpBefore = bedEntity.object.hp
@@ -318,18 +332,20 @@ describe('sprinkler coverage', () => {
   it('contains a fire without firefighter intervention', () => {
     const run = scenario()
     putRoomShell(run.world, { x: 2, y: 2, width: 8, height: 8 }, 'timber_board')
-    designateRoom(roomDeps(run.world, run.events), {
-      x: 3,
-      y: 3,
-      width: 6,
-      height: 6,
-    }, 'dormitory')
+    designateRoom(
+      roomDeps(run.world, run.events),
+      {
+        x: 3,
+        y: 3,
+        width: 6,
+        height: 6,
+      },
+      'dormitory',
+    )
     const bed = placeObject(objectDeps(run.world, run.events), { x: 5, y: 5 }, 'bed')
-    expect(bed).toBeDefined()
-    const bedEntity = bed!
+    const bedEntity = definedOrThrow(bed, 'bed')
     const sprinkler = placeObject(objectDeps(run.world, run.events), { x: 5, y: 4 }, 'sprinkler')
-    expect(sprinkler).toBeDefined()
-    expect(sprinkler!.object.hasWater).toBe(true)
+    expect(definedOrThrow(sprinkler, 'sprinkler').object.hasWater).toBe(true)
 
     igniteTile({
       world: run.world,
@@ -345,9 +361,9 @@ describe('sprinkler coverage', () => {
     expect(run.events.of(FIRE_EVENTS.sprinklerActive).length).toBeGreaterThan(0)
     expect(run.world.objects.get(bedEntity.id)).toBeDefined()
     expect(countBurning(run.world)).toBe(0)
-    expect(run.events.of(FIRE_EVENTS.extinguished).some((e) => eventFieldIs(e, 'reason', 'sprinkler'))).toBe(
-      true,
-    )
+    expect(
+      run.events.of(FIRE_EVENTS.extinguished).some((e) => eventFieldIs(e, 'reason', 'sprinkler')),
+    ).toBe(true)
   })
 })
 
@@ -355,12 +371,16 @@ describe('firefighter behaviour', () => {
   it('summons callable firefighters who hose down a blaze', () => {
     const run = scenario()
     putRoomShell(run.world, { x: 2, y: 2, width: 8, height: 8 }, 'timber_board')
-    designateRoom(roomDeps(run.world, run.events), {
-      x: 3,
-      y: 3,
-      width: 6,
-      height: 6,
-    }, 'dormitory')
+    designateRoom(
+      roomDeps(run.world, run.events),
+      {
+        x: 3,
+        y: 3,
+        width: 6,
+        height: 6,
+      },
+      'dormitory',
+    )
     const origin = run.world.grid.idx(5, 5)
     igniteTile({
       world: run.world,
@@ -409,7 +429,9 @@ describe('ignition sources', () => {
     })
     step(sim, 10_000)
 
-    expect(events.of(FIRE_EVENTS.ignited).some((e) => eventFieldIs(e, 'source', 'lighter'))).toBe(true)
+    expect(events.of(FIRE_EVENTS.ignited).some((e) => eventFieldIs(e, 'source', 'lighter'))).toBe(
+      true,
+    )
   })
 
   it('can ignite from an overloaded electrical branch', () => {
@@ -421,8 +443,8 @@ describe('ignition sources', () => {
 
     step(run.sim, 8_000)
 
-    expect(run.events.of(FIRE_EVENTS.ignited).some((e) => eventFieldIs(e, 'source', 'electrical'))).toBe(
-      true,
-    )
+    expect(
+      run.events.of(FIRE_EVENTS.ignited).some((e) => eventFieldIs(e, 'source', 'electrical')),
+    ).toBe(true)
   })
 })

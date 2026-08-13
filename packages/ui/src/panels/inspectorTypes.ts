@@ -11,12 +11,7 @@ import type { NeedRowModel } from '../controls/NeedRow'
 
 /** Security-category token name (`cat-max`, …) for the avatar stripe. */
 export type CategoryToken =
-  | 'cat-min'
-  | 'cat-med'
-  | 'cat-max'
-  | 'cat-supermax'
-  | 'cat-protective'
-  | 'cat-condemned'
+  'cat-min' | 'cat-med' | 'cat-max' | 'cat-supermax' | 'cat-protective' | 'cat-condemned'
 
 export type InspectorNeed = NeedRowModel
 

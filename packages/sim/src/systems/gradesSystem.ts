@@ -179,7 +179,7 @@ export function reformGrade(
   const earned =
     options.programsCompleted * balance.perProgramCompleted +
     options.sessionsPassed * balance.perSessionPassed +
-    (options.labourHours / balance.labourHoursPerPoint)
+    options.labourHours / balance.labourHoursPerPoint
   const lost = options.suppressionExposure * balance.suppressionPenaltyPerPoint
   return clamp100(earned - lost)
 }

@@ -110,7 +110,11 @@ function heading(model: InspectorModel): {
   }
 }
 
-function TileBody({ model }: { readonly model: Extract<InspectorModel, { kind: 'tile' }> }): JSX.Element {
+function TileBody({
+  model,
+}: {
+  readonly model: Extract<InspectorModel, { kind: 'tile' }>
+}): JSX.Element {
   return (
     <div class="bw-insp-body">
       <div class="bw-block">
@@ -207,7 +211,11 @@ export function Inspector({
 
           {showGenericFoot && (
             <div class="bw-insp-foot">
-              <Button onClick={onFocus} disabled={onFocus === undefined} ariaLabel="Centre on selection">
+              <Button
+                onClick={onFocus}
+                disabled={onFocus === undefined}
+                ariaLabel="Centre on selection"
+              >
                 <Icon name="search" size={16} />
                 Centre
               </Button>

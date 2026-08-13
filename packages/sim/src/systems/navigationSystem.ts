@@ -14,11 +14,7 @@
 import type { System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
 import { NO_OBJECT } from '../entities/objects'
-import {
-  FLOW_DIR,
-  FLOW_STEP,
-  type FlowField,
-} from '../pathfinding/flowField'
+import { FLOW_DIR, FLOW_STEP, type FlowField } from '../pathfinding/flowField'
 import { isInmateEscorted } from './inmateAgents'
 import { isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
@@ -157,7 +153,16 @@ function applyRoutineGoals(world: InmateWorld, data: GameData): void {
 }
 
 function applyFlowStep(
-  entity: { tx: number; ty: number; goalTile: number; path: number[] | null; pathIndex: number; awaitingPath: boolean; dx: number; dy: number },
+  entity: {
+    tx: number
+    ty: number
+    goalTile: number
+    path: number[] | null
+    pathIndex: number
+    awaitingPath: boolean
+    dx: number
+    dy: number
+  },
   field: FlowField,
   size: number,
 ): void {

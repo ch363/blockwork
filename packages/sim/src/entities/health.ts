@@ -402,7 +402,9 @@ export class CorpseRegistry {
       hasher.writeUint32(corpse.tileIndex)
       hasher.writeUint32(corpse.diedAtTick)
       hasher.writeString(corpse.state)
-      hasher.writeUint32(corpse.hearseAtTick === Number.MAX_SAFE_INTEGER ? 0xffffffff : corpse.hearseAtTick)
+      hasher.writeUint32(
+        corpse.hearseAtTick === Number.MAX_SAFE_INTEGER ? 0xffffffff : corpse.hearseAtTick,
+      )
       hasher.writeUint32(corpse.mortuaryJobId)
     }
   }

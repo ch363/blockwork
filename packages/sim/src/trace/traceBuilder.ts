@@ -9,7 +9,13 @@
 import { z } from 'zod'
 
 import type { JsonObject, JsonValue } from '../core/commands'
-import { TICKS_PER_DAY, TICKS_PER_HOUR, TICKS_PER_MINUTE, ticksToDay, ticksToTimeString } from '../core/clock'
+import {
+  TICKS_PER_DAY,
+  TICKS_PER_HOUR,
+  TICKS_PER_MINUTE,
+  ticksToDay,
+  ticksToTimeString,
+} from '../core/clock'
 
 import {
   REGISTERED_TRACE_KINDS,
@@ -228,10 +234,7 @@ function collectFixes(events: readonly CausalEvent[]): readonly SuggestedFix[] {
   return out
 }
 
-function resolveStrings(
-  event: CausalEvent,
-  catalogue: TraceStringCatalogue,
-): TraceKindStrings {
+function resolveStrings(event: CausalEvent, catalogue: TraceStringCatalogue): TraceKindStrings {
   const entry = catalogue.get(event.kind)
   if (entry === undefined) {
     throw new TraceBuildError(`no trace string for event kind '${event.kind}'`)

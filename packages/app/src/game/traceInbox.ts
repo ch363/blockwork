@@ -12,12 +12,10 @@
  * exactly as long as its toast is on screen — are rules worth a test.
  */
 
-import type { NotificationSeverity, SnapshotNotification } from '@blockwork/sim'
+import type { NotificationSeverity, SnapshotNotification, Tile } from '@blockwork/sim'
 import { NOTIFICATION_SEVERITY } from '@blockwork/sim'
 import type { ToastModel, ToastSeverity, TraceModel, TraceNodeModel } from '@blockwork/ui'
 import { traceModelFromView } from '@blockwork/ui'
-
-import type { Tile } from '@blockwork/sim'
 
 import type { TraceResult } from '../worker/simWorker'
 

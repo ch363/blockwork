@@ -155,9 +155,7 @@ function asBoolean(value: unknown, fallback: boolean): boolean {
  * scale of zero rather than a flag, because every animation in the sheet is
  * already `var(--dur) * something`.
  */
-export function settingsCssVariables(
-  settings: AppSettings,
-): Readonly<Record<string, string>> {
+export function settingsCssVariables(settings: AppSettings): Readonly<Record<string, string>> {
   return {
     '--type-scale': settings.accessibility.typeScale.toFixed(2),
     '--motion-scale': settings.accessibility.reduceMotion ? '0' : '1',

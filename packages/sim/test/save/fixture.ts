@@ -148,9 +148,7 @@ export function makeSaveState(options: FixtureOptions = {}): SaveState {
     },
     directorate: {
       completed: ['security_office', 'welfare'],
-      active: [
-        { nodeId: 'surveillance', startedTick: 120, elapsedTicks: 600, pausedReason: null },
-      ],
+      active: [{ nodeId: 'surveillance', startedTick: 120, elapsedTicks: 600, pausedReason: null }],
     },
     grading: {
       roomGrades: [{ roomId: 1, score: 4 }],
@@ -232,7 +230,11 @@ export function makeSaveState(options: FixtureOptions = {}): SaveState {
     },
     routines: {
       medium: Array.from({ length: 24 }, (_unused, hour) =>
-        hour < 6 || hour >= 22 ? 'sleep' : hour === 8 || hour === 12 || hour === 17 ? 'meal' : 'free',
+        hour < 6 || hour >= 22
+          ? 'sleep'
+          : hour === 8 || hour === 12 || hour === 17
+            ? 'meal'
+            : 'free',
       ),
     },
     standingOrders: defaultStandingOrdersState(),

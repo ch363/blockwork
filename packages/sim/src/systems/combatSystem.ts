@@ -61,9 +61,7 @@ export const COMBAT_EVENTS = {
   rejected: 'combat.rejected',
 } as const
 
-export {
-  CombatRuntime,
-}
+export { CombatRuntime }
 export type {
   CombatantKind,
   CombatantRef,
@@ -304,11 +302,7 @@ function attemptStrike(options: {
   }
 
   const inventory = attackerEntity.inventory
-  const weapon = resolveWeapon(
-    data,
-    inventory,
-    attacker.weaponId ?? undefined,
-  )
+  const weapon = resolveWeapon(data, inventory, attacker.weaponId ?? undefined)
   attacker.weaponId = weapon.id
 
   const dist = chebyshevDistance(
@@ -691,10 +685,7 @@ function findNearestIdleOfficer(
   return best
 }
 
-function fightCentre(
-  world: InmateWorld,
-  fight: Fight,
-): { tx: number; ty: number } | undefined {
+function fightCentre(world: InmateWorld, fight: Fight): { tx: number; ty: number } | undefined {
   const a = resolveCombatant(world, fight.participants[0].ref)
   const b = resolveCombatant(world, fight.participants[1].ref)
   if (a === undefined && b === undefined) return undefined
@@ -733,8 +724,8 @@ function killCombatant(
   emitCorpseCreated(events, tick, corpse, [])
   world.contracts.progress.recordDeath(tick)
   if (ref.kind === 'staff') {
-      world.morale.recordDeath(tick)
-      world.morale.setInjured(ref.id, false)
+    world.morale.recordDeath(tick)
+    world.morale.setInjured(ref.id, false)
   }
 
   const job = postJob({
@@ -771,20 +762,14 @@ function killCombatant(
   }
 }
 
-function processCorpses(
-  world: InmateWorld,
-  data: GameData,
-  events: EventSink,
-  tick: number,
-): void {
+function processCorpses(world: InmateWorld, data: GameData, events: EventSink, tick: number): void {
   // When the mortuary job completes, move the corpse to the mortuary and
   // schedule a hearse. Job completion is observed via job state.
   for (const corpse of world.combat.corpses.onSite()) {
     if (corpse.mortuaryJobId === 0) continue
     const job = world.jobs.get(corpse.mortuaryJobId)
     if (job === undefined || job.state !== 'completed') continue
-    const hearseAt =
-      tick + data.balance.combat.hearseDelayMinutes * TICKS_PER_MINUTE
+    const hearseAt = tick + data.balance.combat.hearseDelayMinutes * TICKS_PER_MINUTE
     world.combat.corpses.markMortuary(corpse.id, hearseAt)
     const mortuaryTile = findMortuaryTile(world)
     if (mortuaryTile !== undefined) corpse.tileIndex = mortuaryTile
@@ -813,12 +798,7 @@ function processCorpses(
 /* Medics / overdose                                                           */
 /* -------------------------------------------------------------------------- */
 
-function medicHealPass(
-  world: InmateWorld,
-  data: GameData,
-  events: EventSink,
-  tick: number,
-): void {
+function medicHealPass(world: InmateWorld, data: GameData, events: EventSink, tick: number): void {
   const heal = data.balance.combat.medic.healPerMinute
   const range = data.balance.combat.medic.rangeTiles
   const medics = world.staff.all().filter((s) => hasCapability(data, s, 'treat'))
@@ -835,9 +815,7 @@ function medicHealPass(
       inmate.inmate.status.includes('overdosed')
     if (!injured) continue
 
-    const medic = medics.find(
-      (m) => chebyshevDistance(m.tx, m.ty, inmate.tx, inmate.ty) <= range,
-    )
+    const medic = medics.find((m) => chebyshevDistance(m.tx, m.ty, inmate.tx, inmate.ty) <= range)
     if (medic === undefined) continue
 
     const before = inmate.inmate.health
@@ -865,12 +843,7 @@ function medicHealPass(
   }
 }
 
-function trackOverdoses(
-  world: InmateWorld,
-  data: GameData,
-  events: EventSink,
-  tick: number,
-): void {
+function trackOverdoses(world: InmateWorld, data: GameData, events: EventSink, tick: number): void {
   for (const inmate of world.inmates.all()) {
     if (!inmate.inmate.status.includes('overdosed')) continue
     if (world.combat.overdoses.has(inmate.id)) continue
@@ -894,16 +867,12 @@ function trackOverdoses(
       kind: COMBAT_EVENTS.overdoseFatal,
       subjectId: timer.inmateId,
       causeIds: [],
-      data: { inmateId: timer.inmateId, untreatedMinutes: data.balance.combat.overdose.untreatedDeathMinutes },
+      data: {
+        inmateId: timer.inmateId,
+        untreatedMinutes: data.balance.combat.overdose.untreatedDeathMinutes,
+      },
     })
-    killCombatant(
-      world,
-      data,
-      events,
-      tick,
-      { kind: 'inmate', id: timer.inmateId },
-      0,
-    )
+    killCombatant(world, data, events, tick, { kind: 'inmate', id: timer.inmateId }, 0)
   }
 }
 
@@ -959,10 +928,7 @@ interface ResolvedCombatant {
   readonly inventory: string[]
 }
 
-function resolveCombatant(
-  world: InmateWorld,
-  ref: CombatantRef,
-): ResolvedCombatant | undefined {
+function resolveCombatant(world: InmateWorld, ref: CombatantRef): ResolvedCombatant | undefined {
   if (ref.kind === 'inmate') {
     const entity = world.inmates.get(ref.id)
     if (entity === undefined) return undefined

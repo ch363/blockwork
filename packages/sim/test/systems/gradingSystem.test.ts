@@ -128,9 +128,7 @@ function makeRoom(
   }
 
   designateRoom({ world, data, events, tick: 0 }, rect, defId)
-  const room = [...world.rooms.all()].find(
-    (entry) => entry.defId === defId && covers(entry, rect),
-  )
+  const room = [...world.rooms.all()].find((entry) => entry.defId === defId && covers(entry, rect))
   if (room === undefined) throw new Error(`room ${defId} was not detected`)
   return room
 }
@@ -142,9 +140,18 @@ function covers(room: Room, rect: { x: number; y: number }): boolean {
 function addInmate(
   world: InmateWorld,
   data: GameData,
-  options: { readonly entitlement?: number; readonly category?: string; readonly tile?: number } = {},
+  options: {
+    readonly entitlement?: number
+    readonly category?: string
+    readonly tile?: number
+  } = {},
 ): number {
-  const rng = { next: () => 0.5, nextInt: (lo: number) => lo, nextUint32: () => 7, chance: () => false }
+  const rng = {
+    next: () => 0.5,
+    nextInt: (lo: number) => lo,
+    nextUint32: () => 7,
+    chance: () => false,
+  }
   const component = generateInmate({
     data,
     // Deterministic stub stream: generation only needs a source of draws here.
@@ -164,7 +171,12 @@ function addInmate(
 
 describe('grading — every rule type', () => {
   it('scores a plain object rule once, however many are present', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const room = makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
     const deps = { world, data: DATA, events: new RecordingSink(), tick: 0 }
 
@@ -179,7 +191,12 @@ describe('grading — every rule type', () => {
   })
 
   it('scores a perCount rule once per full group', () => {
-    const world = createInmateWorld({ size: 32, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 32,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const room = makeRoom(world, DATA, 'dayroom', { x: 2, y: 2, width: 7, height: 6 })
     const deps = { world, data: DATA, events: new RecordingSink(), tick: 0 }
 
@@ -201,7 +218,12 @@ describe('grading — every rule type', () => {
   })
 
   it('scales a perOccupants rule with the heads in the room', () => {
-    const world = createInmateWorld({ size: 32, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 32,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const room = makeRoom(world, DATA, 'dormitory', { x: 2, y: 2, width: 8, height: 6 })
     const deps = { world, data: DATA, events: new RecordingSink(), tick: 0 }
     placeObject(deps, { x: 3, y: 3 }, 'comfort_bed')
@@ -232,7 +254,12 @@ describe('grading — every rule type', () => {
   })
 
   it('takes the highest size threshold the room clears, not their sum', () => {
-    const world = createInmateWorld({ size: 32, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 32,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     // 4×4 = 16 tiles clears all three cell thresholds (6, 9, 16).
     const room = makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
     const size = gradeRoom(world, DATA, room, DATA.rooms.get('cell'))?.lines.find(
@@ -243,7 +270,12 @@ describe('grading — every rule type', () => {
   })
 
   it('penalises a room with no window and rewards an outdoor-facing one', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const room = makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
 
     const none = gradeRoom(world, DATA, room, DATA.rooms.get('cell'))?.lines.find(
@@ -265,7 +297,12 @@ describe('grading — every rule type', () => {
   })
 
   it('penalises depressing materials by the tiles they cover', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const room = makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
     floorRect(world, 2, 2, 2, 2, 'churned_mud')
 
@@ -277,7 +314,12 @@ describe('grading — every rule type', () => {
   })
 
   it('scores the named custom rules from Standing Orders and room shape', () => {
-    const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 40,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const mess = makeRoom(world, DATA, 'mess_hall', { x: 2, y: 2, width: 8, height: 6 })
 
     world.standingOrders.mealQuantity = 'high'
@@ -305,9 +347,17 @@ describe('grading — every rule type', () => {
     const cell = DATA.rooms.get('cell')
     const capped = withRoom(DATA, {
       ...cell,
-      gradingRules: { ...(cell.gradingRules ?? { min: 0, max: 10, objectPoints: [], sizeThresholds: [] }), max: 2 },
+      gradingRules: {
+        ...(cell.gradingRules ?? { min: 0, max: 10, objectPoints: [], sizeThresholds: [] }),
+        max: 2,
+      },
     })
-    const world = createInmateWorld({ size: 24, data: capped, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: capped,
+      continuousIntake: false,
+      research: 'all',
+    })
     const room = makeRoom(world, capped, 'cell', { x: 2, y: 2, width: 4, height: 4 })
     const deps = { world, data: capped, events: new RecordingSink(), tick: 0 }
     placeObject(deps, { x: 3, y: 3 }, 'comfort_bed')
@@ -319,7 +369,12 @@ describe('grading — every rule type', () => {
   })
 
   it('sums the lines to the raw score, so the breakdown can never disagree', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const room = makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
     const deps = { world, data: DATA, events: new RecordingSink(), tick: 0 }
     placeObject(deps, { x: 3, y: 3 }, 'comfort_bed')
@@ -337,7 +392,12 @@ describe('grading — every rule type', () => {
 
 describe('grading — the entitlement ladder', () => {
   it('grants one point per clean day, capped at the ladder top', () => {
-    const world = createInmateWorld({ size: 16, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 16,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const id = addInmate(world, DATA, { entitlement: 2 })
     const inmate = world.inmates.get(id)
@@ -365,7 +425,12 @@ describe('grading — the entitlement ladder', () => {
   })
 
   it('withholds the point while the last misconduct is less than a day old', () => {
-    const world = createInmateWorld({ size: 16, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 16,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const id = addInmate(world, DATA, { entitlement: 2 })
     const inmate = world.inmates.get(id)
@@ -399,7 +464,12 @@ describe('grading — reassignment', () => {
   })
 
   it('serves the best-behaved inmate first and queues an escort for each move', () => {
-    const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 40,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const deps = { world, data: DATA, events, tick: 0 }
 
@@ -440,7 +510,12 @@ describe('grading — reassignment', () => {
   })
 
   it('does nothing at all when strictness is off', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
     addInmate(world, DATA, { entitlement: 5 })
@@ -451,7 +526,12 @@ describe('grading — reassignment', () => {
   })
 
   it('caps the escorts one pass may queue', () => {
-    const world = createInmateWorld({ size: 60, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 60,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const deps = { world, data: DATA, events, tick: 0 }
 
@@ -471,7 +551,12 @@ describe('grading — reassignment', () => {
   })
 
   it('refuses a cell in a sector that bars the inmate category', () => {
-    const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 40,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const deps = { world, data: DATA, events, tick: 0 }
 
@@ -505,7 +590,12 @@ describe('grading — reassignment', () => {
 
 describe('grading — what the rest of the prison reads', () => {
   it('publishes cell grades and the prison average for the misconduct roll', () => {
-    const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 40,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const deps = { world, data: DATA, events: new RecordingSink(), tick: 0 }
 
     const good = makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
@@ -534,7 +624,12 @@ describe('grading — what the rest of the prison reads', () => {
   })
 
   it('grades sectors as the mean of the graded rooms inside them', () => {
-    const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 40,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const deps = { world, data: DATA, events: new RecordingSink(), tick: 0 }
 
     const good = makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
@@ -554,7 +649,12 @@ describe('grading — what the rest of the prison reads', () => {
   })
 
   it('runs hourly inside a simulation and reports what it did', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const deps = { world, data: DATA, events, tick: 0 }
     const cell = makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
@@ -578,7 +678,12 @@ describe('grading — what the rest of the prison reads', () => {
 
 describe('grading — T5.2 acceptance', () => {
   it('migrates well-behaved inmates into the luxurious block over several days', () => {
-    const world = createInmateWorld({ size: 64, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 64,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const deps = { world, data: DATA, events, tick: 0 }
 
@@ -663,7 +768,12 @@ describe('grading — T5.2 acceptance', () => {
   })
 
   it('shows exactly which objects contributed which points', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const deps = { world, data: DATA, events: new RecordingSink(), tick: 0 }
     const cell = makeRoom(world, DATA, 'cell', { x: 2, y: 2, width: 4, height: 4 })
     placeObject(deps, { x: 3, y: 3 }, 'comfort_bed')
@@ -691,13 +801,23 @@ describe('grading — T5.2 acceptance', () => {
 
 describe('grading — persistence', () => {
   it('round-trips the entitlement clocks and drops the derived breakdowns', () => {
-    const world = createInmateWorld({ size: 16, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 16,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const id = addInmate(world, DATA)
     world.grading.lastEntitlementTick.set(id, 4321)
     const snapshot = world.grading.serialise()
     expect(snapshot.lastEntitlementTick).toEqual([{ inmateId: id, tick: 4321 }])
 
-    const fresh = createInmateWorld({ size: 16, data: DATA, continuousIntake: false, research: 'all' })
+    const fresh = createInmateWorld({
+      size: 16,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     fresh.grading.restore(snapshot as unknown as Parameters<typeof fresh.grading.restore>[0])
     expect(fresh.grading.lastEntitlementTick.get(id)).toBe(4321)
     expect(fresh.grading.breakdowns.size).toBe(0)

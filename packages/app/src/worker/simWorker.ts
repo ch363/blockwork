@@ -99,11 +99,7 @@ import { describeRoomGrade } from './roomGrade'
 import type { UnlockSnapshot } from '../game/palette'
 import { buildOverlayData } from './overlayData'
 import type { OverlayRequestMode } from './overlayData'
-import {
-  buildReportsModel,
-  newestCausalEvents,
-  resolveEventPresentation,
-} from './reportData'
+import { buildReportsModel, newestCausalEvents, resolveEventPresentation } from './reportData'
 
 /**
  * Trace copy, validated once at module load.

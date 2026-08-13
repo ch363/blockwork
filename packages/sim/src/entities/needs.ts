@@ -15,7 +15,7 @@
 import type { Fnv1aHasher } from '../core/hash'
 import type { GameData } from '../data/loader'
 import type { Balance, NeedDef, NeedDriver } from '../data/schemas'
-import { NO_OBJECT , isOperational } from './objects'
+import { NO_OBJECT, isOperational } from './objects'
 import type { ObjectEntity, ObjectRegistry } from './objects'
 import type { InmateEntity, InmateRegistry } from './inmate'
 

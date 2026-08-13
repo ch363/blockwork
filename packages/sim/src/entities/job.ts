@@ -353,11 +353,7 @@ export interface JobAgingConfig {
 }
 
 /** Priority after starvation-prevention aging. */
-export function effectivePriority(
-  job: Job,
-  tick: number,
-  agingPerTick: number,
-): number {
+export function effectivePriority(job: Job, tick: number, agingPerTick: number): number {
   const age = Math.max(0, tick - job.enqueuedAt)
   return job.priority + age * agingPerTick
 }

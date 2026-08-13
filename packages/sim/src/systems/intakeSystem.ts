@@ -17,13 +17,7 @@ import { isJsonArray } from '../core/commands'
 import type { Command, JsonValue } from '../core/commands'
 import type { Fnv1aHasher } from '../core/hash'
 import type { Rng } from '../core/rng'
-import type {
-  CommandHandler,
-  EventSink,
-  System,
-  SystemContext,
-  World,
-} from '../core/simulation'
+import type { CommandHandler, EventSink, System, SystemContext, World } from '../core/simulation'
 import type { GameData } from '../data/loader'
 import {
   createInmateShell,
@@ -74,10 +68,7 @@ import { CleaningLogistics } from './logistics/cleaning'
 import { LaundryLogistics } from './logistics/laundry'
 import { createContrabandState } from '../entities/contraband'
 import type { ContrabandState } from '../entities/contraband'
-import {
-  createDefaultStandingOrders,
-  hashStandingOrders,
-} from '../entities/standingOrders'
+import { createDefaultStandingOrders, hashStandingOrders } from '../entities/standingOrders'
 import type { StandingOrdersState } from '../entities/standingOrders'
 import { createPunishmentRuntime } from '../entities/punishment'
 import type { PunishmentRuntime } from '../entities/punishment'
@@ -94,11 +85,7 @@ import { IntelligenceRuntime } from './intelligenceSystem'
 import { LabourRuntime } from './labourSystem'
 import { createEscapeState } from './escapeSystem'
 import type { EscapeState } from './escapeSystem'
-import {
-  EmergencyState,
-  MisconductWindow,
-  RiotState,
-} from '../entities/securityState'
+import { EmergencyState, MisconductWindow, RiotState } from '../entities/securityState'
 
 /* -------------------------------------------------------------------------- */
 /* Policy                                                                      */
@@ -613,12 +600,7 @@ export function arriveInmate(options: ArriveInmateOptions): InmateEntity | undef
 
   // Exclude this inmate from the free-cell search: they are already in the
   // registry with cellId NO_ROOM, so occupied cells are unaffected.
-  const housing = findHousing(
-    world.rooms,
-    world.inmates,
-    component.category,
-    component.entitlement,
-  )
+  const housing = findHousing(world.rooms, world.inmates, component.category, component.entitlement)
 
   if (housing.kind === 'cell') {
     // Reserve the cell, stage the inmate at reception, and queue an escort
@@ -794,8 +776,7 @@ export const INTAKE_SYSTEM_PERIOD = 600
 
 export function createIntakeSystem(options: IntakeSystemOptions): System {
   const { data } = options
-  const period =
-    data.balance.time.ticksPerMinute * data.balance.time.minutesPerHour
+  const period = data.balance.time.ticksPerMinute * data.balance.time.minutesPerHour
   let reportedWrongWorld = false
 
   return {

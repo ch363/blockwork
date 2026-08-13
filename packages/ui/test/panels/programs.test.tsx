@@ -5,11 +5,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { Programs, blockerSentence, formatHour } from '../../src/panels/Programs'
-import type {
-  ProgramBlockerKind,
-  ProgramRowModel,
-  ProgramsModel,
-} from '../../src/panels/Programs'
+import type { ProgramBlockerKind, ProgramRowModel, ProgramsModel } from '../../src/panels/Programs'
 import { mountShell, unmount } from '../helpers/mount'
 
 function row(patch: Partial<ProgramRowModel> & { readonly id: string }): ProgramRowModel {
@@ -72,11 +68,7 @@ function sampleModel(selectedId: string | null = 'literacy'): ProgramsModel {
 describe('Programs panel', () => {
   it('lists every programme with its state', () => {
     const host = mountShell(
-      <Programs
-        model={sampleModel()}
-        onSelect={() => undefined}
-        onClose={() => undefined}
-      />,
+      <Programs model={sampleModel()} onSelect={() => undefined} onClose={() => undefined} />,
     )
 
     try {
@@ -209,7 +201,14 @@ describe('blocker copy', () => {
       const sentence = blockerSentence({
         kind: entry.kind,
         have: entry.kind === 'insufficient_funds' ? 20 : 6,
-        need: entry.kind === 'insufficient_funds' ? 150 : entry.kind === 'no_tutor' ? 1 : entry.kind === 'no_contiguous_work_block' ? 3 : 10,
+        need:
+          entry.kind === 'insufficient_funds'
+            ? 150
+            : entry.kind === 'no_tutor'
+              ? 1
+              : entry.kind === 'no_contiguous_work_block'
+                ? 3
+                : 10,
         subjectName: 'Education',
       })
       expect(sentence, entry.kind).toContain(entry.expect)

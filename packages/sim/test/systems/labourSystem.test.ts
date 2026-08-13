@@ -175,11 +175,7 @@ function objectDeps(world: InmateWorld, events: RecordingSink) {
 }
 
 /** Functional workshop with enough workbenches for `slots` workers. */
-function buildWorkshop(
-  world: InmateWorld,
-  events: RecordingSink,
-  slots: number,
-): Room {
+function buildWorkshop(world: InmateWorld, events: RecordingSink, slots: number): Room {
   // Workbenches are 2×1; leave a row for the saw / press and a packing lane.
   const width = Math.max(10, slots * 2 + 2)
   const height = 8
@@ -590,7 +586,13 @@ describe('labour — grove growth cycle', () => {
 
     // Grow standing timber with nobody assigned, then reassign and fell.
     unassignLabour(world, events, 0, id)
-    advanceGrove(world, DATA, events, LABOUR.grove.treeGrowthMinutes, LABOUR.grove.treeGrowthMinutes)
+    advanceGrove(
+      world,
+      DATA,
+      events,
+      LABOUR.grove.treeGrowthMinutes,
+      LABOUR.grove.treeGrowthMinutes,
+    )
     expect(world.labour.grownTrees.get(room.id) ?? 0).toBe(2)
 
     expect(assignLabour(world, DATA, events, 1, id, 'grove')).toBe(true)
@@ -614,7 +616,13 @@ describe('labour — grove growth cycle', () => {
     })
     const room = buildGrove(world, events, 1)
 
-    advanceGrove(world, DATA, events, LABOUR.grove.treeGrowthMinutes, LABOUR.grove.treeGrowthMinutes)
+    advanceGrove(
+      world,
+      DATA,
+      events,
+      LABOUR.grove.treeGrowthMinutes,
+      LABOUR.grove.treeGrowthMinutes,
+    )
     expect(world.labour.grownTrees.get(room.id) ?? 0).toBe(1)
     expect(world.supply.storeStock.get('timber') ?? 0).toBe(0)
 
@@ -670,8 +678,7 @@ describe('labour — work effects', () => {
     expect(idle.inmate.needs[freedomIdx]).toBe(critical)
     expect(world.grades.recordFor(workingId).labourHours).toBeCloseTo(hours)
 
-    const workingCritical =
-      (working.inmate.needs[freedomIdx] ?? 0) >= critical ? 1 : 0
+    const workingCritical = (working.inmate.needs[freedomIdx] ?? 0) >= critical ? 1 : 0
     const idleCritical = (idle.inmate.needs[freedomIdx] ?? 0) >= critical ? 1 : 0
     expect(workingCritical).toBe(0)
     expect(idleCritical).toBe(1)

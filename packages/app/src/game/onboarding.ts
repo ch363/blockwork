@@ -103,7 +103,8 @@ const COACH_TEMPLATES: Readonly<Record<string, CoachTemplate>> = {
   objectCount: {
     anchor: 'tool:objects',
     title: 'Place the object',
-    body: (subject) => `Open Objects and place a ${label(subject)}. Objects are bought and delivered, not built.`,
+    body: (subject) =>
+      `Open Objects and place a ${label(subject)}. Objects are bought and delivered, not built.`,
   },
   staffHired: {
     anchor: 'tool:staff',

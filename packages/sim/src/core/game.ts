@@ -62,10 +62,7 @@ import {
 import { createStaffSystem, staffCommandHandlers } from '../systems/staffSystem'
 import { POST_COMMANDS, createPostSystem, postCommandHandlers } from '../systems/postSystem'
 import { SECTOR_COMMANDS, sectorCommandHandlers } from '../world/sectorCommands'
-import {
-  createStaffNeedsSystem,
-  staffNeedsCommandHandlers,
-} from '../systems/staffNeedsSystem'
+import { createStaffNeedsSystem, staffNeedsCommandHandlers } from '../systems/staffNeedsSystem'
 import { createJobSystem } from '../systems/jobSystem'
 import { createMealChainSystem } from '../systems/logistics/mealChain'
 import { createSupplySystem } from '../systems/logistics/supply'
@@ -77,10 +74,7 @@ import { createNavigationSystem } from '../systems/navigationSystem'
 import { createPathingSystem } from '../systems/pathingSystem'
 import { createMovementSystem } from '../systems/movementSystem'
 import { createCombatSystem } from '../systems/combatSystem'
-import {
-  createDirectorateSystem,
-  directorateCommandHandlers,
-} from '../systems/directorateSystem'
+import { createDirectorateSystem, directorateCommandHandlers } from '../systems/directorateSystem'
 import { createEconomySystem } from '../systems/economySystem'
 import { createGradingSystem } from '../systems/gradingSystem'
 import { createGradesSystem } from '../systems/gradesSystem'

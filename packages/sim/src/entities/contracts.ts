@@ -76,10 +76,7 @@ export class FacilityProgress {
     if (!Number.isInteger(count) || count < 1) {
       throw new RangeError(`program completion count must be a positive integer, received ${count}`)
     }
-    this.programCompletions.set(
-      programId,
-      (this.programCompletions.get(programId) ?? 0) + count,
-    )
+    this.programCompletions.set(programId, (this.programCompletions.get(programId) ?? 0) + count)
   }
 
   recordIncident(kind: IncidentKind, tick: number): void {

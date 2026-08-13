@@ -31,23 +31,15 @@ function sampleModel(patch: Partial<OnboardingModel> = {}): OnboardingModel {
 describe('Onboarding checklist', () => {
   it('shows the contract objectives and what is left', () => {
     const host = mountShell(
-      <Onboarding
-        model={sampleModel()}
-        onSkip={() => undefined}
-        onDismissMark={() => undefined}
-      />,
+      <Onboarding model={sampleModel()} onSkip={() => undefined} onDismissMark={() => undefined} />,
     )
 
     try {
       expect(host.textContent).toContain('Fit for Purpose')
       expect(host.textContent).toContain('2 of 3 to go')
       expect(host.querySelectorAll('.bw-onboarding-list li')).toHaveLength(3)
-      expect(
-        host.querySelectorAll('.bw-onboarding-list li[data-done="true"]'),
-      ).toHaveLength(1)
-      expect(
-        host.querySelectorAll('.bw-onboarding-list li[data-current="true"]'),
-      ).toHaveLength(1)
+      expect(host.querySelectorAll('.bw-onboarding-list li[data-done="true"]')).toHaveLength(1)
+      expect(host.querySelectorAll('.bw-onboarding-list li[data-current="true"]')).toHaveLength(1)
     } finally {
       unmount(host)
     }

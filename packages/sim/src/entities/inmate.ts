@@ -327,11 +327,7 @@ function deriveTraits(
   return [...traits].sort()
 }
 
-function rollReputations(
-  data: GameData,
-  chanceScale: number,
-  rng: RngStream,
-): InmateReputation[] {
+function rollReputations(data: GameData, chanceScale: number, rng: RngStream): InmateReputation[] {
   const rolled: InmateReputation[] = []
   for (const reputation of data.reputations.all) {
     const chance = Math.min(1, reputation.baseChance * chanceScale)
@@ -582,10 +578,7 @@ export class InmateRegistry {
 /* -------------------------------------------------------------------------- */
 
 /** Objects plus inmate heads — the answer `evaluateRoom` needs after T2.4. */
-export function inmateRoomContents(
-  objects: ObjectRegistry,
-  inmates: InmateRegistry,
-): RoomContents {
+export function inmateRoomContents(objects: ObjectRegistry, inmates: InmateRegistry): RoomContents {
   return {
     objectCount(roomId: number, objectId: string): number {
       return objects.objectCount(roomId, objectId)

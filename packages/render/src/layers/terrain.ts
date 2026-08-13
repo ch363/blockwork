@@ -669,7 +669,6 @@ function buildChunkPositions(mapSize: number, chunksPerAxis: number): Float32Arr
   return positions
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* Data-driven appearance (T6.6)                                               */
 /* -------------------------------------------------------------------------- */

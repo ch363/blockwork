@@ -10,11 +10,7 @@ import type { SimulationEvent } from '../../src/core/simulation'
 import { loadGameData } from '../../src/data/loader'
 import { placeObject } from '../../src/entities/objects'
 import type { ObjectDeps } from '../../src/entities/objects'
-import {
-  createInmateShell,
-  generateInmate,
-  NO_INMATE,
-} from '../../src/entities/inmate'
+import { createInmateShell, generateInmate, NO_INMATE } from '../../src/entities/inmate'
 import { hireStaff } from '../../src/entities/staff'
 import {
   CONTRABAND_EVENTS,
@@ -175,8 +171,7 @@ function buildDesignatedRoom(
   designateRoom(roomDeps(world, events), interior, defId)
   const room = [...world.rooms.all()].find(
     (entry) =>
-      entry.defId === defId &&
-      entry.tiles.includes(world.grid.idx(interior.x, interior.y)),
+      entry.defId === defId && entry.tiles.includes(world.grid.idx(interior.x, interior.y)),
   )
   if (room === undefined) throw new Error(`${defId} was not detected`)
   return room.id
@@ -297,7 +292,12 @@ describe('arrival possession', () => {
 describe('visit hall smuggling', () => {
   it('succeeds with tables and is blocked by booths', () => {
     const { world, events } = makeWorld()
-    const hallId = buildDesignatedRoom(world, events, { x: 2, y: 2, width: 10, height: 8 }, 'visit_hall')
+    const hallId = buildDesignatedRoom(
+      world,
+      events,
+      { x: 2, y: 2, width: 10, height: 8 },
+      'visit_hall',
+    )
     const hall = world.rooms.get(hallId)
     if (hall === undefined) throw new Error('missing hall')
     const inmateId = addInmate(world, { tx: 4, ty: 4, traits: ['deceitful'] })
@@ -440,10 +440,13 @@ describe('room-as-source theft', () => {
     }
 
     expect(stolen).toBeGreaterThan(5)
-    const tools = [...inmateOf(world, inmateId).inmate.inventory, ...world.contraband.stashes.map((s) => s.itemId)]
-    expect(tools.some((id) => itemsSourcedFromRoom(DATA, 'workshop').some((d) => d.id === id))).toBe(
-      true,
-    )
+    const tools = [
+      ...inmateOf(world, inmateId).inmate.inventory,
+      ...world.contraband.stashes.map((s) => s.itemId),
+    ]
+    expect(
+      tools.some((id) => itemsSourcedFromRoom(DATA, 'workshop').some((d) => d.id === id)),
+    ).toBe(true)
     expect(events.of(CONTRABAND_EVENTS.stolen).length).toBe(stolen)
   })
 

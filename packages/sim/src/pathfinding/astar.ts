@@ -149,7 +149,9 @@ export class BinaryHeap {
 export function octileHeuristic(ax: number, ay: number, bx: number, by: number): number {
   const dx = ax < bx ? bx - ax : ax - bx
   const dy = ay < by ? by - ay : ay - by
-  return FLOW_COST_ORTH * (dx > dy ? dx : dy) + (FLOW_COST_DIAG - FLOW_COST_ORTH) * (dx < dy ? dx : dy)
+  return (
+    FLOW_COST_ORTH * (dx > dy ? dx : dy) + (FLOW_COST_DIAG - FLOW_COST_ORTH) * (dx < dy ? dx : dy)
+  )
 }
 
 /**

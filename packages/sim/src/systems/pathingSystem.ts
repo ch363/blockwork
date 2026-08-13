@@ -86,10 +86,7 @@ export class MobileAgentStore implements AgentStore {
   readonly #tileWorldUnits: number
   readonly #speeds: Readonly<{ inmate: number; staff: number }>
 
-  constructor(
-    tileWorldUnits: number,
-    speeds: Readonly<{ inmate: number; staff: number }>,
-  ) {
+  constructor(tileWorldUnits: number, speeds: Readonly<{ inmate: number; staff: number }>) {
     this.#tileWorldUnits = tileWorldUnits
     this.#speeds = speeds
   }
@@ -110,8 +107,7 @@ export class MobileAgentStore implements AgentStore {
   spawn(options: SpawnAgentOptions): MobileAgent {
     const id = this.#nextId
     this.#nextId += 1
-    const speed =
-      options.category === 'staff' ? this.#speeds.staff : this.#speeds.inmate
+    const speed = options.category === 'staff' ? this.#speeds.staff : this.#speeds.inmate
     const accessMask = options.category === 'staff' ? ACCESS.STAFF : ACCESS.INMATE
     const agent: MobileAgent = {
       id,

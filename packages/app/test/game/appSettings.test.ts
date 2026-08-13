@@ -32,12 +32,7 @@ describe('defaults', () => {
   })
 
   it('offers a palette for each of the three deficiencies', () => {
-    expect(COLOUR_BLIND_PALETTES).toEqual([
-      'default',
-      'deuteranopia',
-      'protanopia',
-      'tritanopia',
-    ])
+    expect(COLOUR_BLIND_PALETTES).toEqual(['default', 'deuteranopia', 'protanopia', 'tritanopia'])
   })
 })
 

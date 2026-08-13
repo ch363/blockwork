@@ -92,10 +92,7 @@ export function bribeChance(morale: number, balance: Balance['morale']): number 
  * Danger term from staff morale (PRD 5.11):
  * `weight * (1 - morale/100) * 100`.
  */
-export function dangerContributionFromMorale(
-  morale: number,
-  staffMoraleWeight: number,
-): number {
+export function dangerContributionFromMorale(morale: number, staffMoraleWeight: number): number {
   return staffMoraleWeight * (1 - clamp01_100(morale) / 100) * 100
 }
 

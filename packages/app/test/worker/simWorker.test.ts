@@ -268,9 +268,7 @@ describe('SimWorkerLoop snapshots', () => {
 
     const snapshot = harness.read()
     expect(snapshot?.notifications.added).toHaveLength(1)
-    expect(snapshot?.notifications.added[0]?.kindId).toBe(
-      notificationKindId('cleaning.noCleaners'),
-    )
+    expect(snapshot?.notifications.added[0]?.kindId).toBe(notificationKindId('cleaning.noCleaners'))
     expect(snapshot?.notifications.added[0]?.severity).toBe(NOTIFICATION_SEVERITY.WARN)
     expect(snapshot?.notifications.added[0]?.traceId).toBeGreaterThan(0)
   })

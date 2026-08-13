@@ -268,10 +268,7 @@ export class EconomyLedger {
    * Updates insolvency state after money has moved this hour.
    * Returns the event kind emitted, if any.
    */
-  updateInsolvency(
-    tick: number,
-    events: EventSink,
-  ): 'started' | 'cancelled' | 'failed' | null {
+  updateInsolvency(tick: number, events: EventSink): 'started' | 'cancelled' | 'failed' | null {
     const cashFlow = this.cashFlowSince(tick)
     const distressed = this.#balance < 0 && cashFlow < 0
 
@@ -350,10 +347,7 @@ export class EconomyLedger {
         else bucket.expense += -entry.amount
       }
 
-      categoryTotals.set(
-        entry.category,
-        (categoryTotals.get(entry.category) ?? 0) + entry.amount,
-      )
+      categoryTotals.set(entry.category, (categoryTotals.get(entry.category) ?? 0) + entry.amount)
     }
 
     const last7Days: DayCashflow[] = []
@@ -449,4 +443,3 @@ export interface EconomyWorldView {
 export function hasEconomy(world: object): world is EconomyWorldView {
   return 'economy' in world && (world as { economy?: unknown }).economy instanceof EconomyLedger
 }
-

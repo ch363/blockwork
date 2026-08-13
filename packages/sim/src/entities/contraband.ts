@@ -102,7 +102,6 @@ export class ContrabandState {
     return entry
   }
 
-
   /** Running total of items confiscated by searches (T4.3). */
   confiscatedCount = 0
 

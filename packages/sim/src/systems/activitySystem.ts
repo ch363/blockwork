@@ -18,11 +18,7 @@ import type { NeedsRejection } from '../entities/needs'
 import { isOperational, NO_OBJECT } from '../entities/objects'
 import type { ObjectEntity } from '../entities/objects'
 import { NO_ROOM } from '../world/rooms'
-import {
-  ACTIVITY_EVENTS,
-  isSleepForbiddenAt,
-  sessionMinutesForNeed,
-} from '../world/routine'
+import { ACTIVITY_EVENTS, isSleepForbiddenAt, sessionMinutesForNeed } from '../world/routine'
 import type { InmateRoutineState } from '../world/routine'
 import { isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
@@ -193,8 +189,18 @@ function tryClaim(options: {
   }
   readonly runtime: InmateRoutineState
 }): void {
-  const { world, data, entityId, roomId, needId, needValue, sleepForbidden, tick, events, runtime } =
-    options
+  const {
+    world,
+    data,
+    entityId,
+    roomId,
+    needId,
+    needValue,
+    sleepForbidden,
+    tick,
+    events,
+    runtime,
+  } = options
 
   if (needId === 'sleep' && sleepForbidden) return
   if (needValue <= 0) return

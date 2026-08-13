@@ -121,13 +121,7 @@ const ATTENDANCE_LABELS: Readonly<Record<ProgramRowModel['attendance'], string>>
   queue: 'Queue',
 }
 
-export function Programs({
-  model,
-  onSelect,
-  onClose,
-  onPin,
-  onUnpin,
-}: ProgramsProps): JSX.Element {
+export function Programs({ model, onSelect, onClose, onPin, onUnpin }: ProgramsProps): JSX.Element {
   const open = model !== null
   const selected =
     model === null || model.selectedId === null

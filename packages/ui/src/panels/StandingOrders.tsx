@@ -99,9 +99,7 @@ export function StandingOrders({
 }: StandingOrdersProps): JSX.Element {
   const open = model !== null
   const showSide =
-    model !== null &&
-    model.projection !== null &&
-    (tab === 'punishment' || tab === 'search')
+    model !== null && model.projection !== null && (tab === 'punishment' || tab === 'search')
 
   return (
     <div
@@ -233,7 +231,11 @@ export function StandingOrders({
                     {tab === 'punishment' && (
                       <div class="bw-orders-strictness">
                         <h4>Cell reassignment strictness</h4>
-                        <div class="bw-radio-seg bw-radio-seg-wide" role="group" aria-label="Strictness">
+                        <div
+                          class="bw-radio-seg bw-radio-seg-wide"
+                          role="group"
+                          aria-label="Strictness"
+                        >
                           {STRICTNESS.map((entry) => (
                             <button
                               key={entry.id}
@@ -262,10 +264,14 @@ export function StandingOrders({
                   </header>
                   <div class="bw-orders-card-body">
                     <p class="bw-orders-copy">
-                      Hourly pass matching entitlement to cell grade. Strictness
-                      controls how exact the match must be.
+                      Hourly pass matching entitlement to cell grade. Strictness controls how exact
+                      the match must be.
                     </p>
-                    <div class="bw-radio-seg bw-radio-seg-wide" role="group" aria-label="Strictness">
+                    <div
+                      class="bw-radio-seg bw-radio-seg-wide"
+                      role="group"
+                      aria-label="Strictness"
+                    >
                       {STRICTNESS.map((entry) => (
                         <button
                           key={entry.id}
@@ -390,9 +396,8 @@ function ProjectionCard({
           tone="danger"
         />
         <p class="bw-orders-copy">
-          Harsher standing orders buy control now and cost reform later. The
-          projection uses your current population mix and updates as you change
-          the matrix.
+          Harsher standing orders buy control now and cost reform later. The projection uses your
+          current population mix and updates as you change the matrix.
         </p>
       </div>
     </div>
@@ -428,8 +433,8 @@ function IsolationCard({
           <b data-tone="danger">{projection.isolationProjectedPeak}</b>
         </div>
         <p class="bw-orders-copy">
-          Overflow falls back to cell lockdown, which is less effective and will
-          raise your misconduct rate above the projection.
+          Overflow falls back to cell lockdown, which is less effective and will raise your
+          misconduct rate above the projection.
         </p>
       </div>
     </div>
@@ -474,10 +479,7 @@ function labelQuantity(quantity: StandingMealQuantity): string {
   return 'High'
 }
 
-export function formatDuration(
-  hours: number | null,
-  punishment: StandingPunishment,
-): string {
+export function formatDuration(hours: number | null, punishment: StandingPunishment): string {
   if (punishment === 'ignore' || hours === null || hours === 0) return 'n/a'
   if (hours < 0) return 'Indefinite'
   return `${hours} hours`

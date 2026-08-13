@@ -264,9 +264,7 @@ function Informants({
 }): JSX.Element {
   if (rows.length === 0) {
     return (
-      <p class="bw-intel-empty">
-        No informants. Select a frightened, disloyal inmate to turn one.
-      </p>
+      <p class="bw-intel-empty">No informants. Select a frightened, disloyal inmate to turn one.</p>
     )
   }
   return (
@@ -298,11 +296,7 @@ function Informants({
   )
 }
 
-function Reputations({
-  rows,
-}: {
-  readonly rows: readonly RevealedReputationModel[]
-}): JSX.Element {
+function Reputations({ rows }: { readonly rows: readonly RevealedReputationModel[] }): JSX.Element {
   if (rows.length === 0) {
     return <p class="bw-intel-empty">Nothing has been uncovered yet.</p>
   }

@@ -229,9 +229,7 @@ function formatRemaining(ticks: number): string {
 }
 
 /** Column-per-branch layout; rows ordered by prerequisite depth then id. */
-function layoutNodes(
-  nodes: readonly DirectorateNode[],
-): Map<string, { x: number; y: number }> {
+function layoutNodes(nodes: readonly DirectorateNode[]): Map<string, { x: number; y: number }> {
   const byId = new Map(nodes.map((node) => [node.id, node]))
   const depth = new Map<string, number>()
 

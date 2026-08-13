@@ -38,6 +38,7 @@ import type { InmateWorld } from '../../src/systems/intakeSystem'
 import { refreshPassability } from '../../src/world/construction'
 import { initialLockState } from '../../src/world/doors'
 import { NO_SECTOR } from '../../src/world/sectors'
+import { definedOrThrow } from '../support/defined'
 
 const DATA = loadGameData()
 const INDEX = NeedIndex.fromData(DATA)
@@ -127,10 +128,7 @@ describe('danger formula components', () => {
 
     expect(computeDanger(zero, balance)).toBe(0)
 
-    const criticalOnly = dangerComponents(
-      { ...zero, pctInmatesWithAnyCriticalNeed: 100 },
-      balance,
-    )
+    const criticalOnly = dangerComponents({ ...zero, pctInmatesWithAnyCriticalNeed: 100 }, balance)
     expect(criticalOnly.criticalNeeds).toBeCloseTo(balance.weights.criticalNeeds * 100)
     expect(criticalOnly.misconduct).toBe(0)
     expect(criticalOnly.total).toBeCloseTo(criticalOnly.criticalNeeds)
@@ -188,13 +186,11 @@ describe('riot spread on a fixture', () => {
     const nearId = spawnInmate(world, { tx: 5, ty: 3, seed: 2 })
     const farId = spawnInmate(world, { tx: 11, ty: 11, seed: 3 })
 
-    const near = world.inmates.get(nearId)
-    const far = world.inmates.get(farId)
-    expect(near).toBeDefined()
-    expect(far).toBeDefined()
+    const near = definedOrThrow(world.inmates.get(nearId), 'near inmate')
+    const far = definedOrThrow(world.inmates.get(farId), 'far inmate')
     // Low mood (high needs) for the neighbour; calm for the distant inmate.
-    near!.inmate.needs.fill(90)
-    far!.inmate.needs.fill(0)
+    near.inmate.needs.fill(90)
+    far.inmate.needs.fill(0)
 
     world.dangerLevel = 80
     const sink = new RecordingSink()
@@ -205,10 +201,12 @@ describe('riot spread on a fixture', () => {
 
     // Force spread rolls: many minutes with high probability.
     // Override mood-based p by checking formula first.
-    expect(riotSpreadProbability(computeInmateMood(near!.inmate.needs, INDEX), DATA.balance.riot)).toBeGreaterThan(
-      0.1,
-    )
-    expect(riotSpreadProbability(computeInmateMood(far!.inmate.needs, INDEX), DATA.balance.riot)).toBe(0)
+    expect(
+      riotSpreadProbability(computeInmateMood(near.inmate.needs, INDEX), DATA.balance.riot),
+    ).toBeGreaterThan(0.1)
+    expect(
+      riotSpreadProbability(computeInmateMood(far.inmate.needs, INDEX), DATA.balance.riot),
+    ).toBe(0)
 
     stepMinutes(sim, 30)
 
@@ -248,12 +246,11 @@ describe('emergency level effects', () => {
       colour: '#c44',
       access: 'shared',
     })
-    expect(sector).toBeDefined()
-    const sectorId = sector!.id
+    const sectorId = definedOrThrow(sector, 'sector').id
     world.sectors.paintTiles(world.grid, [world.grid.idx(2, 2), world.grid.idx(3, 2)], sectorId)
 
     const inmateId = spawnInmate(world, { tx: 2, ty: 2 })
-    const inmate = world.inmates.get(inmateId)!
+    const inmate = definedOrThrow(world.inmates.get(inmateId), 'inmate')
     inmate.inmate.suppression = 0
 
     const sink = new RecordingSink()
@@ -275,7 +272,7 @@ describe('emergency level effects', () => {
     const world = createInmateWorld({ size: 12, data: DATA })
     putFloor(world, 1, 1)
     const inmateId = spawnInmate(world, { tx: 1, ty: 1 })
-    const inmate = world.inmates.get(inmateId)!
+    const inmate = definedOrThrow(world.inmates.get(inmateId), 'inmate')
     inmate.inmate.suppression = 0
 
     const sink = new RecordingSink()
@@ -299,9 +296,7 @@ describe('emergency level effects', () => {
     sim.step()
 
     expect(world.emergency.riotSquadActive).toBe(true)
-    expect(world.emergency.riotSquadStaffIds.length).toBe(
-      DATA.balance.emergency.riotSquadCount,
-    )
+    expect(world.emergency.riotSquadStaffIds.length).toBe(DATA.balance.emergency.riotSquadCount)
     expect(sink.of(EMERGENCY_EVENTS.riotSquadCalled).length).toBe(1)
 
     // Wages accrue once a full in-game hour has elapsed since the call.
@@ -316,7 +311,7 @@ describe('emergency level effects', () => {
     const world = createInmateWorld({ size: 12, data: DATA })
     putFloor(world, 1, 1)
     const inmateId = spawnInmate(world, { tx: 1, ty: 1 })
-    const inmate = world.inmates.get(inmateId)!
+    const inmate = definedOrThrow(world.inmates.get(inmateId), 'inmate')
     const before = inmate.inmate.reoffendChance
 
     const sink = new RecordingSink()
@@ -407,10 +402,8 @@ describe('riot failure countdown', () => {
     const sim = makeSim(world, sink)
 
     beginRiot(world, inmateId, 0, { events: sink })
-    const warningTicks =
-      DATA.balance.failure.uncontainedRiot.warningHours * TICKS_PER_HOUR
-    const failTicks =
-      warningTicks + DATA.balance.failure.uncontainedRiot.thenHours * TICKS_PER_HOUR
+    const warningTicks = DATA.balance.failure.uncontainedRiot.warningHours * TICKS_PER_HOUR
+    const failTicks = warningTicks + DATA.balance.failure.uncontainedRiot.thenHours * TICKS_PER_HOUR
 
     // One tick before failure — warned, not failed.
     // Systems run on period boundaries; land exactly on failTicks.

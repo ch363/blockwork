@@ -92,28 +92,19 @@ export function dangerComponents(
 ): DangerComponents {
   const w = balance.weights
   const population = Math.max(0, inputs.population)
-  const misconductRate =
-    population <= 0 ? 0 : inputs.misconductLastWindow / population
+  const misconductRate = population <= 0 ? 0 : inputs.misconductLastWindow / population
 
   const criticalNeeds = w.criticalNeeds * clampDanger(inputs.pctInmatesWithAnyCriticalNeed)
   const misconduct = w.misconduct * misconductRate * balance.misconductScale
   // pctInmatesArmed is 0..100; PRD writes a 0..1 fraction × armedScale.
   const armedInmates =
     w.armedInmates * (clampDanger(inputs.pctInmatesArmed) / 100) * balance.armedScale
-  const staffMorale =
-    w.staffMorale * (1 - clampDanger(inputs.staffMorale) / 100) * 100
-  const guardCoverage =
-    w.guardCoverage * (1 - clamp01(inputs.guardCoverageRatio)) * 100
-  const maxSecurityShare =
-    w.maxSecurityShare * clampDanger(inputs.pctMaxSecPopulation)
+  const staffMorale = w.staffMorale * (1 - clampDanger(inputs.staffMorale) / 100) * 100
+  const guardCoverage = w.guardCoverage * (1 - clamp01(inputs.guardCoverageRatio)) * 100
+  const maxSecurityShare = w.maxSecurityShare * clampDanger(inputs.pctMaxSecPopulation)
 
   const total = clampDanger(
-    criticalNeeds +
-      misconduct +
-      armedInmates +
-      staffMorale +
-      guardCoverage +
-      maxSecurityShare,
+    criticalNeeds + misconduct + armedInmates + staffMorale + guardCoverage + maxSecurityShare,
   )
 
   return {
@@ -163,8 +154,7 @@ export function sampleDangerInputs(
     if (maxSec.has(entity.inmate.category)) maxSecCount += 1
   }
 
-  const pct = (count: number): number =>
-    population <= 0 ? 0 : (count / population) * 100
+  const pct = (count: number): number => (population <= 0 ? 0 : (count / population) * 100)
 
   const windowTicks = balance.misconductWindowHours * TICKS_PER_HOUR
   const misconductLastWindow = world.misconductWindow.countSince(nowTick, windowTicks)

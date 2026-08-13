@@ -257,11 +257,7 @@ describe('tile passability helpers (T2.2)', () => {
     const door = run.world.grid.idx(3, 1)
     expect((run.world.grid.passability[door] ?? 0) & PASSABILITY.WALKABLE).toBe(0)
 
-    const { field } = generateFlowField(
-      run.world.grid,
-      [run.world.grid.idx(5, 1)],
-      ACCESS_ALL,
-    )
+    const { field } = generateFlowField(run.world.grid, [run.world.grid.idx(5, 1)], ACCESS_ALL)
     expect(field.costs[run.world.grid.idx(1, 1)]).toBe(FLOW_COST_INF)
     expect(field.costs[run.world.grid.idx(5, 1)]).toBe(0)
     expect(field.costs[run.world.grid.idx(4, 1)]).not.toBe(FLOW_COST_INF)

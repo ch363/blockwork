@@ -107,11 +107,7 @@ export function evaluateRoomGrade(
 }
 
 /** How many rooms of `roomId` meet `minGrade`. */
-export function countRoomsAtGrade(
-  world: InmateWorld,
-  roomId: string,
-  minGrade: number,
-): number {
+export function countRoomsAtGrade(world: InmateWorld, roomId: string, minGrade: number): number {
   let count = 0
   for (const room of world.rooms.all()) {
     if (room.defId !== roomId) continue
@@ -457,7 +453,12 @@ function revealHiddenContracts(
   }
 }
 
-function reject(events: EventSink, tick: number, contractId: string, reason: ContractRejection): void {
+function reject(
+  events: EventSink,
+  tick: number,
+  contractId: string,
+  reason: ContractRejection,
+): void {
   events.emit({
     tick,
     kind: CONTRACT_EVENTS.rejected,

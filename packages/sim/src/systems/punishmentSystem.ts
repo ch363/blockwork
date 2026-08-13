@@ -131,8 +131,7 @@ export function beginPunishment(options: BeginPunishmentOptions): ActivePunishme
   }
 
   const alreadyThere =
-    destinationTile !== undefined &&
-    entity.ty * world.grid.size + entity.tx === destinationTile
+    destinationTile !== undefined && entity.ty * world.grid.size + entity.tx === destinationTile
 
   if (alreadyThere || destinationTile === undefined) {
     enterHold(world, data, events, tick, punishment)
@@ -171,7 +170,8 @@ function advancePendingEscorts(world: InmateWorld, events: EventSink, tick: numb
     }
 
     const here = entity.ty * world.grid.size + entity.tx
-    const escort = punishment.escortJobId !== 0 ? world.escorts.get(punishment.escortJobId) : undefined
+    const escort =
+      punishment.escortJobId !== 0 ? world.escorts.get(punishment.escortJobId) : undefined
     const escortDone = escort !== undefined && escort.state === 'completed'
     const atDest = punishment.destinationTile >= 0 && here === punishment.destinationTile
 
@@ -219,7 +219,6 @@ function enterHold(
       holdRoomId: punishment.holdRoomId,
     },
   })
-
 }
 
 function progressHolds(
@@ -229,7 +228,9 @@ function progressHolds(
   events: EventSink,
   tick: number,
 ): void {
-  const hourKey = Math.floor(tick / (data.balance.time.ticksPerMinute * data.balance.time.minutesPerHour))
+  const hourKey = Math.floor(
+    tick / (data.balance.time.ticksPerMinute * data.balance.time.minutesPerHour),
+  )
 
   for (const punishment of world.punishments.all()) {
     if (punishment.phase !== 'holding') continue
@@ -400,10 +401,7 @@ function updateSuppression(world: InmateWorld, data: GameData, _tick: number): v
     )
 
     if (points !== 0) {
-      entity.inmate.suppression = clampSuppression(
-        entity.inmate.suppression + points,
-        balance.max,
-      )
+      entity.inmate.suppression = clampSuppression(entity.inmate.suppression + points, balance.max)
     }
 
     syncSuppressedStatus(entity.inmate.status, entity.inmate.suppression, balance.statusThreshold)

@@ -59,17 +59,11 @@ export function blockDefOf(data: GameData, blockId: RoutineBlockId): RoutineBloc
  *
  * Pure over balance data so mapping tests do not need a world.
  */
-export function permittedRoomsForBlock(
-  data: GameData,
-  blockId: RoutineBlockId,
-): readonly string[] {
+export function permittedRoomsForBlock(data: GameData, blockId: RoutineBlockId): readonly string[] {
   return blockDefOf(data, blockId).permittedRooms
 }
 
-export function preferredNeedForBlock(
-  data: GameData,
-  blockId: RoutineBlockId,
-): string | null {
+export function preferredNeedForBlock(data: GameData, blockId: RoutineBlockId): string | null {
   return blockDefOf(data, blockId).preferredNeed
 }
 
@@ -82,21 +76,14 @@ export function preferredNeedForBlock(
  *
  * `from` is inclusive, `until` is exclusive — hour 8..19 with until=20.
  */
-export function isSleepForbidden(
-  hour: number,
-  fromHour: number,
-  untilHour: number,
-): boolean {
+export function isSleepForbidden(hour: number, fromHour: number, untilHour: number): boolean {
   if (!Number.isInteger(hour) || hour < 0 || hour >= ROUTINE_HOURS) {
     throw new RangeError(`hour must be an integer in 0..23, received ${hour}`)
   }
   return hour >= fromHour && hour < untilHour
 }
 
-export function isSleepForbiddenAt(
-  data: GameData,
-  hour: number,
-): boolean {
+export function isSleepForbiddenAt(data: GameData, hour: number): boolean {
   const { sleepForbiddenFromHour, sleepForbiddenUntilHour } = data.balance.routine
   return isSleepForbidden(hour, sleepForbiddenFromHour, sleepForbiddenUntilHour)
 }
@@ -178,9 +165,7 @@ export class RoutineBook {
   /** Plain JSON shape for saves / tests. */
   toJSON(): Record<string, RoutineBlockId[]> {
     const out: Record<string, RoutineBlockId[]> = {}
-    const entries = [...this.byCategory.entries()].sort(([a], [b]) =>
-      a < b ? -1 : a > b ? 1 : 0,
-    )
+    const entries = [...this.byCategory.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     for (const [category, blocks] of entries) {
       out[category] = [...blocks]
     }
@@ -259,9 +244,7 @@ export function setCategoryRoutine(
 }
 
 export function hashRoutineState(hasher: Fnv1aHasher, state: RoutineState): void {
-  const entries = [...state.byCategory.entries()].sort(([a], [b]) =>
-    a < b ? -1 : a > b ? 1 : 0,
-  )
+  const entries = [...state.byCategory.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
   hasher.writeUint32(entries.length)
   for (const [category, blocks] of entries) {
     hasher.writeString(category)
@@ -438,11 +421,7 @@ export function goalSetForNeed(needId: string): string | null {
 /**
  * Session length for discharging `needId` from `needValue`, clamped by balance.
  */
-export function sessionMinutesForNeed(
-  data: GameData,
-  needId: string,
-  needValue: number,
-): number {
+export function sessionMinutesForNeed(data: GameData, needId: string, needValue: number): number {
   const { minSessionMinutes, maxSessionMinutes } = data.balance.routine
   const def = data.needs.find(needId)
   if (def === undefined || def.decayOnUse <= 0) {
@@ -455,11 +434,6 @@ export function sessionMinutesForNeed(
 }
 
 /** Manhattan tile distance — free-choice travel proxy (flow costs used for motion). */
-export function manhattanTiles(
-  ax: number,
-  ay: number,
-  bx: number,
-  by: number,
-): number {
+export function manhattanTiles(ax: number, ay: number, bx: number, by: number): number {
   return Math.abs(ax - bx) + Math.abs(ay - by)
 }

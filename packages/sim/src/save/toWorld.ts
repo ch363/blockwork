@@ -251,7 +251,8 @@ function restoreMinimalObjects(world: InmateWorld, state: SaveState): void {
       ty: numberField(entry, 'ty'),
       object: {
         defId: stringField(entry, 'defId', ''),
-        rotation: typeof rotationValue === 'number' && isRotation(rotationValue) ? rotationValue : 0,
+        rotation:
+          typeof rotationValue === 'number' && isRotation(rotationValue) ? rotationValue : 0,
         footprint,
         tiles,
         roomId: numberField(entry, 'roomId'),
@@ -271,18 +272,16 @@ function restoreMinimalObjects(world: InmateWorld, state: SaveState): void {
  * Applies a `SaveState` onto an `InmateWorld` whose grid already matches the
  * save. Rebuilds sector indexes and pathfinding afterwards.
  */
-export function restoreInmateWorld(
-  world: InmateWorld,
-  state: SaveState,
-  data: GameData,
-): void {
+export function restoreInmateWorld(world: InmateWorld, state: SaveState, data: GameData): void {
   world.sectors.restore(data, {
     nextSectorId: state.sectors.nextSectorId,
     sectors: state.sectors.sectors.map((sector) => ({
       id: sector.id,
       name: sector.name,
       colour: sector.colour,
-      access: isSectorAccessMode(sector.access) ? sector.access : data.balance.sectors.defaultAccess,
+      access: isSectorAccessMode(sector.access)
+        ? sector.access
+        : data.balance.sectors.defaultAccess,
       categories: [...sector.categories],
     })),
   })

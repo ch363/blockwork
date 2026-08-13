@@ -13,10 +13,7 @@ import { hireStaff } from '../../../src/entities/staff'
 import { createInmateWorld } from '../../../src/systems/intakeSystem'
 import type { InmateWorld } from '../../../src/systems/intakeSystem'
 import { createJobSystem } from '../../../src/systems/jobSystem'
-import {
-  createConstructionSystem,
-  uniformWorkforce,
-} from '../../../src/systems/constructionSystem'
+import { createConstructionSystem, uniformWorkforce } from '../../../src/systems/constructionSystem'
 import {
   DELIVERY_EVENTS,
   batchOrdersIntoTrucks,
@@ -236,10 +233,7 @@ describe('order batching', () => {
   })
 
   it('splits an oversized single line across trucks', () => {
-    const trucks = batchOrdersIntoTrucks(
-      [{ itemId: WALL, units: 55, siteId: 1, orderId: 1 }],
-      40,
-    )
+    const trucks = batchOrdersIntoTrucks([{ itemId: WALL, units: 55, siteId: 1, orderId: 1 }], 40)
     expect(trucks).toHaveLength(2)
     expect(trucks[0]?.[0]?.units).toBe(40)
     expect(trucks[1]?.[0]?.units).toBe(15)
@@ -384,9 +378,9 @@ describe('end-to-end 40-object blueprint supply', () => {
 
     // Flush orders, wait for the truck, then pump carries until bills fill.
     facility.run(TICKS_PER_MINUTE)
-    expect(facility.world.deliveries.totalPendingUnits() + facility.world.deliveries.scheduled.length).toBeGreaterThan(
-      0,
-    )
+    expect(
+      facility.world.deliveries.totalPendingUnits() + facility.world.deliveries.scheduled.length,
+    ).toBeGreaterThan(0)
 
     facility.run(INTERVAL)
 
@@ -412,7 +406,9 @@ describe('end-to-end 40-object blueprint supply', () => {
 describe('refuse dirt', () => {
   it('raises tile dirt while refuse sits uncollected', () => {
     const facility = buildFacility({ withRefuse: true })
-    const bin = [...facility.world.objects.all()].find((entity) => entity.object.defId === 'refuse_bin')
+    const bin = [...facility.world.objects.all()].find(
+      (entity) => entity.object.defId === 'refuse_bin',
+    )
     expect(bin).toBeDefined()
     if (bin === undefined) throw new Error('expected refuse bin')
 

@@ -218,11 +218,7 @@ function collapseMealRuns(sortedUniqueHours: readonly number[]): MealRun[] {
 }
 
 /** Manhattan distance between room centroids (tile indices). */
-export function roomCentroidDistance(
-  a: Room,
-  b: Room,
-  mapSize: number,
-): number {
+export function roomCentroidDistance(a: Room, b: Room, mapSize: number): number {
   const ac = roomCentroid(a, mapSize)
   const bc = roomCentroid(b, mapSize)
   return Math.abs(ac.x - bc.x) + Math.abs(ac.y - bc.y)
@@ -431,7 +427,11 @@ export class MealLogistics {
     return total
   }
 
-  stageMeals(counterIds: readonly number[], meals: number, capacityPerCounter: number): {
+  stageMeals(
+    counterIds: readonly number[],
+    meals: number,
+    capacityPerCounter: number,
+  ): {
     readonly staged: number
     readonly blocked: number
   } {
@@ -885,7 +885,8 @@ function beginPrepSession(args: BeginPrepArgs): KitchenPrepSession | null {
     return session
   }
 
-  const capacity = mealsPerHour(cookers, cooksAssigned, kitchenBalance) * kitchenBalance.preparationLeadHours
+  const capacity =
+    mealsPerHour(cookers, cooksAssigned, kitchenBalance) * kitchenBalance.preparationLeadHours
   if (cookers <= 0 || capacity + 1e-9 < needed) {
     const neededCookers = neededCookersFor(needed, cooksAssigned, kitchenBalance)
     const assistFactor = 1 + kitchenBalance.cookAssistBonus * cooksAssigned
@@ -961,7 +962,9 @@ function serveMealtime(
 
     const kitchen = kitchens.find((k) => {
       const session = meals.prepSessions.get(k.id)
-      return session !== undefined && session.messRoomId === mess.id && session.mealStartTick === tick
+      return (
+        session !== undefined && session.messRoomId === mess.id && session.mealStartTick === tick
+      )
     })
     const session = kitchen !== undefined ? meals.prepSessions.get(kitchen.id) : undefined
 
@@ -1111,11 +1114,7 @@ function operationalObjectsInRoom(
   return objectsInRoom(world, roomId, defId).filter((entity) => isOperational(entity))
 }
 
-function countCooksAssigned(
-  world: InmateWorld,
-  data: GameData,
-  kitchenRoomId: number,
-): number {
+function countCooksAssigned(world: InmateWorld, data: GameData, kitchenRoomId: number): number {
   let count = 0
   for (const staff of world.staff.all()) {
     if (!hasCapability(data, staff, 'cook')) continue

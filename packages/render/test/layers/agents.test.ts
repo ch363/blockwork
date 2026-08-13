@@ -131,15 +131,17 @@ describe('interpolateAgents', () => {
     const previous = [agent({ id: 1, x: 0, y: 0 }), agent({ id: 2, x: 5, y: 5 })]
     const next = [agent({ id: 1, x: 10, y: 0 })]
 
-    expect(interpolateAgents(previous, next, 0).map((pose) => pose.id).sort()).toEqual([1, 2])
+    expect(
+      interpolateAgents(previous, next, 0)
+        .map((pose) => pose.id)
+        .sort(),
+    ).toEqual([1, 2])
     expect(interpolateAgents(previous, next, 0.01).map((pose) => pose.id)).toEqual([1])
   })
 
   it('interpolates many agents independently', () => {
     const count = 400
-    const previous = Array.from({ length: count }, (_, i) =>
-      agent({ id: i + 1, x: i, y: 0 }),
-    )
+    const previous = Array.from({ length: count }, (_, i) => agent({ id: i + 1, x: i, y: 0 }))
     const next = Array.from({ length: count }, (_, i) =>
       agent({ id: i + 1, x: i + 32, y: 16, idle: false, walkFrame: i % 4 }),
     )

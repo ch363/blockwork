@@ -7,18 +7,14 @@ import { describe, expect, it } from 'vitest'
 
 import { Simulation } from '../../src/core/simulation'
 import type { SimulationEvent } from '../../src/core/simulation'
-import { loadGameData } from '../../src/data/loader'
+import { loadGameData, Registry } from '../../src/data/loader'
 import type { GameData } from '../../src/data/loader'
-import { Registry } from '../../src/data/loader'
 import type { ObjectDef } from '../../src/data/schemas'
 import { placeObject, suppliesPower, suppliesWater } from '../../src/entities/objects'
 import type { ObjectDeps } from '../../src/entities/objects'
 import { createInmateWorld } from '../../src/systems/intakeSystem'
 import type { InmateWorld } from '../../src/systems/intakeSystem'
-import {
-  FIRE_EVENTS,
-  createFireSystem,
-} from '../../src/systems/fireSystem'
+import { FIRE_EVENTS, createFireSystem } from '../../src/systems/fireSystem'
 import {
   UTILITIES_EVENTS,
   UTILITIES_SYSTEM_PERIOD,
@@ -33,6 +29,7 @@ import {
 import { createObjectSystem } from '../../src/systems/objectSystem'
 import { refreshPassability } from '../../src/world/construction'
 import { TRACE_KINDS } from '../../src/trace/causalEvent'
+import { definedOrThrow } from '../support/defined'
 
 const RAW = loadGameData()
 
@@ -78,10 +75,7 @@ function pipe(world: InmateWorld, x: number, y: number): void {
   setPipeTile(world, { x, y }, true)
 }
 
-function withObject(
-  base: GameData,
-  patch: Partial<ObjectDef> & { readonly id: string },
-): GameData {
+function withObject(base: GameData, patch: Partial<ObjectDef> & { readonly id: string }): GameData {
   const existing = base.objects.find(patch.id)
   if (existing === undefined) throw new Error(`missing object ${patch.id}`)
   const next: ObjectDef = { ...existing, ...patch }
@@ -89,10 +83,12 @@ function withObject(
   return { ...base, objects: new Registry(all) }
 }
 
-function scenario(options: {
-  readonly data?: GameData
-  readonly withFire?: boolean
-} = {}): {
+function scenario(
+  options: {
+    readonly data?: GameData
+    readonly withFire?: boolean
+  } = {},
+): {
   readonly world: InmateWorld
   readonly sim: Simulation
   readonly events: RecordingSink
@@ -146,15 +142,15 @@ describe('utilitiesSystem — connectivity', () => {
     // Generator is 3x3 at (3,3); cable run to a cooker beyond it.
     for (let x = 3; x <= 8; x += 1) cable(run.world, x, 4)
     placeObject(objectDeps(run.world, run.events), { x: 3, y: 3 }, 'generator')
-    const cooker = placeObject(objectDeps(run.world, run.events), { x: 8, y: 4 }, 'cooker')
-    expect(cooker).toBeDefined()
+    const cooker = definedOrThrow(
+      placeObject(objectDeps(run.world, run.events), { x: 8, y: 4 }, 'cooker'),
+      'cooker',
+    )
 
     step(run.sim, UTILITIES_SYSTEM_PERIOD)
 
-    expect(cooker!.object.hasPower).toBe(true)
-    expect(
-      suppliesPower(run.world, run.data.objects.get('cooker'), cooker!.tileIndex),
-    ).toBe(true)
+    expect(cooker.object.hasPower).toBe(true)
+    expect(suppliesPower(run.world, run.data.objects.get('cooker'), cooker.tileIndex)).toBe(true)
   })
 })
 
@@ -183,15 +179,19 @@ describe('utilitiesSystem — shedding', () => {
     const run = scenario({ data: patched })
     for (let x = 2; x <= 10; x += 1) cable(run.world, x, 5)
     placeObject(objectDeps(run.world, run.events), { x: 2, y: 4 }, 'generator')
-    const light = placeObject(objectDeps(run.world, run.events), { x: 6, y: 5 }, 'ceiling_light')
-    const pump = placeObject(objectDeps(run.world, run.events), { x: 8, y: 5 }, 'water_pump')
-    expect(light).toBeDefined()
-    expect(pump).toBeDefined()
+    const light = definedOrThrow(
+      placeObject(objectDeps(run.world, run.events), { x: 6, y: 5 }, 'ceiling_light'),
+      'ceiling light',
+    )
+    const pump = definedOrThrow(
+      placeObject(objectDeps(run.world, run.events), { x: 8, y: 5 }, 'water_pump'),
+      'water pump',
+    )
 
     step(run.sim, UTILITIES_SYSTEM_PERIOD)
 
-    expect(light!.object.hasPower).toBe(false)
-    expect(pump!.object.hasPower).toBe(true)
+    expect(light.object.hasPower).toBe(false)
+    expect(pump.object.hasPower).toBe(true)
 
     const brownouts = run.events.of(UTILITIES_EVENTS.brownout)
     expect(brownouts.length).toBeGreaterThan(0)
@@ -218,20 +218,22 @@ describe('utilitiesSystem — water', () => {
     const run = scenario({ data })
     for (let x = 3; x <= 8; x += 1) pipe(run.world, x, 4)
     placeObject(objectDeps(run.world, run.events), { x: 3, y: 4 }, 'water_pump')
-    const toiletA = placeObject(objectDeps(run.world, run.events), { x: 6, y: 4 }, 'toilet')
-    const toiletB = placeObject(objectDeps(run.world, run.events), { x: 8, y: 4 }, 'toilet')
-    expect(toiletA).toBeDefined()
-    expect(toiletB).toBeDefined()
+    const toiletA = definedOrThrow(
+      placeObject(objectDeps(run.world, run.events), { x: 6, y: 4 }, 'toilet'),
+      'toilet A',
+    )
+    const toiletB = definedOrThrow(
+      placeObject(objectDeps(run.world, run.events), { x: 8, y: 4 }, 'toilet'),
+      'toilet B',
+    )
 
     step(run.sim, UTILITIES_SYSTEM_PERIOD)
 
-    expect(toiletA!.object.hasWater).toBe(true)
-    expect(toiletB!.object.hasWater).toBe(true)
-    expect(suppliesWater(run.world, run.data.objects.get('toilet'), toiletA!.tileIndex)).toBe(
-      true,
-    )
+    expect(toiletA.object.hasWater).toBe(true)
+    expect(toiletB.object.hasWater).toBe(true)
+    expect(suppliesWater(run.world, run.data.objects.get('toilet'), toiletA.tileIndex)).toBe(true)
 
-    const mult = waterUseMultiplier(run.world, toiletA!.tileIndex)
+    const mult = waterUseMultiplier(run.world, toiletA.tileIndex)
     // 1 flow / (2 fixtures * 1 unit) = 0.5
     expect(mult).toBeCloseTo(0.5)
   })
@@ -281,12 +283,7 @@ describe('utilitiesSystem — the season cycle (T5.5)', () => {
 
     // Coldest at the start of the cycle, warmest half a cycle later.
     const winterNoon = outdoorTemperatureC(noon, min, max, season)
-    const summerNoon = outdoorTemperatureC(
-      noon + season.lengthDays * 24 * 600,
-      min,
-      max,
-      season,
-    )
+    const summerNoon = outdoorTemperatureC(noon + season.lengthDays * 24 * 600, min, max, season)
     expect(summerNoon - winterNoon).toBeCloseTo(2 * season.swingC, 6)
 
     // And it comes back round: two season lengths on is winter again.
@@ -311,12 +308,11 @@ describe('utilitiesSystem — auto-route', () => {
     putFloor(run.world, 7, 3)
     putFloor(run.world, 6, 3)
     const from = run.world.grid.idx(8, 3)
-    const route = autoRouteUtility(run.world, from, 'power')
-    expect(route).toBeDefined()
-    expect(route!.path[0]).toBe(from)
-    expect(route!.costTiles).toBeGreaterThan(0)
+    const route = definedOrThrow(autoRouteUtility(run.world, from, 'power'), 'power route')
+    expect(route.path[0]).toBe(from)
+    expect(route.costTiles).toBeGreaterThan(0)
     // Ends on a live cable node.
-    const end = route!.path[route!.path.length - 1]!
+    const end = definedOrThrow(route.path[route.path.length - 1], 'route end tile')
     expect(run.world.power.hasCableAt(end)).toBe(true)
     expect(run.world.grid.powerGridId[end]).toBeGreaterThan(0)
   })

@@ -233,8 +233,18 @@ describe('grades — the four formulas', () => {
     const windowDays = cfg.security.windowDays
     entity.inmate.misconductLog.push(
       { tick: 0, kind: 'complaint', punishment: 'ignore', durationHours: 0 },
-      { tick: (windowDays + 5) * TICKS_PER_DAY, kind: 'complaint', punishment: 'ignore', durationHours: 0 },
-      { tick: (windowDays + 6) * TICKS_PER_DAY, kind: 'homicide', punishment: 'isolation', durationHours: 0 },
+      {
+        tick: (windowDays + 5) * TICKS_PER_DAY,
+        kind: 'complaint',
+        punishment: 'ignore',
+        durationHours: 0,
+      },
+      {
+        tick: (windowDays + 6) * TICKS_PER_DAY,
+        kind: 'homicide',
+        punishment: 'isolation',
+        durationHours: 0,
+      },
     )
 
     const now = (windowDays + 7) * TICKS_PER_DAY
@@ -263,9 +273,10 @@ describe('grades — reoffendChance (PRD 5.4)', () => {
   })
 
   it("applies each term with the PRD's sign and weight", () => {
-    expect(
-      deriveReoffendChance(cfg, { ...neutral, completedBasicLiteracy: true }),
-    ).toBeCloseTo(cfg.base - cfg.basicLiteracy, 6)
+    expect(deriveReoffendChance(cfg, { ...neutral, completedBasicLiteracy: true })).toBeCloseTo(
+      cfg.base - cfg.basicLiteracy,
+      6,
+    )
     expect(deriveReoffendChance(cfg, { ...neutral, completedVocational: true })).toBeCloseTo(
       cfg.base - cfg.vocational,
       6,

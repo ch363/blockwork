@@ -36,11 +36,7 @@ import {
   searchEffectiveness,
 } from '../entities/morale'
 import { NO_OBJECT, isOperational } from '../entities/objects'
-import {
-  openDoorAt,
-  staffMayEnter,
-  type StaffEntity,
-} from '../entities/staff'
+import { openDoorAt, staffMayEnter, type StaffEntity } from '../entities/staff'
 import { ACCESS } from '../pathfinding/regionGraph'
 import { tilePassableForAccess } from '../pathfinding/flowField'
 import { NO_ROOM } from '../world/rooms'
@@ -176,9 +172,7 @@ export function applyStaffNeedFills(
     if (result.mode === 'set') {
       entity.staff.needs[needIndex] = result.value
     } else {
-      entity.staff.needs[needIndex] = clampNeed(
-        (entity.staff.needs[needIndex] ?? 0) + result.delta,
-      )
+      entity.staff.needs[needIndex] = clampNeed((entity.staff.needs[needIndex] ?? 0) + result.delta)
     }
   }
 }
@@ -347,8 +341,7 @@ function endBreak(entity: StaffEntity, context: SystemContext): void {
 
 function stepBreakMovement(world: InmateWorld, data: GameData, context: SystemContext): void {
   const baseSpeed = data.balance.pathfinding.speedsWorldUnitsPerTick.staff
-  const speed =
-    baseSpeed * movementSpeedMultiplier(world.morale.value, data.balance.morale)
+  const speed = baseSpeed * movementSpeedMultiplier(world.morale.value, data.balance.morale)
   const units = data.balance.map.tileWorldUnits
 
   for (const entity of world.staff.all()) {
@@ -364,11 +357,7 @@ function stepBreakMovement(world: InmateWorld, data: GameData, context: SystemCo
 /* Room / object routing                                                       */
 /* -------------------------------------------------------------------------- */
 
-export function isStaffAccessibleRoom(
-  world: InmateWorld,
-  data: GameData,
-  roomId: number,
-): boolean {
+export function isStaffAccessibleRoom(world: InmateWorld, data: GameData, roomId: number): boolean {
   if (roomId === NO_ROOM) return false
   const room = world.rooms.get(roomId)
   if (room === undefined) return false
@@ -416,9 +405,7 @@ export function findBreakTarget(
       const objDef = data.objects.find(object.object.defId)
       if (objDef === undefined || objDef.servesNeeds.length === 0) continue
 
-      const servesStaffNeed = objDef.servesNeeds.some((served) =>
-        def.needs.includes(served.need),
-      )
+      const servesStaffNeed = objDef.servesNeeds.some((served) => def.needs.includes(served.need))
       if (!servesStaffNeed) continue
 
       // Prefer objects that serve the current top need.
@@ -433,7 +420,11 @@ export function findBreakTarget(
         tileIndex,
         dist: servesTop ? dist : dist + 1000,
       }
-      if (best === undefined || candidate.dist < best.dist || (candidate.dist === best.dist && candidate.objectId < best.objectId)) {
+      if (
+        best === undefined ||
+        candidate.dist < best.dist ||
+        (candidate.dist === best.dist && candidate.objectId < best.objectId)
+      ) {
         best = candidate
       }
     }
@@ -562,7 +553,11 @@ export function isEmergencyStaff(data: GameData, entity: StaffEntity): boolean {
   return def !== undefined && def.callable === true
 }
 
-export function isStaffAvailableForWork(world: InmateWorld, data: GameData, entity: StaffEntity): boolean {
+export function isStaffAvailableForWork(
+  world: InmateWorld,
+  data: GameData,
+  entity: StaffEntity,
+): boolean {
   if (entity.staff.duty.kind === 'break') return false
   if (entity.staff.breakPending) return false
   if (world.morale.striking && !isEmergencyStaff(data, entity)) return false

@@ -36,12 +36,7 @@ export type DirectorateNodeStatus = 'complete' | 'active' | 'available' | 'locke
 
 /** Why an unavailable node cannot be started, in the player's words. */
 export interface DirectorateBlocker {
-  readonly kind:
-    | 'prerequisite'
-    | 'branch'
-    | 'administrator'
-    | 'office'
-    | 'funds'
+  readonly kind: 'prerequisite' | 'branch' | 'administrator' | 'office' | 'funds'
   readonly sentence: string
 }
 
@@ -185,12 +180,15 @@ export function Directorate({
     setZoom((current) => clampZoom(current * (event.deltaY > 0 ? 0.92 : 1.08)))
   }, [])
 
-  const onTouchStart = useCallback((event: JSX.TargetedTouchEvent<HTMLDivElement>) => {
-    if (event.touches.length !== 2) return
-    const distance = touchDistance(event)
-    if (distance === null) return
-    pinch.current = { distance, zoom }
-  }, [zoom])
+  const onTouchStart = useCallback(
+    (event: JSX.TargetedTouchEvent<HTMLDivElement>) => {
+      if (event.touches.length !== 2) return
+      const distance = touchDistance(event)
+      if (distance === null) return
+      pinch.current = { distance, zoom }
+    },
+    [zoom],
+  )
 
   const onTouchMove = useCallback((event: JSX.TargetedTouchEvent<HTMLDivElement>) => {
     const start = pinch.current
@@ -294,7 +292,11 @@ export function Directorate({
                     aria-label={`${node.name}, ${node.status}`}
                     onClick={() => onSelect(node.id)}
                   >
-                    {node.status === 'complete' && <span class="tick" aria-hidden="true">✓</span>}
+                    {node.status === 'complete' && (
+                      <span class="tick" aria-hidden="true">
+                        ✓
+                      </span>
+                    )}
                     <span class="nt">{node.name}</span>
                     <span class="nc">
                       {node.status === 'active' && node.remainingLabel !== null
@@ -306,9 +308,7 @@ export function Directorate({
                         <i style={{ width: `${Math.round(node.progress * 100)}%` }} />
                       </span>
                     )}
-                    {node.pausedReason !== null && (
-                      <span class="paused">{node.pausedReason}</span>
-                    )}
+                    {node.pausedReason !== null && <span class="paused">{node.pausedReason}</span>}
                   </button>
                 ))}
               </div>
@@ -361,9 +361,7 @@ function NodeDetail({
             <span>{Math.round(node.progress * 100)}% complete</span>
             <span>{node.remainingLabel ?? '—'} remaining</span>
           </div>
-          {node.pausedReason !== null && (
-            <p class="bw-directorate-paused">{node.pausedReason}</p>
-          )}
+          {node.pausedReason !== null && <p class="bw-directorate-paused">{node.pausedReason}</p>}
         </div>
       )}
 

@@ -338,7 +338,11 @@ export function revealNearInformants(
           kind: INTELLIGENCE_EVENTS.revealed,
           subjectId: other.id,
           causeIds: [],
-          data: { kind: 'reputation', reputationId: reputation.id, viaInformant: informant.inmateId },
+          data: {
+            kind: 'reputation',
+            reputationId: reputation.id,
+            viaInformant: informant.inmateId,
+          },
         })
       }
     }
@@ -422,10 +426,7 @@ export function monitoredBoothRooms(world: InmateWorld): Set<number> {
 /* -------------------------------------------------------------------------- */
 
 /** The daily chance the wing works out who is talking. */
-export function blowChance(
-  balance: Balance['intelligence'],
-  informant: Informant,
-): number {
+export function blowChance(balance: Balance['intelligence'], informant: Informant): number {
   const base = balance.blowChancePerDay
   return Math.min(1, base + (informant.carelesslyHandled ? balance.carelessSummonBlowBonus : 0))
 }

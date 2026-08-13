@@ -41,11 +41,7 @@ const WORK_BLOCKS = new Set(['work_free', 'work_lockup'])
 /* -------------------------------------------------------------------------- */
 
 /** Floor material dirt multiplier for a tile (1 when bare / unknown). */
-export function floorDirtMultiplier(
-  world: InmateWorld,
-  data: GameData,
-  tileIndex: number,
-): number {
+export function floorDirtMultiplier(world: InmateWorld, data: GameData, tileIndex: number): number {
   const matIndex = world.grid.floorMaterial[tileIndex] ?? NO_MATERIAL
   if (matIndex === NO_MATERIAL) return 1
   const id = world.materials.idAt(matIndex)
@@ -80,11 +76,7 @@ export function addTileDirt(
 }
 
 /** +perAgentPass on tile entry (movement). */
-export function accrueAgentPassDirt(
-  world: InmateWorld,
-  data: GameData,
-  tileIndex: number,
-): number {
+export function accrueAgentPassDirt(world: InmateWorld, data: GameData, tileIndex: number): number {
   return addTileDirt(world, data, tileIndex, data.balance.logistics.dirt.perAgentPass)
 }
 
@@ -100,22 +92,14 @@ export function accrueBloodSpillDirt(
 }
 
 /** +perFoodWaste when refuse piles raise dirt (also used by supply). */
-export function accrueFoodWasteDirt(
-  world: InmateWorld,
-  data: GameData,
-  tileIndex: number,
-): number {
+export function accrueFoodWasteDirt(world: InmateWorld, data: GameData, tileIndex: number): number {
   return addTileDirt(world, data, tileIndex, data.balance.logistics.dirt.perFoodWaste, {
     applyMultiplier: false,
   })
 }
 
 /** +perUrination without floor multiplier (needs already uses the raw amount). */
-export function accrueUrinationDirt(
-  world: InmateWorld,
-  data: GameData,
-  tileIndex: number,
-): number {
+export function accrueUrinationDirt(world: InmateWorld, data: GameData, tileIndex: number): number {
   return addTileDirt(world, data, tileIndex, data.balance.logistics.dirt.perUrination, {
     applyMultiplier: false,
   })
@@ -230,17 +214,13 @@ export function updateCleaning(
   }
 
   if (workers > 0) {
-    const capacity =
-      workers * cfg.dirtRemovedPerCleanerPerMinute + cleaning.cleanRemainder
+    const capacity = workers * cfg.dirtRemovedPerCleanerPerMinute + cleaning.cleanRemainder
     const whole = Math.floor(capacity)
     cleaning.cleanRemainder = capacity - whole
     let remaining = whole
 
     if (indoorWorkers > 0 && dirtyIndoor.length > 0) {
-      const share = Math.max(
-        1,
-        Math.floor((whole * indoorWorkers) / workers),
-      )
+      const share = Math.max(1, Math.floor((whole * indoorWorkers) / workers))
       remaining -= applyCleaningPass(
         world,
         events,
@@ -315,11 +295,7 @@ function applyCleaningPass(
   return budget - remaining
 }
 
-function collectDirtyTiles(
-  world: InmateWorld,
-  threshold: number,
-  outdoors: boolean,
-): number[] {
+function collectDirtyTiles(world: InmateWorld, threshold: number, outdoors: boolean): number[] {
   const grid = world.grid
   const out: number[] = []
   const want = outdoors ? 1 : 0

@@ -13,10 +13,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "cell",
-        "dormitory"
-      ],
+      "countsForRooms": ["cell", "dormitory"],
       "flammability": 0.75,
       "appearance": {
         "swatch": "steel",
@@ -36,9 +33,7 @@
           "concurrentUsers": 2
         }
       ],
-      "countsForRooms": [
-        "dormitory"
-      ],
+      "countsForRooms": ["dormitory"],
       "flammability": 0.8,
       "appearance": {
         "swatch": "steel",
@@ -63,10 +58,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "cell",
-        "dormitory"
-      ],
+      "countsForRooms": ["cell", "dormitory"],
       "flammability": 0.7,
       "appearance": {
         "swatch": "timber",
@@ -86,11 +78,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "cell",
-        "dormitory",
-        "holding_pen"
-      ],
+      "countsForRooms": ["cell", "dormitory", "holding_pen"],
       "flammability": 0.85,
       "appearance": {
         "swatch": "concrete_light",
@@ -110,9 +98,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "isolation"
-      ],
+      "countsForRooms": ["isolation"],
       "flammability": 0.5,
       "appearance": {
         "swatch": "concrete_dark",
@@ -132,10 +118,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "cell",
-        "dormitory"
-      ],
+      "countsForRooms": ["cell", "dormitory"],
       "flammability": 0.6,
       "appearance": {
         "swatch": "timber",
@@ -156,14 +139,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "cell",
-        "dormitory",
-        "holding_pen",
-        "isolation",
-        "washroom",
-        "break_room"
-      ],
+      "countsForRooms": ["cell", "dormitory", "holding_pen", "isolation", "washroom", "break_room"],
       "appearance": {
         "swatch": "ceramic",
         "shape": "fixture"
@@ -183,12 +159,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "cell",
-        "washroom",
-        "break_room",
-        "clinic"
-      ],
+      "countsForRooms": ["cell", "washroom", "break_room", "clinic"],
       "appearance": {
         "swatch": "ceramic",
         "shape": "fixture"
@@ -209,10 +180,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "washroom",
-        "cell"
-      ],
+      "countsForRooms": ["washroom", "cell"],
       "appearance": {
         "swatch": "ceramic",
         "shape": "fixture"
@@ -225,11 +193,7 @@
       "cost": 40,
       "hp": 60,
       "needsWater": true,
-      "countsForRooms": [
-        "washroom",
-        "kitchen",
-        "laundry"
-      ],
+      "countsForRooms": ["washroom", "kitchen", "laundry"],
       "appearance": {
         "swatch": "steel_dark",
         "shape": "fixture"
@@ -249,10 +213,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "cell",
-        "washroom"
-      ],
+      "countsForRooms": ["cell", "washroom"],
       "appearance": {
         "swatch": "fluorescent",
         "shape": "fixture"
@@ -271,13 +232,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "cell",
-        "mess_hall",
-        "dayroom",
-        "workshop",
-        "visit_hall"
-      ],
+      "countsForRooms": ["cell", "mess_hall", "dayroom", "workshop", "visit_hall"],
       "appearance": {
         "swatch": "timber_dark",
         "shape": "square"
@@ -322,12 +277,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "office",
-        "break_room",
-        "dayroom",
-        "hearing_room"
-      ],
+      "countsForRooms": ["office", "break_room", "dayroom", "hearing_room"],
       "appearance": {
         "swatch": "timber",
         "shape": "square"
@@ -387,10 +337,7 @@
           "concurrentUsers": 2
         }
       ],
-      "countsForRooms": [
-        "break_room",
-        "dayroom"
-      ],
+      "countsForRooms": ["break_room", "dayroom"],
       "appearance": {
         "swatch": "timber",
         "shape": "wide"
@@ -414,9 +361,7 @@
           "concurrentUsers": 4
         }
       ],
-      "countsForRooms": [
-        "exercise_yard"
-      ],
+      "countsForRooms": ["exercise_yard"],
       "appearance": {
         "swatch": "concrete",
         "shape": "large"
@@ -458,11 +403,7 @@
         "h": 1
       },
       "rotatable": true,
-      "countsForRooms": [
-        "mess_hall",
-        "library",
-        "classroom"
-      ],
+      "countsForRooms": ["mess_hall", "library", "classroom"],
       "appearance": {
         "swatch": "timber",
         "shape": "large"
@@ -479,13 +420,7 @@
         "h": 1
       },
       "rotatable": true,
-      "countsForRooms": [
-        "office",
-        "control_room",
-        "classroom",
-        "intake_hall",
-        "hearing_room"
-      ],
+      "countsForRooms": ["office", "control_room", "classroom", "intake_hall", "hearing_room"],
       "appearance": {
         "swatch": "timber",
         "shape": "wide"
@@ -503,10 +438,7 @@
       },
       "rotatable": true,
       "jobSlots": 1,
-      "countsForRooms": [
-        "library",
-        "mail_sort"
-      ],
+      "countsForRooms": ["library", "mail_sort"],
       "appearance": {
         "swatch": "timber",
         "shape": "wide"
@@ -527,9 +459,7 @@
       "powerPriority": "production",
       "jobSlots": 1,
       "producesHeat": 6,
-      "countsForRooms": [
-        "kitchen"
-      ],
+      "countsForRooms": ["kitchen"],
       "appearance": {
         "swatch": "steel",
         "shape": "wide"
@@ -542,9 +472,7 @@
       "cost": 550,
       "hp": 70,
       "needsPower": 250,
-      "countsForRooms": [
-        "kitchen"
-      ],
+      "countsForRooms": ["kitchen"],
       "appearance": {
         "swatch": "steel",
         "shape": "tall"
@@ -558,9 +486,7 @@
       "hp": 50,
       "needsWater": true,
       "jobSlots": 1,
-      "countsForRooms": [
-        "kitchen"
-      ],
+      "countsForRooms": ["kitchen"],
       "appearance": {
         "swatch": "ceramic",
         "shape": "fixture"
@@ -585,9 +511,7 @@
           "concurrentUsers": 2
         }
       ],
-      "countsForRooms": [
-        "mess_hall"
-      ],
+      "countsForRooms": ["mess_hall"],
       "appearance": {
         "swatch": "amber",
         "shape": "large"
@@ -599,10 +523,7 @@
       "name": "Tray rack",
       "cost": 120,
       "hp": 40,
-      "countsForRooms": [
-        "mess_hall",
-        "kitchen"
-      ],
+      "countsForRooms": ["mess_hall", "kitchen"],
       "appearance": {
         "swatch": "steel_dark",
         "shape": "square"
@@ -614,10 +535,7 @@
       "name": "Food crate",
       "cost": 60,
       "hp": 30,
-      "countsForRooms": [
-        "kitchen",
-        "store"
-      ],
+      "countsForRooms": ["kitchen", "store"],
       "appearance": {
         "swatch": "timber_dark",
         "shape": "square"
@@ -636,9 +554,7 @@
       "rotatable": true,
       "needsPower": 500,
       "jobSlots": 1,
-      "countsForRooms": [
-        "workshop"
-      ],
+      "countsForRooms": ["workshop"],
       "flammability": 0.35,
       "appearance": {
         "swatch": "steel_dark",
@@ -657,9 +573,7 @@
       },
       "needsPower": 700,
       "jobSlots": 1,
-      "countsForRooms": [
-        "workshop"
-      ],
+      "countsForRooms": ["workshop"],
       "flammability": 0.2,
       "appearance": {
         "swatch": "steel_dark",
@@ -678,10 +592,7 @@
       },
       "rotatable": true,
       "jobSlots": 1,
-      "countsForRooms": [
-        "workshop",
-        "supply_closet"
-      ],
+      "countsForRooms": ["workshop", "supply_closet"],
       "flammability": 0.7,
       "appearance": {
         "swatch": "timber",
@@ -694,11 +605,7 @@
       "name": "Timber rack",
       "cost": 140,
       "hp": 50,
-      "countsForRooms": [
-        "workshop",
-        "store",
-        "grove"
-      ],
+      "countsForRooms": ["workshop", "store", "grove"],
       "appearance": {
         "swatch": "timber_dark",
         "shape": "square"
@@ -710,15 +617,8 @@
       "name": "Tool cabinet",
       "cost": 300,
       "hp": 90,
-      "contrabandSourceFor": [
-        "screwdriver",
-        "hammer",
-        "handsaw"
-      ],
-      "countsForRooms": [
-        "workshop",
-        "supply_closet"
-      ],
+      "contrabandSourceFor": ["screwdriver", "hammer", "handsaw"],
+      "countsForRooms": ["workshop", "supply_closet"],
       "appearance": {
         "swatch": "steel",
         "shape": "square"
@@ -733,9 +633,7 @@
       "needsPower": 350,
       "needsWater": true,
       "jobSlots": 1,
-      "countsForRooms": [
-        "laundry"
-      ],
+      "countsForRooms": ["laundry"],
       "appearance": {
         "swatch": "fluorescent",
         "shape": "square"
@@ -749,9 +647,7 @@
       "hp": 30,
       "needsPower": 120,
       "jobSlots": 1,
-      "countsForRooms": [
-        "laundry"
-      ],
+      "countsForRooms": ["laundry"],
       "appearance": {
         "swatch": "concrete_light",
         "shape": "wide"
@@ -763,11 +659,7 @@
       "name": "Laundry basket",
       "cost": 50,
       "hp": 20,
-      "countsForRooms": [
-        "laundry",
-        "cell",
-        "dormitory"
-      ],
+      "countsForRooms": ["laundry", "cell", "dormitory"],
       "flammability": 0.5,
       "appearance": {
         "swatch": "timber_dark",
@@ -788,9 +680,7 @@
       "needsPower": 300,
       "jobSlots": 1,
       "unlockedBy": "automation",
-      "countsForRooms": [
-        "control_room"
-      ],
+      "countsForRooms": ["control_room"],
       "appearance": {
         "swatch": "steel",
         "shape": "wide"
@@ -804,10 +694,7 @@
       "hp": 70,
       "needsPower": 450,
       "powerPriority": "security",
-      "countsForRooms": [
-        "intake_hall",
-        "visit_hall"
-      ],
+      "countsForRooms": ["intake_hall", "visit_hall"],
       "appearance": {
         "swatch": "steel",
         "shape": "tall"
@@ -820,14 +707,8 @@
       "cost": 900,
       "hp": 100,
       "unlockedBy": "armoury_programme",
-      "contrabandSourceFor": [
-        "pistol",
-        "shotgun",
-        "baton"
-      ],
-      "countsForRooms": [
-        "armoury"
-      ],
+      "contrabandSourceFor": ["pistol", "shotgun", "baton"],
+      "countsForRooms": ["armoury"],
       "appearance": {
         "swatch": "steel_dark",
         "shape": "square"
@@ -839,10 +720,7 @@
       "name": "Staff locker",
       "cost": 220,
       "hp": 80,
-      "countsForRooms": [
-        "armoury",
-        "break_room"
-      ],
+      "countsForRooms": ["armoury", "break_room"],
       "appearance": {
         "swatch": "steel",
         "shape": "tall"
@@ -855,9 +733,7 @@
       "cost": 400,
       "hp": 70,
       "unlockedBy": "protective_vests",
-      "countsForRooms": [
-        "armoury"
-      ],
+      "countsForRooms": ["armoury"],
       "appearance": {
         "swatch": "steel_dark",
         "shape": "square"
@@ -871,9 +747,7 @@
       "hp": 50,
       "needsPower": 200,
       "unlockedBy": "stun_devices",
-      "countsForRooms": [
-        "armoury"
-      ],
+      "countsForRooms": ["armoury"],
       "appearance": {
         "swatch": "utility",
         "shape": "square"
@@ -886,9 +760,7 @@
       "cost": 260,
       "hp": 60,
       "unlockedBy": "canine",
-      "countsForRooms": [
-        "kennel"
-      ],
+      "countsForRooms": ["kennel"],
       "appearance": {
         "swatch": "steel_dark",
         "shape": "square"
@@ -956,9 +828,7 @@
       "needsPower": 420,
       "jobSlots": 1,
       "unlockedBy": "surveillance",
-      "countsForRooms": [
-        "control_room"
-      ],
+      "countsForRooms": ["control_room"],
       "appearance": {
         "swatch": "fluorescent",
         "shape": "wide"
@@ -973,9 +843,7 @@
       "needsPower": 80,
       "jobSlots": 1,
       "unlockedBy": "surveillance",
-      "countsForRooms": [
-        "control_room"
-      ],
+      "countsForRooms": ["control_room"],
       "appearance": {
         "swatch": "utility",
         "shape": "square"
@@ -1000,9 +868,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "clinic"
-      ],
+      "countsForRooms": ["clinic"],
       "flammability": 0.45,
       "appearance": {
         "swatch": "medical",
@@ -1017,13 +883,8 @@
       "hp": 70,
       "placement": "wall",
       "unlockedBy": "medical",
-      "contrabandSourceFor": [
-        "prescription_pills",
-        "syringe"
-      ],
-      "countsForRooms": [
-        "clinic"
-      ],
+      "contrabandSourceFor": ["prescription_pills", "syringe"],
+      "countsForRooms": ["clinic"],
       "appearance": {
         "swatch": "medical",
         "shape": "fixture"
@@ -1036,11 +897,7 @@
       "cost": 200,
       "hp": 40,
       "placement": "wall",
-      "countsForRooms": [
-        "workshop",
-        "kitchen",
-        "exercise_yard"
-      ],
+      "countsForRooms": ["workshop", "kitchen", "exercise_yard"],
       "appearance": {
         "swatch": "medical",
         "shape": "fixture"
@@ -1059,9 +916,7 @@
       "rotatable": true,
       "needsPower": 200,
       "unlockedBy": "medical",
-      "countsForRooms": [
-        "mortuary"
-      ],
+      "countsForRooms": ["mortuary"],
       "appearance": {
         "swatch": "steel",
         "shape": "wide"
@@ -1081,9 +936,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "classroom"
-      ],
+      "countsForRooms": ["classroom"],
       "appearance": {
         "swatch": "timber",
         "shape": "square"
@@ -1097,9 +950,7 @@
       "hp": 30,
       "placement": "wall",
       "unlockedBy": "education",
-      "countsForRooms": [
-        "classroom"
-      ],
+      "countsForRooms": ["classroom"],
       "appearance": {
         "swatch": "fluorescent",
         "shape": "fixture"
@@ -1118,12 +969,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "library",
-        "cell",
-        "dayroom",
-        "classroom"
-      ],
+      "countsForRooms": ["library", "cell", "dayroom", "classroom"],
       "appearance": {
         "swatch": "timber_dark",
         "shape": "wide"
@@ -1141,9 +987,7 @@
       },
       "rotatable": true,
       "jobSlots": 1,
-      "countsForRooms": [
-        "library"
-      ],
+      "countsForRooms": ["library"],
       "appearance": {
         "swatch": "timber",
         "shape": "wide"
@@ -1164,10 +1008,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "classroom",
-        "library"
-      ],
+      "countsForRooms": ["classroom", "library"],
       "appearance": {
         "swatch": "fluorescent",
         "shape": "square"
@@ -1188,11 +1029,7 @@
           "concurrentUsers": 6
         }
       ],
-      "countsForRooms": [
-        "dayroom",
-        "break_room",
-        "cell"
-      ],
+      "countsForRooms": ["dayroom", "break_room", "cell"],
       "appearance": {
         "swatch": "steel_dark",
         "shape": "fixture"
@@ -1212,12 +1049,7 @@
           "concurrentUsers": 4
         }
       ],
-      "countsForRooms": [
-        "dayroom",
-        "cell",
-        "break_room",
-        "workshop"
-      ],
+      "countsForRooms": ["dayroom", "cell", "break_room", "workshop"],
       "appearance": {
         "swatch": "steel_dark",
         "shape": "square"
@@ -1241,10 +1073,7 @@
           "concurrentUsers": 2
         }
       ],
-      "countsForRooms": [
-        "dayroom",
-        "break_room"
-      ],
+      "countsForRooms": ["dayroom", "break_room"],
       "appearance": {
         "swatch": "growth",
         "shape": "wide"
@@ -1269,9 +1098,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "dayroom"
-      ],
+      "countsForRooms": ["dayroom"],
       "appearance": {
         "swatch": "utility",
         "shape": "square"
@@ -1290,10 +1117,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "exercise_yard",
-        "dayroom"
-      ],
+      "countsForRooms": ["exercise_yard", "dayroom"],
       "appearance": {
         "swatch": "timber_dark",
         "shape": "square"
@@ -1317,10 +1141,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "exercise_yard",
-        "dayroom"
-      ],
+      "countsForRooms": ["exercise_yard", "dayroom"],
       "appearance": {
         "swatch": "steel_dark",
         "shape": "wide"
@@ -1340,11 +1161,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "exercise_yard",
-        "dayroom",
-        "break_room"
-      ],
+      "countsForRooms": ["exercise_yard", "dayroom", "break_room"],
       "appearance": {
         "swatch": "steel",
         "shape": "square"
@@ -1416,12 +1233,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "break_room",
-        "mess_hall",
-        "classroom",
-        "dayroom"
-      ],
+      "countsForRooms": ["break_room", "mess_hall", "classroom", "dayroom"],
       "appearance": {
         "swatch": "fluorescent",
         "shape": "square"
@@ -1600,11 +1412,7 @@
         "h": 1
       },
       "rotatable": true,
-      "countsForRooms": [
-        "store",
-        "supply_closet",
-        "dispatch"
-      ],
+      "countsForRooms": ["store", "supply_closet", "dispatch"],
       "flammability": 0.4,
       "appearance": {
         "swatch": "steel_dark",
@@ -1617,11 +1425,7 @@
       "name": "Refuse bin",
       "cost": 70,
       "hp": 40,
-      "countsForRooms": [
-        "refuse",
-        "kitchen",
-        "mess_hall"
-      ],
+      "countsForRooms": ["refuse", "kitchen", "mess_hall"],
       "flammability": 0.3,
       "appearance": {
         "swatch": "concrete_dark",
@@ -1635,9 +1439,7 @@
       "cost": 40,
       "hp": 30,
       "destructible": false,
-      "countsForRooms": [
-        "dock"
-      ],
+      "countsForRooms": ["dock"],
       "appearance": {
         "swatch": "amber_dim",
         "shape": "square"
@@ -1650,9 +1452,7 @@
       "cost": 40,
       "hp": 30,
       "destructible": false,
-      "countsForRooms": [
-        "dispatch"
-      ],
+      "countsForRooms": ["dispatch"],
       "appearance": {
         "swatch": "amber_dim",
         "shape": "square"
@@ -1670,9 +1470,7 @@
       },
       "jobSlots": 1,
       "unlockedBy": "grounds",
-      "countsForRooms": [
-        "grove"
-      ],
+      "countsForRooms": ["grove"],
       "flammability": 0.4,
       "appearance": {
         "swatch": "turf",
@@ -1697,9 +1495,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "chapel"
-      ],
+      "countsForRooms": ["chapel"],
       "appearance": {
         "swatch": "timber",
         "shape": "wide"
@@ -1718,10 +1514,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "chapel",
-        "cell"
-      ],
+      "countsForRooms": ["chapel", "cell"],
       "appearance": {
         "swatch": "amber_dim",
         "shape": "square"
@@ -1745,9 +1538,7 @@
           "concurrentUsers": 3
         }
       ],
-      "countsForRooms": [
-        "chapel"
-      ],
+      "countsForRooms": ["chapel"],
       "appearance": {
         "swatch": "timber",
         "shape": "large"
@@ -1759,12 +1550,7 @@
       "name": "Filing cabinet",
       "cost": 180,
       "hp": 60,
-      "countsForRooms": [
-        "office",
-        "control_room",
-        "hearing_room",
-        "mail_sort"
-      ],
+      "countsForRooms": ["office", "control_room", "hearing_room", "mail_sort"],
       "appearance": {
         "swatch": "steel",
         "shape": "square"
@@ -1776,10 +1562,7 @@
       "name": "Safe",
       "cost": 900,
       "hp": 300,
-      "countsForRooms": [
-        "office",
-        "commissary"
-      ],
+      "countsForRooms": ["office", "commissary"],
       "appearance": {
         "swatch": "steel_dark",
         "shape": "square"
@@ -1803,10 +1586,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "visit_hall",
-        "hearing_room"
-      ],
+      "countsForRooms": ["visit_hall", "hearing_room"],
       "appearance": {
         "swatch": "timber",
         "shape": "wide"
@@ -1830,9 +1610,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "visit_hall"
-      ],
+      "countsForRooms": ["visit_hall"],
       "appearance": {
         "swatch": "concrete_light",
         "shape": "wide"
@@ -1852,11 +1630,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "dayroom",
-        "visit_hall",
-        "holding_pen"
-      ],
+      "countsForRooms": ["dayroom", "visit_hall", "holding_pen"],
       "appearance": {
         "swatch": "concrete_light",
         "shape": "square"
@@ -1881,9 +1655,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "commissary"
-      ],
+      "countsForRooms": ["commissary"],
       "appearance": {
         "swatch": "timber",
         "shape": "wide"
@@ -1895,9 +1667,7 @@
       "name": "Shop shelf",
       "cost": 190,
       "hp": 50,
-      "countsForRooms": [
-        "commissary"
-      ],
+      "countsForRooms": ["commissary"],
       "appearance": {
         "swatch": "timber_dark",
         "shape": "square"
@@ -1917,9 +1687,7 @@
           "concurrentUsers": 1
         }
       ],
-      "countsForRooms": [
-        "mail_sort"
-      ],
+      "countsForRooms": ["mail_sort"],
       "appearance": {
         "swatch": "timber_dark",
         "shape": "square"

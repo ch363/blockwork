@@ -15,9 +15,7 @@ import { isJsonArray } from '../core/commands'
 import type { Command, JsonValue } from '../core/commands'
 import type { CommandHandler, System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
-import {
-  ACCESS,
-} from '../pathfinding/regionGraph'
+import { ACCESS } from '../pathfinding/regionGraph'
 import { tilePassableForAccess } from '../pathfinding/flowField'
 import {
   NO_PIN,
@@ -216,11 +214,7 @@ function progressEscorts(world: InmateWorld, data: GameData, context: SystemCont
   }
 }
 
-function completeEscort(
-  job: EscortJob,
-  officer: StaffEntity,
-  context: SystemContext,
-): void {
+function completeEscort(job: EscortJob, officer: StaffEntity, context: SystemContext): void {
   job.state = 'completed'
   officer.staff.duty = { kind: 'idle' }
   context.events.emit({
@@ -540,10 +534,7 @@ function peekCachedStep(
   return undefined
 }
 
-function tileFromIndex(
-  index: number,
-  size: number,
-): { readonly tx: number; readonly ty: number } {
+function tileFromIndex(index: number, size: number): { readonly tx: number; readonly ty: number } {
   const ty = (index / size) | 0
   const tx = index - ty * size
   return { tx, ty }

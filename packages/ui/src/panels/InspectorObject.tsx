@@ -21,9 +21,7 @@ export function InspectorObject({ model }: InspectorObjectProps): JSX.Element {
   )
 
   const conditionPct =
-    model.conditionMax <= 0
-      ? 0
-      : Math.round((model.condition / model.conditionMax) * 100)
+    model.conditionMax <= 0 ? 0 : Math.round((model.condition / model.conditionMax) * 100)
 
   return (
     <div class="bw-insp-body">
@@ -73,10 +71,7 @@ export function InspectorObject({ model }: InspectorObjectProps): JSX.Element {
         </div>
         <div class="bw-kv">
           <span class="k">Contraband risk</span>
-          <span
-            class="v bw-num"
-            style={model.contrabandRisk > 0 ? 'color:var(--warn)' : undefined}
-          >
+          <span class="v bw-num" style={model.contrabandRisk > 0 ? 'color:var(--warn)' : undefined}>
             {model.contrabandRisk}%
           </span>
         </div>

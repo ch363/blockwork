@@ -188,14 +188,7 @@ describe('A* optimality (T2.3)', () => {
     expect(regionPath).not.toBeNull()
     if (regionPath === null) return
 
-    const allowed = buildRegionBound(
-      run.graph,
-      run.world.grid,
-      regionPath,
-      ACCESS_ALL,
-      left,
-      right,
-    )
+    const allowed = buildRegionBound(run.graph, run.world.grid, regionPath, ACCESS_ALL, left, right)
     // Far outdoor tile is not on the corridor.
     putFloor(run, 20, 20)
     const outsider = run.world.grid.idx(20, 20)
@@ -402,7 +395,16 @@ describe('pathing system wiring (T2.3)', () => {
     const events: { kind: string }[] = []
     const pathing = createPathingSystem({ data: DATA })
     const context = {
-      clock: { tick: 1, minute: 0, hour: 0, day: 1, isHour: () => false, everyNTicks: () => false, timeString: () => '00:00', serialise: () => ({ tick: 1 }) },
+      clock: {
+        tick: 1,
+        minute: 0,
+        hour: 0,
+        day: 1,
+        isHour: () => false,
+        everyNTicks: () => false,
+        timeString: () => '00:00',
+        serialise: () => ({ tick: 1 }),
+      },
       rng: new Simulation({ seed: 1 }).rng,
       world,
       events: {

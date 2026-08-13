@@ -16,11 +16,7 @@
 import { isJsonArray } from '../core/commands'
 import type { Command, JsonValue } from '../core/commands'
 import { TICKS_PER_HOUR, TICKS_PER_MINUTE } from '../core/clock'
-import type {
-  CommandHandler,
-  System,
-  SystemContext,
-} from '../core/simulation'
+import type { CommandHandler, System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
 import { FACILITY_SOURCE_ID } from '../entities/economy'
 import { fireStaff, NO_PIN, NO_STAFF } from '../entities/staff'
@@ -433,9 +429,7 @@ function dismissCallableStaff(
 /* Command handlers                                                            */
 /* -------------------------------------------------------------------------- */
 
-export function emergencyCommandHandlers(
-  data: GameData,
-): Readonly<Record<string, CommandHandler>> {
+export function emergencyCommandHandlers(data: GameData): Readonly<Record<string, CommandHandler>> {
   return {
     [EMERGENCY_COMMANDS.sectorLockdown]: (command, context) => {
       if (!requireWorld(command, context)) return
@@ -657,7 +651,11 @@ export function emergencyCommandHandlers(
 }
 
 /** Listen for riot.contained to cancel failure (also handled via active edge). */
-export function onRiotContained(world: InmateWorld, tick: number, events: SystemContext['events']): void {
+export function onRiotContained(
+  world: InmateWorld,
+  tick: number,
+  events: SystemContext['events'],
+): void {
   if (world.emergency.warningAtTick === null && world.emergency.failureAtTick === null) return
   world.emergency.cancelFailureCountdown()
   events.emit({

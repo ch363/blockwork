@@ -165,9 +165,7 @@ export function defaultObjectAppearance(defId: string): ObjectAppearance {
  */
 export function appearanceFromDef(def: {
   readonly size?: { readonly w: number; readonly h: number } | undefined
-  readonly appearance?:
-    | { readonly swatch: string; readonly shape?: string | undefined }
-    | undefined
+  readonly appearance?: { readonly swatch: string; readonly shape?: string | undefined } | undefined
 }): ObjectAppearance {
   const declared = def.appearance
   const width = def.size?.w ?? 1
@@ -178,10 +176,7 @@ export function appearanceFromDef(def: {
   const shape = declared.shape
   return {
     colour: swatchColour(declared.swatch),
-    shape:
-      shape !== undefined && isObjectShape(shape)
-        ? shape
-        : objectShapeForSize(width, height),
+    shape: shape !== undefined && isObjectShape(shape) ? shape : objectShapeForSize(width, height),
   }
 }
 
@@ -200,8 +195,7 @@ export function objectAppearances(
     readonly id: string
     readonly size?: { readonly w: number; readonly h: number } | undefined
     readonly appearance?:
-      | { readonly swatch: string; readonly shape?: string | undefined }
-      | undefined
+      { readonly swatch: string; readonly shape?: string | undefined } | undefined
   }>,
 ): Map<string, ObjectAppearance> {
   const table = new Map<string, ObjectAppearance>()

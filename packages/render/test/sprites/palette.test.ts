@@ -93,15 +93,15 @@ describe('resolving an appearance', () => {
   })
 
   it('falls back to the footprint class when no shape is declared', () => {
-    expect(
-      appearanceFromDef({ size: { w: 2, h: 2 }, appearance: { swatch: 'steel' } }).shape,
-    ).toBe('block')
-    expect(
-      appearanceFromDef({ size: { w: 1, h: 1 }, appearance: { swatch: 'steel' } }).shape,
-    ).toBe('square')
-    expect(
-      appearanceFromDef({ size: { w: 1, h: 2 }, appearance: { swatch: 'steel' } }).shape,
-    ).toBe('tall')
+    expect(appearanceFromDef({ size: { w: 2, h: 2 }, appearance: { swatch: 'steel' } }).shape).toBe(
+      'block',
+    )
+    expect(appearanceFromDef({ size: { w: 1, h: 1 }, appearance: { swatch: 'steel' } }).shape).toBe(
+      'square',
+    )
+    expect(appearanceFromDef({ size: { w: 1, h: 2 }, appearance: { swatch: 'steel' } }).shape).toBe(
+      'tall',
+    )
   })
 
   it('falls back to concrete for a definition with no appearance at all', () => {

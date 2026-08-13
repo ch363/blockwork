@@ -49,10 +49,15 @@ describe('hitTestEntities', () => {
 
 describe('speedFromKeyboard', () => {
   it('maps digit keys onto the speed ladder', () => {
-    expect(speedFromKeyboard({ key: '3', metaKey: false, ctrlKey: false, altKey: false }, {
-      speed: 1,
-      resumeSpeed: 1,
-    })).toEqual({ speed: 5, resumeSpeed: 5 })
+    expect(
+      speedFromKeyboard(
+        { key: '3', metaKey: false, ctrlKey: false, altKey: false },
+        {
+          speed: 1,
+          resumeSpeed: 1,
+        },
+      ),
+    ).toEqual({ speed: 5, resumeSpeed: 5 })
   })
 
   it('toggles pause on Space', () => {

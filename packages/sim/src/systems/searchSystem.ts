@@ -46,7 +46,6 @@ function uniqueStashTiles(stashes: readonly { tileIndex: number }[]): number[] {
   return tiles
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* Identity                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -76,13 +75,7 @@ export const SEARCH_COMMANDS = {
   setMeals: 'standingOrders.setMeals',
 } as const
 
-export const SEARCH_KINDS = [
-  'individual',
-  'cell',
-  'block',
-  'shakedown',
-  'intake',
-] as const
+export const SEARCH_KINDS = ['individual', 'cell', 'block', 'shakedown', 'intake'] as const
 export type SearchKind = (typeof SEARCH_KINDS)[number]
 
 export const MISCONDUCT_KINDS = [
@@ -217,10 +210,7 @@ export function compoundDetectionChance(singleChance: number, officers: number):
   return clamp01(1 - (1 - singleChance) ** officers)
 }
 
-export function searchMoodCost(
-  kind: SearchKind,
-  balance: Balance['contraband']['search'],
-): number {
+export function searchMoodCost(kind: SearchKind, balance: Balance['contraband']['search']): number {
   return balance.moodCost[kind]
 }
 
@@ -377,8 +367,7 @@ export function performSearch(options: PerformSearchOptions): SearchResult {
       return emptyResult(kind)
     }
     const officers =
-      options.officerCount ??
-      countOfficersInRoom(world, data, roomIdOfInmate(world, entity))
+      options.officerCount ?? countOfficersInRoom(world, data, roomIdOfInmate(world, entity))
     const single = detectionChance(morale, searchBal.intake)
     const chance = compoundDetectionChance(single, officers)
     const taken = world.contraband.confiscateCarriedWithChance(
@@ -488,11 +477,7 @@ function roomIdOfInmate(world: InmateWorld, entity: InmateEntity): number {
   return world.grid.roomId[tile] ?? NO_ROOM
 }
 
-export function countOfficersInRoom(
-  world: InmateWorld,
-  data: GameData,
-  roomId: number,
-): number {
+export function countOfficersInRoom(world: InmateWorld, data: GameData, roomId: number): number {
   if (roomId === NO_ROOM) return 0
   let count = 0
   for (const staff of world.staff.all()) {
@@ -604,11 +589,7 @@ function removeSpecificCarried(
   inv.splice(0, inv.length, ...next)
 }
 
-function inmateNearObject(
-  world: InmateWorld,
-  entity: InmateEntity,
-  defId: string,
-): boolean {
+function inmateNearObject(world: InmateWorld, entity: InmateEntity, defId: string): boolean {
   for (const object of world.objects.all()) {
     if (object.object.defId !== defId) continue
     if (!isOperational(object)) continue
@@ -952,10 +933,7 @@ function asObject(value: JsonValue | undefined): Record<string, JsonValue> | und
   return value as Record<string, JsonValue>
 }
 
-function readUint(
-  payload: JsonValue | undefined,
-  key: string,
-): number | undefined {
+function readUint(payload: JsonValue | undefined, key: string): number | undefined {
   const obj = asObject(payload)
   const value = obj?.[key]
   if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) return undefined

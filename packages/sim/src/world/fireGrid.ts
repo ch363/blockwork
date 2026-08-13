@@ -156,11 +156,7 @@ export function perTickFromPerSecond(perSecond: number, ticksPerMinute: number):
  * Multiplier applied to agent speed while standing in smoke.
  * Full smoke → `1 - smokeMovementPenalty`; clear air → 1.
  */
-export function smokeMovementMultiplier(
-  fire: FireGrid,
-  tileIndex: number,
-  data: GameData,
-): number {
+export function smokeMovementMultiplier(fire: FireGrid, tileIndex: number, data: GameData): number {
   const max = data.balance.fire.smokeMax
   if (max <= 0) return 1
   const fraction = fire.smokeAt(tileIndex) / max
@@ -168,11 +164,7 @@ export function smokeMovementMultiplier(
 }
 
 /** True when smoke on the tile meets or exceeds the visibility threshold. */
-export function smokeBlocksVisibility(
-  fire: FireGrid,
-  tileIndex: number,
-  data: GameData,
-): boolean {
+export function smokeBlocksVisibility(fire: FireGrid, tileIndex: number, data: GameData): boolean {
   const max = data.balance.fire.smokeMax
   if (max <= 0) return false
   return fire.smokeAt(tileIndex) / max >= data.balance.fire.smokeVisibilityThreshold

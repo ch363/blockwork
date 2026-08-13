@@ -85,11 +85,7 @@ const WORKSHOP_ROOM_ID = 'workshop'
  * Combined flammability of floor, wall and any object anchored on the tile.
  * Materials with no definition (slot 0 / unknown) contribute 0.
  */
-export function tileFlammability(
-  world: InmateWorld,
-  tileIndex: number,
-  data: GameData,
-): number {
+export function tileFlammability(world: InmateWorld, tileIndex: number, data: GameData): number {
   const floorIdx = world.grid.getAt('floorMaterial', tileIndex)
   const wallIdx = world.grid.getAt('wallMaterial', tileIndex)
   let best = materialFlammability(data, world.materials.idAt(floorIdx))
@@ -749,10 +745,7 @@ function suppressTile(
 /* Smoke                                                                       */
 /* -------------------------------------------------------------------------- */
 
-function stepSmoke(
-  fire: FireGrid,
-  cfg: GameData['balance']['fire'],
-): void {
+function stepSmoke(fire: FireGrid, cfg: GameData['balance']['fire']): void {
   const max = cfg.smokeMax
   for (let i = 0; i < fire.smoke.length; i += 1) {
     let smoke = fire.smoke[i] ?? 0
@@ -765,11 +758,7 @@ function stepSmoke(
   }
 }
 
-function applySmokeMovementPenalty(
-  world: InmateWorld,
-  fire: FireGrid,
-  data: GameData,
-): void {
+function applySmokeMovementPenalty(world: InmateWorld, fire: FireGrid, data: GameData): void {
   const base = data.balance.pathfinding.speedsWorldUnitsPerTick.inmate
   for (const inmate of world.inmates.all()) {
     const tileIndex = world.grid.idx(inmate.tx, inmate.ty)
@@ -781,12 +770,7 @@ function applySmokeMovementPenalty(
 /* Geometry helpers                                                            */
 /* -------------------------------------------------------------------------- */
 
-function tilesInRadius(
-  grid: TileGrid,
-  cx: number,
-  cy: number,
-  radius: number,
-): number[] {
+function tilesInRadius(grid: TileGrid, cx: number, cy: number, radius: number): number[] {
   const out: number[] = []
   const r2 = radius * radius
   const minX = Math.max(0, cx - radius)

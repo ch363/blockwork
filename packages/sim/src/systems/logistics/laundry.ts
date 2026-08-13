@@ -8,11 +8,7 @@
  * `laundry_routing`.
  */
 
-import {
-  TICKS_PER_MINUTE,
-  ticksToDay,
-  ticksToTimeString,
-} from '../../core/clock'
+import { TICKS_PER_MINUTE, ticksToDay, ticksToTimeString } from '../../core/clock'
 import type { Fnv1aHasher } from '../../core/hash'
 import type { EventSink, System, SystemContext } from '../../core/simulation'
 import type { GameData } from '../../data/loader'
@@ -71,11 +67,7 @@ export function uniformsPerHour(
 ): number {
   if (machines <= 0) return 0
   const labour = Math.max(0, labourAssigned)
-  return (
-    machines *
-    laundry.uniformsPerMachinePerHour *
-    (1 + laundry.labourAssistBonus * labour)
-  )
+  return machines * laundry.uniformsPerMachinePerHour * (1 + laundry.labourAssistBonus * labour)
 }
 
 /** Iron throughput, same shape as wash. */
@@ -86,11 +78,7 @@ export function ironPerHour(
 ): number {
   if (boards <= 0) return 0
   const labour = Math.max(0, labourAssigned)
-  return (
-    boards *
-    laundry.uniformsPerBoardPerHour *
-    (1 + laundry.labourAssistBonus * labour)
-  )
+  return boards * laundry.uniformsPerBoardPerHour * (1 + laundry.labourAssistBonus * labour)
 }
 
 /**
@@ -134,10 +122,7 @@ export function selectLaundryForHousing(
   let bestDist = Number.POSITIVE_INFINITY
   for (const laundry of laundries) {
     const dist = roomCentroidDistance(housing, laundry, mapSize)
-    if (
-      dist < bestDist ||
-      (dist === bestDist && best !== null && laundry.id < best.id)
-    ) {
+    if (dist < bestDist || (dist === bestDist && best !== null && laundry.id < best.id)) {
       best = laundry
       bestDist = dist
     }
@@ -285,11 +270,7 @@ export function updateLaundry(
 /* Daily dirtiness                                                             */
 /* -------------------------------------------------------------------------- */
 
-function accrueDailyUniformDirt(
-  world: InmateWorld,
-  data: GameData,
-  tick: number,
-): void {
+function accrueDailyUniformDirt(world: InmateWorld, data: GameData, tick: number): void {
   const day = ticksToDay(tick)
   const logistics = world.laundry
   if (day <= logistics.lastAccrualDay) return
@@ -344,16 +325,12 @@ function collectDirtyIntoBaskets(
     if (budget <= 0) break
     const basket = nearestBasket(world, bedId)
     if (basket === null) continue
-    const space =
-      cfg.basketCapacity - (world.laundry.basketDirty.get(basket.id) ?? 0)
+    const space = cfg.basketCapacity - (world.laundry.basketDirty.get(basket.id) ?? 0)
     if (space <= 0) continue
     const take = Math.min(dirty, budget, space)
     if (take <= 0) continue
     world.laundry.bedDirty.set(bedId, dirty - take)
-    world.laundry.basketDirty.set(
-      basket.id,
-      (world.laundry.basketDirty.get(basket.id) ?? 0) + take,
-    )
+    world.laundry.basketDirty.set(basket.id, (world.laundry.basketDirty.get(basket.id) ?? 0) + take)
     budget -= take
     events.emit({
       tick,
@@ -378,10 +355,7 @@ function moveBasketsIntoWashQueue(world: InmateWorld, laundries: readonly Room[]
     const targetId =
       roomId !== NO_ROOM && laundries.some((r) => r.id === roomId) ? roomId : laundry.id
     world.laundry.basketDirty.set(basketId, 0)
-    world.laundry.pendingWash.set(
-      targetId,
-      (world.laundry.pendingWash.get(targetId) ?? 0) + units,
-    )
+    world.laundry.pendingWash.set(targetId, (world.laundry.pendingWash.get(targetId) ?? 0) + units)
   }
 }
 
@@ -497,10 +471,7 @@ function redistributeCleanUniforms(
     countLaundryLabour(world, data, laundry.id) + countCleanerCollectors(world, data)
   if (distributors <= 0) return
 
-  const budget = Math.min(
-    ready,
-    Math.floor(distributors * cfg.distributePerWorkerPerMinute),
-  )
+  const budget = Math.min(ready, Math.floor(distributors * cfg.distributePerWorkerPerMinute))
   if (budget <= 0) return
 
   const beds = bedsInRoom(world, target.id)
@@ -636,10 +607,7 @@ function nearestLaundryToTile(
   for (const laundry of laundries) {
     const c = roomCentroid(laundry, size)
     const dist = Math.abs(c.x - tx) + Math.abs(c.y - ty)
-    if (
-      dist < bestDist ||
-      (dist === bestDist && best !== null && laundry.id < best.id)
-    ) {
+    if (dist < bestDist || (dist === bestDist && best !== null && laundry.id < best.id)) {
       best = laundry
       bestDist = dist
     }
@@ -647,11 +615,7 @@ function nearestLaundryToTile(
   return best
 }
 
-function operationalInRoom(
-  world: InmateWorld,
-  roomId: number,
-  defId: string,
-): ObjectEntity[] {
+function operationalInRoom(world: InmateWorld, roomId: number, defId: string): ObjectEntity[] {
   const out: ObjectEntity[] = []
   for (const entity of world.objects.all()) {
     if (entity.object.defId !== defId) continue
@@ -734,12 +698,7 @@ function countServedInmates(
   return count
 }
 
-function postLaundryJobs(
-  world: InmateWorld,
-  events: EventSink,
-  tick: number,
-  laundry: Room,
-): void {
+function postLaundryJobs(world: InmateWorld, events: EventSink, tick: number, laundry: Room): void {
   const pending = world.laundry.pendingWash.get(laundry.id) ?? 0
   const washed = world.laundry.washedReady.get(laundry.id) ?? 0
   if (pending > 0) {

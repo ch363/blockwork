@@ -17,10 +17,7 @@ import { Icon } from '../icons'
 
 export type PostsTab = 'posts' | 'patrols' | 'sectors'
 
-export type UnfilledReasonLabel =
-  | 'not enough staff hired'
-  | 'none reachable'
-  | 'all staff busy'
+export type UnfilledReasonLabel = 'not enough staff hired' | 'none reachable' | 'all staff busy'
 
 export interface PostsRowModel {
   readonly id: number
@@ -100,7 +97,12 @@ export function Posts({
   const deployed = model?.deployedCount ?? 0
 
   return (
-    <div class="bw-posts-panel" data-open={open ? 'true' : 'false'} role="dialog" aria-label="Posts">
+    <div
+      class="bw-posts-panel"
+      data-open={open ? 'true' : 'false'}
+      role="dialog"
+      aria-label="Posts"
+    >
       {model !== null && (
         <>
           <div class="bw-posts-head">
@@ -184,8 +186,8 @@ export function Posts({
               </header>
               <div class="bw-posts-map-stage">
                 <p class="bw-posts-map-hint">
-                  Sector colours paint on the world. Use the Sectors overlay to
-                  see them while this panel is open.
+                  Sector colours paint on the world. Use the Sectors overlay to see them while this
+                  panel is open.
                 </p>
                 <div class="bw-legend bw-posts-legend">
                   <h4>Access mode</h4>
@@ -219,8 +221,8 @@ export function Posts({
                           onClick={onHireSuggested}
                           ariaLabel={`Hire ${String(model.hireSuggestion)} officers`}
                         >
-                          Hire {model.hireSuggestion} officers · $
-                          {model.hireCost.toLocaleString()} + ${model.hireWagePerHour}/hr
+                          Hire {model.hireSuggestion} officers · ${model.hireCost.toLocaleString()}{' '}
+                          + ${model.hireWagePerHour}/hr
                         </Button>
                       </div>
                     )}
@@ -229,18 +231,10 @@ export function Posts({
               )}
 
               {tab === 'posts' && (
-                <PostsList
-                  title="Active posts"
-                  rows={model.posts}
-                  onSelect={onSelectPost}
-                />
+                <PostsList title="Active posts" rows={model.posts} onSelect={onSelectPost} />
               )}
               {tab === 'patrols' && (
-                <PostsList
-                  title="Patrol routes"
-                  rows={model.patrols}
-                  onSelect={onSelectPatrol}
-                />
+                <PostsList title="Patrol routes" rows={model.patrols} onSelect={onSelectPatrol} />
               )}
               {tab === 'sectors' && (
                 <SectorList

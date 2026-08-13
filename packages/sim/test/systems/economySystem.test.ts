@@ -10,11 +10,7 @@ import type { SimulationEvent } from '../../src/core/simulation'
 import { Simulation } from '../../src/core/simulation'
 import { loadGameData } from '../../src/data/loader'
 import { hireStaff } from '../../src/entities/staff'
-import {
-  createInmateShell,
-  generateInmate,
-  NO_INMATE,
-} from '../../src/entities/inmate'
+import { createInmateShell, generateInmate, NO_INMATE } from '../../src/entities/inmate'
 import {
   ECONOMY_EVENTS,
   ECONOMY_SYSTEM_PERIOD,
@@ -191,13 +187,7 @@ describe('insolvency countdown and cancellation (T3.6)', () => {
     expect(events.of(ECONOMY_EVENTS.insolvencyStarted).length).toBeGreaterThanOrEqual(1)
     expect(world.economy.insolvencyDeadlineTick).not.toBeNull()
 
-    world.economy.credit(
-      sim.tick,
-      'contract',
-      100_000,
-      'Test bailout',
-      FACILITY_SOURCE_ID,
-    )
+    world.economy.credit(sim.tick, 'contract', 100_000, 'Test bailout', FACILITY_SOURCE_ID)
 
     runEconomyHours(world, events, 1, sim)
     expect(events.of(ECONOMY_EVENTS.insolvencyCancelled)).toHaveLength(1)
@@ -259,9 +249,7 @@ describe('30-day cash flow (T3.6 acceptance)', () => {
     expect(report.last7Days.length).toBeGreaterThanOrEqual(1)
     expect(report.last7Days.length).toBeLessThanOrEqual(7)
     expect(report.breakdownByCategory.some((row) => row.category === 'wages')).toBe(true)
-    expect(report.breakdownByCategory.some((row) => row.category === 'inmate_payment')).toBe(
-      true,
-    )
+    expect(report.breakdownByCategory.some((row) => row.category === 'inmate_payment')).toBe(true)
     expect(report.breakdownByCategory.some((row) => row.category === 'tax')).toBe(true)
 
     const dailyPayment = 100 * DATA.securityCategories.get('medium').dailyPayment

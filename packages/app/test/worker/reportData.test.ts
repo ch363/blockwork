@@ -77,11 +77,7 @@ describe('worker report snapshots', () => {
     })
 
     const rows = worker.reports().log
-    expect(rows.map((row) => row.entityKey)).toEqual([
-      'inmate:7',
-      'object:7',
-      'inmate:7',
-    ])
+    expect(rows.map((row) => row.entityKey)).toEqual(['inmate:7', 'object:7', 'inmate:7'])
     expect(rows.map((row) => row.entityName)).toEqual([
       'Rowan Vale · #7',
       'Sink Seven · #7',

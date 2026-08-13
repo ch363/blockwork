@@ -151,7 +151,11 @@ export function Settings({
                   Every overlay pairs its colour with a shape or a value, so none of them rely on
                   hue alone.
                 </p>
-                <div class="bw-settings-choices" role="radiogroup" aria-label="Colour-blind palette">
+                <div
+                  class="bw-settings-choices"
+                  role="radiogroup"
+                  aria-label="Colour-blind palette"
+                >
                   {model.paletteOptions.map((option) => (
                     <button
                       key={option.id}
@@ -249,9 +253,7 @@ function Slider({
         value={String(Math.round(value * 100))}
         disabled={disabled === true}
         aria-label={label}
-        onInput={(event) =>
-          onChange(Number((event.currentTarget as HTMLInputElement).value) / 100)
-        }
+        onInput={(event) => onChange(Number((event.currentTarget as HTMLInputElement).value) / 100)}
       />
       <span class="v">{percentLabel(value)}</span>
     </label>

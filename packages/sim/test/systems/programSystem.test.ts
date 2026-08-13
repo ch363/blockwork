@@ -182,7 +182,12 @@ describe('programs — scheduling and the contiguity constraint', () => {
   })
 
   it('schedules into the earliest category run that is long enough', () => {
-    const world = createInmateWorld({ size: 32, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 32,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     setAllRoutines(world, workStrip(9, 3))
     const events = new RecordingSink()
 
@@ -215,7 +220,12 @@ describe('programs — every blocking reason names its number', () => {
   })
 
   it('reports a missing tutor', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const blocker = describeBlocker(world, DATA, DATA.programs.get('basic_literacy'))
     expect(blocker?.kind).toBe('no_tutor')
     expect(blocker?.subject).toBe('instructor')
@@ -224,7 +234,12 @@ describe('programs — every blocking reason names its number', () => {
   })
 
   it('reports a missing room', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     seedTutor(world, 'instructor', 2, 2)
     const blocker = describeBlocker(world, DATA, DATA.programs.get('basic_literacy'))
     expect(blocker?.kind).toBe('no_room')
@@ -232,7 +247,12 @@ describe('programs — every blocking reason names its number', () => {
   })
 
   it('reports a room that exists but is not functional', () => {
-    const world = createInmateWorld({ size: 32, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 32,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     seedTutor(world, 'instructor', 2, 2)
     makeRoom(world, DATA, 'classroom', { x: 2, y: 2, width: 6, height: 6 })
     const blocker = describeBlocker(world, DATA, DATA.programs.get('basic_literacy'))
@@ -241,7 +261,12 @@ describe('programs — every blocking reason names its number', () => {
   })
 
   it('reports the seat shortfall with both numbers', () => {
-    const world = createInmateWorld({ size: 32, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 32,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     seedTutor(world, 'instructor', 2, 2)
     makeRoom(world, DATA, 'classroom', { x: 2, y: 2, width: 6, height: 6 })
@@ -255,7 +280,12 @@ describe('programs — every blocking reason names its number', () => {
   })
 
   it('reports the contiguity shortfall with the longest block it found', () => {
-    const world = createInmateWorld({ size: 32, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 32,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     // Two hours of work, split by a meal: the longest run is 2, Literacy needs 3.
     const strip = workStrip(9, 2)
@@ -331,7 +361,12 @@ describe('programs — every blocking reason names its number', () => {
 
 describe('programs — enrolment rules', () => {
   it('refers an inmate whose trigger condition holds, and nobody else', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const drinker = addInmate(world, DATA, {
       addictions: [{ substance: 'alcohol', strength: 0.6 }],
     })
@@ -345,14 +380,24 @@ describe('programs — enrolment rules', () => {
   })
 
   it('refers on a trait as well as on an addiction', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const violent = addInmate(world, DATA, { traits: ['violent'] })
     const entity = world.inmates.get(violent)
     expect(entity && isReferralCandidate(entity, DATA.programs.get('anger_management'))).toBe(true)
   })
 
   it('refuses a voluntary programme above the suppression threshold', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const threshold = DATA.balance.suppression.voluntaryRefusalThreshold
     const calm = addInmate(world, DATA, { suppression: 0 })
     const crushed = addInmate(world, DATA, { suppression: threshold + 10 })
@@ -365,7 +410,12 @@ describe('programs — enrolment rules', () => {
   })
 
   it('refuses a programme whose prerequisite is outstanding', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const id = addInmate(world, DATA)
     const entity = world.inmates.get(id)
     const vocational = DATA.programs.get('vocational_certificate')
@@ -446,11 +496,7 @@ describe('programs — the success roll (PRD 5.9)', () => {
       DATA.programs.get('vocational_certificate'),
       inputs,
     )
-    const advanced = sessionSuccessChance(
-      DATA,
-      DATA.programs.get('joinery_apprenticeship'),
-      inputs,
-    )
+    const advanced = sessionSuccessChance(DATA, DATA.programs.get('joinery_apprenticeship'), inputs)
     expect(easy).toBeGreaterThan(intermediate)
     expect(intermediate).toBeGreaterThan(advanced)
   })
@@ -462,7 +508,12 @@ describe('programs — the success roll (PRD 5.9)', () => {
 
 describe('programs — completion effects', () => {
   it('halves an addiction on Alcohol Recovery', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const id = addInmate(world, DATA, { addictions: [{ substance: 'alcohol', strength: 0.8 }] })
     const entity = world.inmates.get(id)
@@ -474,7 +525,12 @@ describe('programs — completion effects', () => {
   })
 
   it('replaces the violent misconduct multiplier on Anger Management', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const id = addInmate(world, DATA, { traits: ['violent'] })
     const entity = world.inmates.get(id)
@@ -504,7 +560,12 @@ describe('programs — completion effects', () => {
   })
 
   it('unlocks a labour assignment on Workshop Induction', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const id = addInmate(world, DATA)
     const entity = world.inmates.get(id)
@@ -515,7 +576,12 @@ describe('programs — completion effects', () => {
   })
 
   it('spreads the calmed status from Chaplaincy to nearby inmates only', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const centre = addInmate(world, DATA, { tx: 10, ty: 10 })
     const near = addInmate(world, DATA, { tx: 12, ty: 10 })
@@ -530,7 +596,12 @@ describe('programs — completion effects', () => {
   })
 
   it('suppresses the narcotics need only while enrolled', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     const events = new RecordingSink()
     const id = addInmate(world, DATA, { addictions: [{ substance: 'narcotics', strength: 0.5 }] })
 
@@ -556,7 +627,11 @@ describe('programs — T5.3 acceptance', () => {
     // the test measures the machinery rather than the dice.
     const learners: number[] = []
     for (let i = 0; i < 4; i += 1) {
-      const id = addInmate(world, DATA, { aptitude: DATA.balance.programs.aptitude.max, tx: 3, ty: 3 })
+      const id = addInmate(world, DATA, {
+        aptitude: DATA.balance.programs.aptitude.max,
+        tx: 3,
+        ty: 3,
+      })
       learners.push(id)
       enrol(world, DATA, events, 0, id, 'basic_literacy')
     }
@@ -640,7 +715,12 @@ describe('programs — manual pinning needs Delegation', () => {
   })
 
   it('refuses a pin where the run does not fit', () => {
-    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false, research: 'all' })
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
     setAllRoutines(world, workStrip(9, 2))
     const events = new RecordingSink()
     const sim = new Simulation({

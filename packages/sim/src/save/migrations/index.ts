@@ -122,11 +122,13 @@ function normaliseEconomy(value: JsonValue | undefined): JsonObject {
       balance: value['balance'],
       loanPrincipal: typeof value['loanPrincipal'] === 'number' ? value['loanPrincipal'] : 0,
       insolvencyDeadlineTick:
-        typeof value['insolvencyDeadlineTick'] === 'number' || value['insolvencyDeadlineTick'] === null
+        typeof value['insolvencyDeadlineTick'] === 'number' ||
+        value['insolvencyDeadlineTick'] === null
           ? value['insolvencyDeadlineTick']
           : null,
       insolvencyStartedTick:
-        typeof value['insolvencyStartedTick'] === 'number' || value['insolvencyStartedTick'] === null
+        typeof value['insolvencyStartedTick'] === 'number' ||
+        value['insolvencyStartedTick'] === null
           ? value['insolvencyStartedTick']
           : null,
       entries: value['entries'],
@@ -265,15 +267,18 @@ const migrateV3ToV4: Migration = (save) => ({
   directorate: normaliseDirectorate(save['directorate']),
   grading: normaliseGrading(save['grading']),
   programs: normalisePrograms(save['programs']),
-  grades: isJsonObject(save['grades']) && Array.isArray(save['grades']['confinement'])
-    ? save['grades']
-    : emptyGradesState(),
-  parole: isJsonObject(save['parole']) && Array.isArray(save['parole']['queue'])
-    ? save['parole']
-    : emptyParoleState(),
-  release: isJsonObject(save['release']) && Array.isArray(save['release']['released'])
-    ? save['release']
-    : emptyReleaseState(),
+  grades:
+    isJsonObject(save['grades']) && Array.isArray(save['grades']['confinement'])
+      ? save['grades']
+      : emptyGradesState(),
+  parole:
+    isJsonObject(save['parole']) && Array.isArray(save['parole']['queue'])
+      ? save['parole']
+      : emptyParoleState(),
+  release:
+    isJsonObject(save['release']) && Array.isArray(save['release']['released'])
+      ? save['release']
+      : emptyReleaseState(),
   intelligence:
     isJsonObject(save['intelligence']) && Array.isArray(save['intelligence']['informants'])
       ? save['intelligence']

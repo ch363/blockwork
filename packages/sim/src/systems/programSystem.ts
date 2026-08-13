@@ -325,9 +325,10 @@ export class ProgramRuntime {
  * at 01:00 spans two Routine days, and the block after midnight belongs to
  * tomorrow's schedule, which the player may have edited.
  */
-export function longestWorkRun(
-  blocks: readonly RoutineBlockId[],
-): { readonly startHour: number; readonly hours: number } {
+export function longestWorkRun(blocks: readonly RoutineBlockId[]): {
+  readonly startHour: number
+  readonly hours: number
+} {
   let bestStart = 0
   let bestLength = 0
   let runStart = 0
@@ -531,8 +532,10 @@ export function voluntaryOptInChance(
 ): number {
   const cfg = data.balance.programs
   const mood = 1 - Math.min(1, Math.max(0, meanNeed / 100))
-  const base = cfg.voluntaryBaseChancePerDay * (1 - cfg.voluntaryMoodWeight + cfg.voluntaryMoodWeight * mood)
-  const suppressed = base * (1 - cfg.suppressionFactor * (suppression / data.balance.suppression.max))
+  const base =
+    cfg.voluntaryBaseChancePerDay * (1 - cfg.voluntaryMoodWeight + cfg.voluntaryMoodWeight * mood)
+  const suppressed =
+    base * (1 - cfg.suppressionFactor * (suppression / data.balance.suppression.max))
   return Math.min(1, Math.max(0, suppressed))
 }
 
@@ -598,11 +601,7 @@ export function runEnrolment(
       }
 
       if (def.attendance === 'voluntary') {
-        const chance = voluntaryOptInChance(
-          data,
-          meanNeedOf(entity),
-          entity.inmate.suppression,
-        )
+        const chance = voluntaryOptInChance(data, meanNeedOf(entity), entity.inmate.suppression)
         // Draw every pass so a balance edit cannot shift the stream.
         if (!rng.chance(chance / HOURS_PER_DAY)) continue
         enrol(world, data, events, tick, entity.id, def.id)
@@ -816,11 +815,7 @@ function closeSession(
  * The bookkeeping half of an effect — the part that is re-derivable from "this
  * inmate completed this programme", and therefore is not saved separately.
  */
-function recordEffectBookkeeping(
-  runtime: ProgramRuntime,
-  inmateId: number,
-  def: ProgramDef,
-): void {
+function recordEffectBookkeeping(runtime: ProgramRuntime, inmateId: number, def: ProgramDef): void {
   for (const effect of def.effects) {
     switch (effect.type) {
       case 'unlockLabour': {
@@ -1144,9 +1139,7 @@ export const PROGRAM_COMMANDS = {
   withdraw: 'program.withdraw',
 } as const
 
-export function programCommandHandlers(
-  data: GameData,
-): Readonly<Record<string, CommandHandler>> {
+export function programCommandHandlers(data: GameData): Readonly<Record<string, CommandHandler>> {
   return {
     [PROGRAM_COMMANDS.pinSession]: (command, context) => {
       handlePin(command, context, data)
@@ -1217,12 +1210,7 @@ function handlePin(command: Command, context: SystemContext, data: GameData): vo
   world.programs.pins.set(programId, { categoryId, startHour })
 }
 
-function reject(
-  events: EventSink,
-  tick: number,
-  reason: string,
-  detail: JsonObject,
-): void {
+function reject(events: EventSink, tick: number, reason: string, detail: JsonObject): void {
   events.emit({
     tick,
     kind: PROGRAM_EVENTS.rejected,

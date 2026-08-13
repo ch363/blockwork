@@ -146,7 +146,10 @@ function pickSideStep(
  * ones on the same tile — callers should keep at most one agent per tile for
  * stable avoidance.
  */
-export function buildOccupancy(agents: readonly AvoidanceAgent[], size: number): Map<number, number> {
+export function buildOccupancy(
+  agents: readonly AvoidanceAgent[],
+  size: number,
+): Map<number, number> {
   const occupancy = new Map<number, number>()
   for (const agent of agents) {
     if (agent.tx < 0 || agent.ty < 0 || agent.tx >= size || agent.ty >= size) continue

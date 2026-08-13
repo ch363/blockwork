@@ -342,12 +342,7 @@ export function updateDeliveries(
   if (schedule.scheduled.length > 0) return
   if (tick < schedule.nextTruckAt) return
 
-  const created = schedule.schedulePending(
-    schedule.nextTruckAt,
-    capacity,
-    interval,
-    refuseWaiting,
-  )
+  const created = schedule.schedulePending(schedule.nextTruckAt, capacity, interval, refuseWaiting)
   for (const truck of created) {
     events.emit({
       tick,

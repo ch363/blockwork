@@ -463,9 +463,7 @@ export function standTilesForObject(
  * Yard uses `exercise_yard` room tiles. Exit uses asphalt floor tiles. Work
  * stations come from every room def that declares `jobSlots`.
  */
-export function collectStandardGoals(
-  sources: FlowGoalSources,
-): Map<string, number[]> {
+export function collectStandardGoals(sources: FlowGoalSources): Map<string, number[]> {
   const { grid, objects, rooms, materials, data } = sources
   const out = new Map<string, number[]>()
 

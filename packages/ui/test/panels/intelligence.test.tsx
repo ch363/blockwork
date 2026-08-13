@@ -110,9 +110,7 @@ describe('Intelligence panel', () => {
       expect(host.textContent).toContain('8 tile radius')
       expect(host.textContent).toContain('6% risk today')
       expect(host.textContent).toContain('Blown — a target')
-      expect(
-        host.querySelectorAll('.bw-intel-informant[data-blown="true"]'),
-      ).toHaveLength(1)
+      expect(host.querySelectorAll('.bw-intel-informant[data-blown="true"]')).toHaveLength(1)
 
       const first = host.querySelector('.bw-intel-informant')
       ;(first as HTMLButtonElement | null)?.click()
@@ -198,9 +196,7 @@ describe('Intelligence panel', () => {
     try {
       expect(second.textContent).toContain('Too loyal to the wing to turn.')
       expect(
-        [...second.querySelectorAll('button')].find((b) =>
-          (b.textContent ?? '').includes('Turn'),
-        ),
+        [...second.querySelectorAll('button')].find((b) => (b.textContent ?? '').includes('Turn')),
       ).toBeUndefined()
     } finally {
       unmount(second)

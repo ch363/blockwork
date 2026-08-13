@@ -13,11 +13,7 @@ import { IconButton } from '../controls/IconButton'
 import { Icon } from '../icons'
 
 export type EmergencyLevelId =
-  | 'sector_lockdown'
-  | 'full_lockdown'
-  | 'riot_squad'
-  | 'free_fire'
-  | 'national_guard'
+  'sector_lockdown' | 'full_lockdown' | 'riot_squad' | 'free_fire' | 'national_guard'
 
 export interface EmergencyLevelModel {
   readonly id: EmergencyLevelId
@@ -109,9 +105,7 @@ export function Emergency({
               <h2>Emergency</h2>
               <div class="sub">
                 Danger {Math.round(model.danger)}
-                {model.riotActive
-                  ? ` · ${model.riotingCount} rioting`
-                  : ' · no active riot'}
+                {model.riotActive ? ` · ${model.riotingCount} rioting` : ' · no active riot'}
               </div>
             </div>
             <div class="bw-spacer" />
@@ -158,9 +152,7 @@ export function Emergency({
                     </div>
                     <span class="cost">{level.costLabel}</span>
                   </div>
-                  <div class="rung-actions">
-                    {levelAction(level, handlers)}
-                  </div>
+                  <div class="rung-actions">{levelAction(level, handlers)}</div>
                   {level.disabled && level.disabledReason !== null && (
                     <div class="rung-hint">{level.disabledReason}</div>
                   )}
@@ -169,8 +161,8 @@ export function Emergency({
             </ol>
 
             <div class="bw-emergency-footnote">
-              Riot squad costs ${model.riotSquadHourlyCost}/hour while deployed.
-              National guard costs ${model.nationalGuardCost} once.
+              Riot squad costs ${model.riotSquadHourlyCost}/hour while deployed. National guard
+              costs ${model.nationalGuardCost} once.
             </div>
           </div>
         </>
@@ -196,19 +188,11 @@ function levelAction(
   switch (level.id) {
     case 'sector_lockdown':
       return level.active ? (
-        <Button
-          variant="ghost"
-          disabled={level.disabled}
-          onClick={handlers.onLiftSectorLockdown}
-        >
+        <Button variant="ghost" disabled={level.disabled} onClick={handlers.onLiftSectorLockdown}>
           Lift
         </Button>
       ) : (
-        <Button
-          variant="danger"
-          disabled={level.disabled}
-          onClick={handlers.onSectorLockdown}
-        >
+        <Button variant="danger" disabled={level.disabled} onClick={handlers.onSectorLockdown}>
           Lock sector
         </Button>
       )

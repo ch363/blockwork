@@ -76,7 +76,6 @@ function baseRoll(overrides: Partial<MisconductRollInput> = {}): MisconductRollI
   }
 }
 
-
 function putFloor(world: InmateWorld, x: number, y: number): number {
   const floor = world.data.balance.construction.foundationFloorMaterial
   const index = world.grid.idx(x, y)
@@ -238,11 +237,7 @@ describe('misconduct roll modifiers (isolated)', () => {
   })
 
   it('violent trait multiplies by the violent factor', () => {
-    const violent = computeMisconductProbability(
-      misc,
-      suppMax,
-      baseRoll({ hasViolentTrait: true }),
-    )
+    const violent = computeMisconductProbability(misc, suppMax, baseRoll({ hasViolentTrait: true }))
     expect(violent).toBeCloseTo(baseline * misc.violentTraitMultiplier, 10)
   })
 

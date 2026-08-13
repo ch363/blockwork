@@ -17,12 +17,7 @@ import { isInmateWorld } from '../systems/intakeSystem'
 import type { InmateWorld } from '../systems/intakeSystem'
 import { refreshPassability } from './construction'
 import { NO_ROOM } from './rooms'
-import {
-  NO_SECTOR,
-  SECTOR_EVENTS,
-  isSectorAccessMode,
-  type SectorAccessMode,
-} from './sectors'
+import { NO_SECTOR, SECTOR_EVENTS, isSectorAccessMode, type SectorAccessMode } from './sectors'
 
 /* -------------------------------------------------------------------------- */
 /* Commands                                                                    */

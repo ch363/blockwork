@@ -113,7 +113,12 @@ export class SupplyLogistics {
   noDockNotified = false
   #nextOrderId = 1
 
-  placeOrder(itemId: string, units: number, siteId: number, tick: number): MaterialOrder | undefined {
+  placeOrder(
+    itemId: string,
+    units: number,
+    siteId: number,
+    tick: number,
+  ): MaterialOrder | undefined {
     if (units <= 0) return undefined
     const order: MaterialOrder = {
       id: this.#nextOrderId,
@@ -862,12 +867,7 @@ function preferredSiteForDockItem(supply: SupplyLogistics, itemId: string): numb
   return bestSite
 }
 
-function hasOpenCarry(
-  world: InmateWorld,
-  hop: CarryHop,
-  itemId: string,
-  siteId?: number,
-): boolean {
+function hasOpenCarry(world: InmateWorld, hop: CarryHop, itemId: string, siteId?: number): boolean {
   for (const mission of world.supply.carries.values()) {
     if (mission.hop !== hop) continue
     if (mission.itemId !== itemId) continue

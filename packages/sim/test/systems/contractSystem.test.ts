@@ -11,11 +11,7 @@ import type { SimulationEvent } from '../../src/core/simulation'
 import { Simulation } from '../../src/core/simulation'
 import { loadGameData } from '../../src/data/loader'
 import type { ContractPredicate } from '../../src/data/schemas'
-import {
-  createInmateShell,
-  generateInmate,
-  NO_INMATE,
-} from '../../src/entities/inmate'
+import { createInmateShell, generateInmate, NO_INMATE } from '../../src/entities/inmate'
 import { NeedIndex } from '../../src/entities/needs'
 import { NO_OBJECT } from '../../src/entities/objects'
 import type { ObjectEntity } from '../../src/entities/objects'
@@ -190,8 +186,16 @@ describe('contract predicates (T3.7)', () => {
 
   it('roomGrade counts functional rooms meeting the grade floor', () => {
     const w = world()
-    const a = addFunctionalRoom(w, 'cell', Array.from({ length: 16 }, (_, i) => i))
-    const b = addFunctionalRoom(w, 'cell', Array.from({ length: 6 }, (_, i) => i + 100))
+    const a = addFunctionalRoom(
+      w,
+      'cell',
+      Array.from({ length: 16 }, (_, i) => i),
+    )
+    const b = addFunctionalRoom(
+      w,
+      'cell',
+      Array.from({ length: 6 }, (_, i) => i + 100),
+    )
     w.contracts.progress.setRoomGrade(a, 6)
     w.contracts.progress.setRoomGrade(b, 3)
     expect(pred({ type: 'roomGrade', roomId: 'cell', minGrade: 5, count: 1 }, w)).toBe(true)
@@ -236,13 +240,11 @@ describe('contract predicates (T3.7)', () => {
 
   it('programCompletions reads facility progress meters', () => {
     const w = world()
-    expect(
-      pred({ type: 'programCompletions', programId: 'basic_literacy', min: 20 }, w),
-    ).toBe(false)
+    expect(pred({ type: 'programCompletions', programId: 'basic_literacy', min: 20 }, w)).toBe(
+      false,
+    )
     w.contracts.progress.recordProgramCompletion('basic_literacy', 20)
-    expect(
-      pred({ type: 'programCompletions', programId: 'basic_literacy', min: 20 }, w),
-    ).toBe(true)
+    expect(pred({ type: 'programCompletions', programId: 'basic_literacy', min: 20 }, w)).toBe(true)
   })
 
   it('directorateComplete checks completed Directorate nodes', () => {
@@ -277,9 +279,7 @@ describe('contract predicates (T3.7)', () => {
 
   it('balanceAtLeast reads the economy ledger', () => {
     const w = world()
-    expect(pred({ type: 'balanceAtLeast', min: DATA.balance.economy.startingFunds }, w)).toBe(
-      true,
-    )
+    expect(pred({ type: 'balanceAtLeast', min: DATA.balance.economy.startingFunds }, w)).toBe(true)
     w.economy.debit(0, 'other', DATA.balance.economy.startingFunds, 'drain', 0)
     expect(pred({ type: 'balanceAtLeast', min: 1 }, w)).toBe(false)
   })
@@ -336,7 +336,9 @@ describe('contract completion (T3.7)', () => {
     expect(events.of(CONTRACT_EVENTS.completed)).toHaveLength(1)
     expect(w.contracts.isFinished('administration')).toBe(true)
     expect(w.contracts.activeCount()).toBe(0)
-    expect(w.economy.balance).toBe(starting + def.advance + def.completion - DATA.staff.get('warden').hireCost)
+    expect(w.economy.balance).toBe(
+      starting + def.advance + def.completion - DATA.staff.get('warden').hireCost,
+    )
   })
 
   it('completes each of the five starting contracts when their predicates pass', () => {
@@ -363,9 +365,10 @@ describe('contract completion (T3.7)', () => {
       }
 
       const result = acceptContract(w, id, events, tick, NEED_INDEX)
-      expect(result.ok, `${id}: ${JSON.stringify(events.of(CONTRACT_EVENTS.rejected).at(-1)?.data)}`).toBe(
-        true,
-      )
+      expect(
+        result.ok,
+        `${id}: ${JSON.stringify(events.of(CONTRACT_EVENTS.rejected).at(-1)?.data)}`,
+      ).toBe(true)
       expect(w.contracts.isFinished(id), id).toBe(true)
     }
 
@@ -391,11 +394,7 @@ describe('contract completion (T3.7)', () => {
   })
 })
 
-function satisfy(
-  w: InmateWorld,
-  predicate: ContractPredicate,
-  events: RecordingSink,
-): void {
+function satisfy(w: InmateWorld, predicate: ContractPredicate, events: RecordingSink): void {
   switch (predicate.type) {
     case 'roomCount':
       for (let i = 0; i < predicate.min; i += 1) addFunctionalRoom(w, predicate.roomId)
@@ -430,9 +429,8 @@ function satisfy(
       break
     case 'capacityAtLeast':
       while (
-        [...w.rooms.all()].filter(
-          (r) => r.defId === 'cell' && w.rooms.statusOf(r.id)?.functional,
-        ).length < predicate.min
+        [...w.rooms.all()].filter((r) => r.defId === 'cell' && w.rooms.statusOf(r.id)?.functional)
+          .length < predicate.min
       ) {
         addFunctionalRoom(w, 'cell')
       }
@@ -456,13 +454,7 @@ function satisfy(
       break
     case 'balanceAtLeast':
       if (w.economy.balance < predicate.min) {
-        w.economy.credit(
-          0,
-          'other',
-          predicate.min - w.economy.balance,
-          'test top-up',
-          0,
-        )
+        w.economy.credit(0, 'other', predicate.min - w.economy.balance, 'test top-up', 0)
       }
       break
     case 'staffMoraleAtLeast':
@@ -502,7 +494,10 @@ describe('contract cancellation maths (T3.7)', () => {
     expect(w.economy.balance).toBe(beforeAccept + def.advance)
 
     const afterAdvance = w.economy.balance
-    const expectedDebit = cancellationDebit(def.advance, DATA.balance.economy.contractCancellationPenalty)
+    const expectedDebit = cancellationDebit(
+      def.advance,
+      DATA.balance.economy.contractCancellationPenalty,
+    )
     cancelContract(w, 'fit_for_purpose', events, 10)
 
     expect(events.of(CONTRACT_EVENTS.cancelled)).toHaveLength(1)

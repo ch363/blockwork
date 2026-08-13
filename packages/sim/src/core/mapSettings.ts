@@ -51,13 +51,7 @@ export type FailureCondition = (typeof FAILURE_CONDITIONS)[number]
  * wants to build rather than firefight gets to do that, and it is also how a
  * scenario test isolates one subsystem from the rest.
  */
-export const MUTATORS = [
-  'staffNeeds',
-  'contraband',
-  'fires',
-  'tunnels',
-  'utilities',
-] as const
+export const MUTATORS = ['staffNeeds', 'contraband', 'fires', 'tunnels', 'utilities'] as const
 export type Mutator = (typeof MUTATORS)[number]
 
 /* -------------------------------------------------------------------------- */
@@ -106,16 +100,14 @@ export function isNoFailureMode(config: NewPrisonConfig): boolean {
 }
 
 function allFailures(value: boolean): Record<FailureCondition, boolean> {
-  return Object.fromEntries(
-    FAILURE_CONDITIONS.map((condition) => [condition, value]),
-  ) as Record<FailureCondition, boolean>
+  return Object.fromEntries(FAILURE_CONDITIONS.map((condition) => [condition, value])) as Record<
+    FailureCondition,
+    boolean
+  >
 }
 
 function allMutators(value: boolean): Record<Mutator, boolean> {
-  return Object.fromEntries(MUTATORS.map((mutator) => [mutator, value])) as Record<
-    Mutator,
-    boolean
-  >
+  return Object.fromEntries(MUTATORS.map((mutator) => [mutator, value])) as Record<Mutator, boolean>
 }
 
 /* -------------------------------------------------------------------------- */

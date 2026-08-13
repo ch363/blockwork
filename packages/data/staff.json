@@ -8,18 +8,8 @@
       "hireCost": 4000,
       "isAdministrator": true,
       "requiresOffice": true,
-      "needs": [
-        "bladder",
-        "sleep",
-        "food",
-        "comfort",
-        "safety",
-        "environment",
-        "warmth"
-      ],
-      "capabilities": [
-        "administrate"
-      ]
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate"]
     },
     {
       "_tuning": true,
@@ -30,19 +20,8 @@
       "isAdministrator": true,
       "requiresOffice": true,
       "unlockedBy": "security_office",
-      "needs": [
-        "bladder",
-        "sleep",
-        "food",
-        "comfort",
-        "safety",
-        "environment",
-        "warmth"
-      ],
-      "capabilities": [
-        "administrate",
-        "tutor"
-      ]
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate", "tutor"]
     },
     {
       "_tuning": true,
@@ -53,18 +32,8 @@
       "isAdministrator": true,
       "requiresOffice": true,
       "unlockedBy": "finance",
-      "needs": [
-        "bladder",
-        "sleep",
-        "food",
-        "comfort",
-        "safety",
-        "environment",
-        "warmth"
-      ],
-      "capabilities": [
-        "administrate"
-      ]
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate"]
     },
     {
       "_tuning": true,
@@ -75,20 +44,8 @@
       "isAdministrator": true,
       "requiresOffice": true,
       "unlockedBy": "works",
-      "needs": [
-        "bladder",
-        "sleep",
-        "food",
-        "comfort",
-        "safety",
-        "environment",
-        "warmth"
-      ],
-      "capabilities": [
-        "administrate",
-        "tutor",
-        "repair"
-      ]
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate", "tutor", "repair"]
     },
     {
       "_tuning": true,
@@ -99,19 +56,8 @@
       "isAdministrator": true,
       "requiresOffice": true,
       "unlockedBy": "welfare",
-      "needs": [
-        "bladder",
-        "sleep",
-        "food",
-        "comfort",
-        "safety",
-        "recreation",
-        "environment"
-      ],
-      "capabilities": [
-        "administrate",
-        "tutor"
-      ]
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "recreation", "environment"],
+      "capabilities": ["administrate", "tutor"]
     },
     {
       "_tuning": true,
@@ -122,19 +68,8 @@
       "isAdministrator": true,
       "requiresOffice": true,
       "unlockedBy": "legal",
-      "needs": [
-        "bladder",
-        "sleep",
-        "food",
-        "comfort",
-        "safety",
-        "environment",
-        "warmth"
-      ],
-      "capabilities": [
-        "administrate",
-        "hearing"
-      ]
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "environment", "warmth"],
+      "capabilities": ["administrate", "hearing"]
     },
     {
       "_tuning": true,
@@ -152,13 +87,7 @@
         "environment",
         "warmth"
       ],
-      "capabilities": [
-        "escort",
-        "openDoors",
-        "patrol",
-        "search",
-        "detectContraband"
-      ]
+      "capabilities": ["escort", "openDoors", "patrol", "search", "detectContraband"]
     },
     {
       "_tuning": true,
@@ -179,14 +108,7 @@
         "environment",
         "warmth"
       ],
-      "capabilities": [
-        "armed",
-        "escort",
-        "openDoors",
-        "patrol",
-        "search",
-        "riotControl"
-      ]
+      "capabilities": ["armed", "escort", "openDoors", "patrol", "search", "riotControl"]
     },
     {
       "_tuning": true,
@@ -206,13 +128,7 @@
         "environment",
         "warmth"
       ],
-      "capabilities": [
-        "handleDog",
-        "patrol",
-        "search",
-        "detectContraband",
-        "openDoors"
-      ]
+      "capabilities": ["handleDog", "patrol", "search", "detectContraband", "openDoors"]
     },
     {
       "_tuning": true,
@@ -222,15 +138,8 @@
       "hireCost": 400,
       "requiresRoom": "kennel",
       "unlockedBy": "canine",
-      "needs": [
-        "sleep",
-        "food",
-        "comfort"
-      ],
-      "capabilities": [
-        "detectContraband",
-        "patrol"
-      ]
+      "needs": ["sleep", "food", "comfort"],
+      "capabilities": ["detectContraband", "patrol"]
     },
     {
       "_tuning": true,
@@ -240,18 +149,8 @@
       "hireCost": 1500,
       "requiresObjectPerHead": "watchtower_post",
       "unlockedBy": "watchtowers",
-      "needs": [
-        "bladder",
-        "sleep",
-        "food",
-        "comfort",
-        "safety",
-        "warmth"
-      ],
-      "capabilities": [
-        "armed",
-        "marksman"
-      ]
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "warmth"],
+      "capabilities": ["armed", "marksman"]
     },
     {
       "_tuning": true,
@@ -261,11 +160,7 @@
       "hireCost": 0,
       "callable": true,
       "needs": [],
-      "capabilities": [
-        "riotControl",
-        "armed",
-        "escort"
-      ]
+      "capabilities": ["riotControl", "armed", "escort"]
     },
     {
       "_tuning": true,
@@ -283,11 +178,7 @@
         "environment",
         "warmth"
       ],
-      "capabilities": [
-        "build",
-        "repair",
-        "driveTruck"
-      ]
+      "capabilities": ["build", "repair", "driveTruck"]
     },
     {
       "_tuning": true,
@@ -306,9 +197,7 @@
         "environment",
         "warmth"
       ],
-      "capabilities": [
-        "clean"
-      ]
+      "capabilities": ["clean"]
     },
     {
       "_tuning": true,
@@ -317,18 +206,8 @@
       "hourlyWage": 16,
       "hireCost": 300,
       "unlockedBy": "grounds",
-      "needs": [
-        "bladder",
-        "sleep",
-        "food",
-        "comfort",
-        "safety",
-        "recreation",
-        "warmth"
-      ],
-      "capabilities": [
-        "cleanOutdoors"
-      ]
+      "needs": ["bladder", "sleep", "food", "comfort", "safety", "recreation", "warmth"],
+      "capabilities": ["cleanOutdoors"]
     },
     {
       "_tuning": true,
@@ -346,11 +225,7 @@
         "environment",
         "warmth"
       ],
-      "capabilities": [
-        "cook",
-        "serve",
-        "tutor"
-      ]
+      "capabilities": ["cook", "serve", "tutor"]
     },
     {
       "_tuning": true,
@@ -369,10 +244,7 @@
         "environment",
         "warmth"
       ],
-      "capabilities": [
-        "treat",
-        "tutor"
-      ]
+      "capabilities": ["treat", "tutor"]
     },
     {
       "_tuning": true,
@@ -383,9 +255,7 @@
       "perSession": true,
       "unlockedBy": "education",
       "needs": [],
-      "capabilities": [
-        "tutor"
-      ]
+      "capabilities": ["tutor"]
     },
     {
       "_tuning": true,
@@ -395,10 +265,7 @@
       "hireCost": 0,
       "perSession": true,
       "needs": [],
-      "capabilities": [
-        "minister",
-        "tutor"
-      ]
+      "capabilities": ["minister", "tutor"]
     },
     {
       "_tuning": true,
@@ -409,9 +276,7 @@
       "perSession": true,
       "requiresRoom": "hearing_room",
       "needs": [],
-      "capabilities": [
-        "hearing"
-      ]
+      "capabilities": ["hearing"]
     },
     {
       "_tuning": true,
@@ -421,11 +286,7 @@
       "hireCost": 0,
       "callable": true,
       "needs": [],
-      "capabilities": [
-        "riotControl",
-        "armed",
-        "escort"
-      ]
+      "capabilities": ["riotControl", "armed", "escort"]
     },
     {
       "_tuning": true,
@@ -435,10 +296,7 @@
       "hireCost": 0,
       "callable": true,
       "needs": [],
-      "capabilities": [
-        "fightFire",
-        "openDoors"
-      ]
+      "capabilities": ["fightFire", "openDoors"]
     }
   ]
 }

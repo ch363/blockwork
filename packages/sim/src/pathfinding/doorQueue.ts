@@ -140,10 +140,7 @@ export class DoorQueueRegistry {
  *
  * Used by the movement system to decide when a free doorway becomes a queue.
  */
-export function countDoorWaiters(
-  doorTile: number,
-  desires: ReadonlyMap<number, number>,
-): number {
+export function countDoorWaiters(doorTile: number, desires: ReadonlyMap<number, number>): number {
   let count = 0
   for (const desired of desires.values()) {
     if (desired === doorTile) count += 1

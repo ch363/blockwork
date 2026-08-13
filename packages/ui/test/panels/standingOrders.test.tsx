@@ -4,11 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import {
-  StandingOrders,
-  formatDuration,
-  MISCONDUCT_LABELS,
-} from '../../src/panels/StandingOrders'
+import { StandingOrders, formatDuration, MISCONDUCT_LABELS } from '../../src/panels/StandingOrders'
 import type { StandingOrdersModel } from '../../src/panels/StandingOrders'
 import { mountShell, unmount } from '../helpers/mount'
 

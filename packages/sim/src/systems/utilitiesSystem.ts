@@ -119,12 +119,7 @@ interface PowerSource {
   readonly tiles: readonly number[]
 }
 
-function rebuildPower(
-  world: InmateWorld,
-  data: GameData,
-  events: EventSink,
-  tick: number,
-): void {
+function rebuildPower(world: InmateWorld, data: GameData, events: EventSink, tick: number): void {
   const grid = world.grid
   const power = world.power
   const fire = world.fire
@@ -476,9 +471,10 @@ export function outdoorTemperatureC(
   const day = Math.floor(tick / TICKS_PER_DAY)
   const cycle = season.lengthDays * 2
   const position = ((day % cycle) + cycle) % cycle
-  const seasonPhase = position <= season.lengthDays
-    ? position / season.lengthDays
-    : (cycle - position) / season.lengthDays
+  const seasonPhase =
+    position <= season.lengthDays
+      ? position / season.lengthDays
+      : (cycle - position) / season.lengthDays
   return daily + season.swingC * (seasonPhase * 2 - 1)
 }
 
@@ -512,7 +508,12 @@ export interface UtilityRouteResult {
 export function utilityPathToLines(
   path: readonly number[],
   mapSize: number,
-): readonly { readonly x1: number; readonly y1: number; readonly x2: number; readonly y2: number }[] {
+): readonly {
+  readonly x1: number
+  readonly y1: number
+  readonly x2: number
+  readonly y2: number
+}[] {
   if (path.length < 2 || mapSize <= 0) return []
 
   const tileXY = (index: number): { x: number; y: number } => ({
@@ -644,42 +645,54 @@ export function autoRouteUtility(
 /* -------------------------------------------------------------------------- */
 
 /** Lays cable along an inclusive axis-aligned line. */
-export function paintCable(world: InmateWorld, line: {
-  readonly x1: number
-  readonly y1: number
-  readonly x2: number
-  readonly y2: number
-}): number {
+export function paintCable(
+  world: InmateWorld,
+  line: {
+    readonly x1: number
+    readonly y1: number
+    readonly x2: number
+    readonly y2: number
+  },
+): number {
   return paintOverlay(world.grid, world.power.hasCable, line, true)
 }
 
 /** Clears cable along an inclusive axis-aligned line. */
-export function clearCable(world: InmateWorld, line: {
-  readonly x1: number
-  readonly y1: number
-  readonly x2: number
-  readonly y2: number
-}): number {
+export function clearCable(
+  world: InmateWorld,
+  line: {
+    readonly x1: number
+    readonly y1: number
+    readonly x2: number
+    readonly y2: number
+  },
+): number {
   return paintOverlay(world.grid, world.power.hasCable, line, false)
 }
 
 /** Lays pipe along an inclusive axis-aligned line. */
-export function paintPipe(world: InmateWorld, line: {
-  readonly x1: number
-  readonly y1: number
-  readonly x2: number
-  readonly y2: number
-}): number {
+export function paintPipe(
+  world: InmateWorld,
+  line: {
+    readonly x1: number
+    readonly y1: number
+    readonly x2: number
+    readonly y2: number
+  },
+): number {
   return paintOverlay(world.grid, world.water.hasPipe, line, true)
 }
 
 /** Clears pipe along an inclusive axis-aligned line. */
-export function clearPipe(world: InmateWorld, line: {
-  readonly x1: number
-  readonly y1: number
-  readonly x2: number
-  readonly y2: number
-}): number {
+export function clearPipe(
+  world: InmateWorld,
+  line: {
+    readonly x1: number
+    readonly y1: number
+    readonly x2: number
+    readonly y2: number
+  },
+): number {
   return paintOverlay(world.grid, world.water.hasPipe, line, false)
 }
 

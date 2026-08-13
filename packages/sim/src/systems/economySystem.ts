@@ -65,13 +65,7 @@ export function payWages(world: InmateWorld, events: EventSink, tick: number): n
     if (def.hourlyWage <= 0) continue
     const wage = Math.floor(def.hourlyWage * world.morale.wageMultiplier)
     if (wage <= 0) continue
-    world.economy.debit(
-      tick,
-      'wages',
-      wage,
-      `Hourly wage (${def.name})`,
-      entity.id,
-    )
+    world.economy.debit(tick, 'wages', wage, `Hourly wage (${def.name})`, entity.id)
     total += wage
     breakdown.push({ staffId: entity.id, defId: def.id, wage })
   }
@@ -133,13 +127,7 @@ export function chargeLoanInterest(world: InmateWorld, events: EventSink, tick: 
   const interest = Math.floor(principal * rate)
   if (interest <= 0) return 0
 
-  world.economy.debit(
-    tick,
-    'loan_interest',
-    interest,
-    'Loan interest',
-    FACILITY_SOURCE_ID,
-  )
+  world.economy.debit(tick, 'loan_interest', interest, 'Loan interest', FACILITY_SOURCE_ID)
   events.emit({
     tick,
     kind: ECONOMY_EVENTS.loanInterestCharged,
@@ -239,13 +227,7 @@ export function applyTax(
 export function drainOutboxes(world: InmateWorld, tick: number): void {
   const spend = world.takeSpend()
   if (spend > 0) {
-    world.economy.debit(
-      tick,
-      'construction',
-      spend,
-      'Construction spend',
-      FACILITY_SOURCE_ID,
-    )
+    world.economy.debit(tick, 'construction', spend, 'Construction spend', FACILITY_SOURCE_ID)
   }
 
   const refunds = world.takeRefunds()
@@ -261,13 +243,7 @@ export function drainOutboxes(world: InmateWorld, tick: number): void {
 
   const income = world.takeIncome()
   if (income > 0) {
-    world.economy.credit(
-      tick,
-      'intake_fee',
-      income,
-      'Intake fees',
-      FACILITY_SOURCE_ID,
-    )
+    world.economy.credit(tick, 'intake_fee', income, 'Intake fees', FACILITY_SOURCE_ID)
   }
 }
 
@@ -315,7 +291,6 @@ export function createEconomySystem(_options: EconomySystemOptions): System {
       }
 
       world.economy.updateInsolvency(tick, context.events)
-
     },
   }
 }

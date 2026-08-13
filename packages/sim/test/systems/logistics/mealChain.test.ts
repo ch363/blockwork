@@ -4,11 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import {
-  TICKS_PER_DAY,
-  TICKS_PER_HOUR,
-  TICKS_PER_MINUTE,
-} from '../../../src/core/clock'
+import { TICKS_PER_DAY, TICKS_PER_HOUR, TICKS_PER_MINUTE } from '../../../src/core/clock'
 import { Simulation } from '../../../src/core/simulation'
 import type { SimulationEvent } from '../../../src/core/simulation'
 import { loadGameData } from '../../../src/data/loader'
@@ -197,13 +193,11 @@ function buildFacility(options: {
   for (let row = 0; row < 2 && placedCookers < options.cookers; row += 1) {
     let cookerX = kitchenInterior.x
     const cookerY = kitchenInterior.y + 1 + row * 2
-    while (placedCookers < options.cookers && cookerX + 1 < kitchenInterior.x + kitchenInterior.width) {
-      const placed = placeObject(
-        objectDeps(world, events),
-        { x: cookerX, y: cookerY },
-        'cooker',
-        0,
-      )
+    while (
+      placedCookers < options.cookers &&
+      cookerX + 1 < kitchenInterior.x + kitchenInterior.width
+    ) {
+      const placed = placeObject(objectDeps(world, events), { x: cookerX, y: cookerY }, 'cooker', 0)
       if (placed === undefined) throw new Error(`cooker ${String(placedCookers)} failed`)
       cookerX += 2
       placedCookers += 1
@@ -312,8 +306,12 @@ describe('mealsPerHour formula', () => {
 
   it('scales required meals by standing-order quantity', () => {
     expect(requiredMealCount(200, 'normal', KITCHEN)).toBe(200)
-    expect(requiredMealCount(200, 'low', KITCHEN)).toBe(Math.ceil(200 * KITCHEN.quantityMultipliers.low))
-    expect(requiredMealCount(200, 'high', KITCHEN)).toBe(Math.ceil(200 * KITCHEN.quantityMultipliers.high))
+    expect(requiredMealCount(200, 'low', KITCHEN)).toBe(
+      Math.ceil(200 * KITCHEN.quantityMultipliers.low),
+    )
+    expect(requiredMealCount(200, 'high', KITCHEN)).toBe(
+      Math.ceil(200 * KITCHEN.quantityMultipliers.high),
+    )
   })
 })
 
@@ -443,8 +441,18 @@ describe('failure CausalEvents', () => {
     putRoomShell(world, kitchenShell)
     designateRoom(roomDeps(world, events), interiorOf(kitchenShell), 'kitchen')
     const kitchenInterior = interiorOf(kitchenShell)
-    placeObject(objectDeps(world, events), { x: kitchenInterior.x, y: kitchenInterior.y + 1 }, 'cooker', 0)
-    placeObject(objectDeps(world, events), { x: kitchenInterior.x, y: kitchenInterior.y + 3 }, 'fridge', 0)
+    placeObject(
+      objectDeps(world, events),
+      { x: kitchenInterior.x, y: kitchenInterior.y + 1 },
+      'cooker',
+      0,
+    )
+    placeObject(
+      objectDeps(world, events),
+      { x: kitchenInterior.x, y: kitchenInterior.y + 3 },
+      'fridge',
+      0,
+    )
     hireStaff({
       world,
       defId: 'cook',
@@ -490,9 +498,9 @@ describe('failure CausalEvents', () => {
     expect(
       mealsPerHour(fullCookers, cooks, KITCHEN) * KITCHEN.preparationLeadHours,
     ).toBeGreaterThanOrEqual(needed)
-    expect(
-      mealsPerHour(halfCookers, cooks, KITCHEN) * KITCHEN.preparationLeadHours,
-    ).toBeLessThan(needed)
+    expect(mealsPerHour(halfCookers, cooks, KITCHEN) * KITCHEN.preparationLeadHours).toBeLessThan(
+      needed,
+    )
 
     const { world } = buildFacility({ cookers: halfCookers, hireCooks: cooks })
     spawnInmates(world, needed, 24, 5)
@@ -531,34 +539,30 @@ describe('failure CausalEvents', () => {
 })
 
 describe('acceptance: sized kitchen feeds population', () => {
-  it(
-    'feeds 200 inmates with zero missed meals over 30 in-game days',
-    () => {
-      const population = 200
-      const cooks = 2
-      const mphNeeded = population / KITCHEN.preparationLeadHours
-      const cookers = neededCookersFor(population, cooks, KITCHEN)
-      expect(mealsPerHour(cookers, cooks, KITCHEN)).toBeGreaterThanOrEqual(mphNeeded)
+  it('feeds 200 inmates with zero missed meals over 30 in-game days', () => {
+    const population = 200
+    const cooks = 2
+    const mphNeeded = population / KITCHEN.preparationLeadHours
+    const cookers = neededCookersFor(population, cooks, KITCHEN)
+    expect(mealsPerHour(cookers, cooks, KITCHEN)).toBeGreaterThanOrEqual(mphNeeded)
 
-      const { world, events } = buildFacility({
-        cookers,
-        hireCooks: cooks,
-        mapSize: 64,
-      })
-      spawnInmates(world, population, 24, 5)
-      stockAllFridges(world, 30 * 3 * population * KITCHEN.ingredientsPerMeal + 1_000)
+    const { world, events } = buildFacility({
+      cookers,
+      hireCooks: cooks,
+      mapSize: 64,
+    })
+    spawnInmates(world, population, 24, 5)
+    stockAllFridges(world, 30 * 3 * population * KITCHEN.ingredientsPerMeal + 1_000)
 
-      let tick = 0
-      const minutes = 30 * (TICKS_PER_DAY / TICKS_PER_MINUTE)
-      tick = stepMinutes(world, events, tick, minutes)
+    let tick = 0
+    const minutes = 30 * (TICKS_PER_DAY / TICKS_PER_MINUTE)
+    tick = stepMinutes(world, events, tick, minutes)
 
-      expect(world.meals.missedMeals).toBe(0)
-      expect(world.meals.mealsServed).toBeGreaterThan(0)
-      expect(events.of(MEAL_EVENTS.missedMeal)).toHaveLength(0)
-      void tick
-    },
-    60_000,
-  )
+    expect(world.meals.missedMeals).toBe(0)
+    expect(world.meals.mealsServed).toBeGreaterThan(0)
+    expect(events.of(MEAL_EVENTS.missedMeal)).toHaveLength(0)
+    void tick
+  }, 60_000)
 
   it('registers the mealChain system on a Simulation', () => {
     const events = new RecordingSink()

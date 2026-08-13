@@ -62,7 +62,12 @@ export function Trace({
   const open = model !== null
 
   return (
-    <div class="bw-trace-panel" data-open={open ? 'true' : 'false'} role="dialog" aria-label="Trace">
+    <div
+      class="bw-trace-panel"
+      data-open={open ? 'true' : 'false'}
+      role="dialog"
+      aria-label="Trace"
+    >
       {model !== null && (
         <>
           <div class="bw-trace-head">

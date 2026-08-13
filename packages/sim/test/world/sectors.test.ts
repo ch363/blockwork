@@ -5,15 +5,9 @@
 import { describe, expect, it } from 'vitest'
 
 import { loadGameData } from '../../src/data/loader'
-import {
-  ACCESS,
-  inmateAccessMask,
-} from '../../src/pathfinding/regionGraph'
+import { ACCESS, inmateAccessMask } from '../../src/pathfinding/regionGraph'
 import { applySectorDerived } from '../../src/world/sectorCommands'
-import {
-  sectorAccessMask,
-  sectorPassabilityBits,
-} from '../../src/world/sectors'
+import { sectorAccessMask, sectorPassabilityBits } from '../../src/world/sectors'
 import { PASSABILITY } from '../../src/world/tileGrid'
 import { createInmateWorld } from '../../src/systems/intakeSystem'
 import type { InmateWorld } from '../../src/systems/intakeSystem'
@@ -157,9 +151,7 @@ describe('access mask propagation to the region graph (T4.1)', () => {
 
     const leftRegion = world.regions.regionAt(rooms.left)
     const rightRegion = world.regions.regionAt(rooms.right)
-    const intoRight = world.regions
-      .edgesFrom(leftRegion)
-      .filter((edge) => edge.to === rightRegion)
+    const intoRight = world.regions.edgesFrom(leftRegion).filter((edge) => edge.to === rightRegion)
     expect(intoRight).toHaveLength(1)
     const edge = intoRight[0]
     expect(edge).toBeDefined()

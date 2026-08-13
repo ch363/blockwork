@@ -149,11 +149,7 @@ export function completeJob(
 /* Abandonment                                                                 */
 /* -------------------------------------------------------------------------- */
 
-function processAbandonments(
-  world: InmateWorld,
-  data: GameData,
-  context: SystemContext,
-): void {
+function processAbandonments(world: InmateWorld, data: GameData, context: SystemContext): void {
   const tick = context.clock.tick
   const globalReason: JobAbandonReason | null = world.riotActive
     ? 'riot'
@@ -271,13 +267,7 @@ function assignJobs(world: InmateWorld, data: GameData, context: SystemContext):
 
     const job = world.jobs.get(candidate.jobId)
     if (job !== undefined) {
-      emitJobClaimed(
-        context.events,
-        tick,
-        job,
-        candidate.claimantKind,
-        candidate.agentId,
-      )
+      emitJobClaimed(context.events, tick, job, candidate.claimantKind, candidate.agentId)
     }
   }
 }

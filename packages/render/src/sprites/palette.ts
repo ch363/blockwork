@@ -77,7 +77,10 @@ export function swatchColour(swatch: string): number {
  * `Record<ArtSwatch, number>`, so a swatch added to the vocabulary and not to
  * this table is a compile error rather than a missing entry.
  */
-export function paletteEntries(): readonly { readonly swatch: ArtSwatch; readonly colour: number }[] {
+export function paletteEntries(): readonly {
+  readonly swatch: ArtSwatch
+  readonly colour: number
+}[] {
   return (Object.keys(ART_PALETTE) as ArtSwatch[])
     .sort()
     .map((swatch) => ({ swatch, colour: ART_PALETTE[swatch] }))
@@ -131,10 +134,7 @@ export const LIGHT_SWATCHES: readonly ArtSwatch[] = ['amber', 'amber_dim']
  * Everything else is a surface — concrete, steel, timber, brick, earth — and
  * surfaces stay muted, which is what stops the prison reading as a toy.
  */
-export const SATURATED_SWATCHES: readonly ArtSwatch[] = [
-  ...LIGHT_SWATCHES,
-  ...ACCENT_SWATCHES,
-]
+export const SATURATED_SWATCHES: readonly ArtSwatch[] = [...LIGHT_SWATCHES, ...ACCENT_SWATCHES]
 
 /** The ceiling the muted surfaces sit under. Earth tones run warm; 0.5 is fair. */
 export const MUTED_SATURATION_CEILING = 0.5

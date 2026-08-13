@@ -108,7 +108,10 @@ interface Layer {
 
 /** One-shot shapes: duration in seconds, and the voice that makes them. */
 const ONE_SHOT: Readonly<
-  Record<SoundEffect, { readonly seconds: number; readonly frequency: number; readonly noise: boolean }>
+  Record<
+    SoundEffect,
+    { readonly seconds: number; readonly frequency: number; readonly noise: boolean }
+  >
 > = {
   door_open: { seconds: 0.18, frequency: 220, noise: true },
   door_close: { seconds: 0.14, frequency: 160, noise: true },

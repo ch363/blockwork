@@ -8,11 +8,7 @@
 import { render } from 'preact'
 import type { ComponentChild, VNode } from 'preact'
 
-import {
-  REFERENCE_HEIGHT,
-  REFERENCE_WIDTH,
-  injectShellCss,
-} from '../../src/index'
+import { REFERENCE_HEIGHT, REFERENCE_WIDTH, injectShellCss } from '../../src/index'
 
 export function mountShell(vnode: VNode | ComponentChild): HTMLElement {
   injectShellCss(document)

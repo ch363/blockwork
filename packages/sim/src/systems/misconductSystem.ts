@@ -112,7 +112,9 @@ export function createMisconductSystem(options: MisconductSystemOptions): System
             instigatorNearby,
             guardNearby,
             hasViolentTrait: hasViolent,
-            ...(violentOverride === undefined ? {} : { violentTraitMultiplierOverride: violentOverride }),
+            ...(violentOverride === undefined
+              ? {}
+              : { violentTraitMultiplierOverride: violentOverride }),
             agitatorBoostMultiplier: boost,
           },
         )
@@ -306,13 +308,7 @@ function startFightForMisconduct(options: {
     return
   }
 
-  const otherId = nearestInmateId(
-    options.world,
-    options.inmateId,
-    options.tx,
-    options.ty,
-    range,
-  )
+  const otherId = nearestInmateId(options.world, options.inmateId, options.tx, options.ty, range)
   if (otherId === undefined) return
   beginFight({
     world: options.world,

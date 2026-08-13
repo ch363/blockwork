@@ -99,12 +99,7 @@
     },
     "majorSeverityFrom": "destruction",
     "homicideSentenceYears": 25,
-    "reclassLadder": [
-      "minimum",
-      "medium",
-      "maximum",
-      "supermax"
-    ],
+    "reclassLadder": ["minimum", "medium", "maximum", "supermax"],
     "agitator": {
       "reputationId": "agitator",
       "nearbyTiles": 5,
@@ -172,12 +167,7 @@
     "misconductWindowHours": 6,
     "misconductScale": 400,
     "armedScale": 300,
-    "maxSecurityCategories": [
-      "maximum",
-      "supermax",
-      "protective",
-      "condemned"
-    ]
+    "maxSecurityCategories": ["maximum", "supermax", "protective", "condemned"]
   },
   "riot": {
     "_tuning": true,
@@ -212,14 +202,8 @@
     "toiletObjectId": "toilet",
     "dogStaffRoleId": "dog",
     "maintenanceCapability": "repair",
-    "diggingRegimeBlocks": [
-      "sleep",
-      "lockup"
-    ],
-    "fenceMaterialIds": [
-      "chain_fence",
-      "razor_fence"
-    ],
+    "diggingRegimeBlocks": ["sleep", "lockup"],
+    "fenceMaterialIds": ["chain_fence", "razor_fence"],
     "rngStream": "tunnels"
   },
   "morale": {
@@ -259,17 +243,8 @@
     "breakSeekTimeoutMinutes": 20,
     "breakMaxMinutes": 45,
     "recomputeMoraleMinutes": 6,
-    "accessibleRoomDefIds": [
-      "break_room",
-      "store",
-      "control_room",
-      "armoury",
-      "kennel",
-      "office"
-    ],
-    "staffOnlyCanteenDefIds": [
-      "mess_hall"
-    ]
+    "accessibleRoomDefIds": ["break_room", "store", "control_room", "armoury", "kennel", "office"],
+    "staffOnlyCanteenDefIds": ["mess_hall"]
   },
   "economy": {
     "_tuning": true,
@@ -523,12 +498,7 @@
   "utilities": {
     "_tuning": true,
     "utilitiesEnabled": true,
-    "sheddingPriority": [
-      "comfort",
-      "production",
-      "security",
-      "lifeSafety"
-    ],
+    "sheddingPriority": ["comfort", "production", "security", "lifeSafety"],
     "temperatureDiffusionTicks": 60,
     "outdoorTemperatureC": {
       "min": 2,
@@ -611,44 +581,15 @@
     },
     "deliveryContaminationChance": 0.12,
     "deliveryContamination": {
-      "ingredient_starch": [
-        "fork",
-        "liquor"
-      ],
-      "ingredient_protein": [
-        "kitchen_knife",
-        "fork"
-      ],
-      "ingredient_veg": [
-        "liquor"
-      ],
-      "ingredient_dairy": [
-        "liquor"
-      ],
-      "ingredient_fruit": [
-        "liquor"
-      ],
-      "uniform": [
-        "cigarettes",
-        "mobile_phone",
-        "lighter"
-      ],
-      "timber": [
-        "screwdriver",
-        "hammer",
-        "crowbar"
-      ],
-      "sheet_metal": [
-        "screwdriver",
-        "handsaw",
-        "wire_cutters"
-      ],
-      "commissary_goods": [
-        "cigarettes",
-        "snack_food",
-        "lighter",
-        "liquor"
-      ]
+      "ingredient_starch": ["fork", "liquor"],
+      "ingredient_protein": ["kitchen_knife", "fork"],
+      "ingredient_veg": ["liquor"],
+      "ingredient_dairy": ["liquor"],
+      "ingredient_fruit": ["liquor"],
+      "uniform": ["cigarettes", "mobile_phone", "lighter"],
+      "timber": ["screwdriver", "hammer", "crowbar"],
+      "sheet_metal": ["screwdriver", "handsaw", "wire_cutters"],
+      "commissary_goods": ["cigarettes", "snack_food", "lighter", "liquor"]
     },
     "dog": {
       "base": 0.4,
@@ -819,48 +760,35 @@
     "minSessionMinutes": 1,
     "blocks": {
       "lockup": {
-        "permittedRooms": [
-          "cell",
-          "dormitory",
-          "isolation"
-        ],
+        "permittedRooms": ["cell", "dormitory", "isolation"],
         "preferredNeed": null,
         "lockedUp": true,
         "goalSet": null,
         "ownCell": true
       },
       "sleep": {
-        "permittedRooms": [
-          "cell",
-          "dormitory"
-        ],
+        "permittedRooms": ["cell", "dormitory"],
         "preferredNeed": "sleep",
         "lockedUp": true,
         "goalSet": null,
         "ownCell": true
       },
       "meal": {
-        "permittedRooms": [
-          "mess_hall"
-        ],
+        "permittedRooms": ["mess_hall"],
         "preferredNeed": "food",
         "lockedUp": false,
         "goalSet": "serving_counter",
         "ownCell": false
       },
       "yard": {
-        "permittedRooms": [
-          "exercise_yard"
-        ],
+        "permittedRooms": ["exercise_yard"],
         "preferredNeed": "exercise",
         "lockedUp": false,
         "goalSet": "yard",
         "ownCell": false
       },
       "wash": {
-        "permittedRooms": [
-          "washroom"
-        ],
+        "permittedRooms": ["washroom"],
         "preferredNeed": "hygiene",
         "lockedUp": false,
         "goalSet": "shower_head",

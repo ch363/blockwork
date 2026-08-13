@@ -35,11 +35,7 @@ import type { Fnv1aHasher } from '../core/hash'
 import type { GameData } from '../data/loader'
 import { SECTOR_ACCESS_MODES } from '../data/schemas'
 import type { SectorAccessMode } from '../data/schemas'
-import {
-  ACCESS,
-  ACCESS_ALL,
-  categoriesAccessMask,
-} from '../pathfinding/regionGraph'
+import { ACCESS, ACCESS_ALL, categoriesAccessMask } from '../pathfinding/regionGraph'
 import type { RegionGraph } from '../pathfinding/regionGraph'
 
 import { PASSABILITY } from './tileGrid'

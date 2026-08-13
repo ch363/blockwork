@@ -349,9 +349,7 @@ function scoreCustom(
       }
       case 'meal_variety': {
         const variety = world.standingOrders.mealVariety
-        const steps = Math.floor(
-          Math.max(0, variety - 1) / cfg.mealVarietyIngredientsPerPoint,
-        )
+        const steps = Math.floor(Math.max(0, variety - 1) / cfg.mealVarietyIngredientsPerPoint)
         const points = Math.min(steps, cfg.mealVarietyMaxPoints)
         if (points === 0) break
         lines.push({
@@ -592,7 +590,10 @@ export function accrueEntitlement(
       kind: GRADING_EVENTS.entitlementGained,
       subjectId: entity.id,
       causeIds: [],
-      data: { entitlement: inmate.entitlement, cleanDays: Math.floor((tick - lastMisconduct) / TICKS_PER_DAY) },
+      data: {
+        entitlement: inmate.entitlement,
+        cleanDays: Math.floor((tick - lastMisconduct) / TICKS_PER_DAY),
+      },
     })
   }
 }
@@ -749,7 +750,10 @@ function bestCandidate(
       continue
     }
     const distance = Math.abs(candidate.grade - entity.inmate.entitlement)
-    if (distance < bestDistance || (distance === bestDistance && best !== undefined && candidate.roomId < best.roomId)) {
+    if (
+      distance < bestDistance ||
+      (distance === bestDistance && best !== undefined && candidate.roomId < best.roomId)
+    ) {
       best = candidate
       bestDistance = distance
     }

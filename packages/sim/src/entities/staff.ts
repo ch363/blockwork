@@ -126,19 +126,10 @@ export interface StaffEntity {
 /* Escort jobs                                                                 */
 /* -------------------------------------------------------------------------- */
 
-export type EscortPurpose =
-  | 'cell_assignment'
-  | 'isolation'
-  | 'clinic'
-  | 'program'
-  | 'other'
+export type EscortPurpose = 'cell_assignment' | 'isolation' | 'clinic' | 'program' | 'other'
 
 export type EscortJobState =
-  | 'queued'
-  | 'approach_inmate'
-  | 'escort_to_destination'
-  | 'completed'
-  | 'aborted'
+  'queued' | 'approach_inmate' | 'escort_to_destination' | 'completed' | 'aborted'
 
 /**
  * A one-off escort until T3.2's job system owns every work kind.
@@ -490,9 +481,7 @@ export class StaffRegistry {
       hasher.writeUint32(entity.tx)
       hasher.writeUint32(entity.ty)
     }
-    const counts = [...this.#hireCounts.entries()].sort(([a], [b]) =>
-      a < b ? -1 : a > b ? 1 : 0,
-    )
+    const counts = [...this.#hireCounts.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     hasher.writeUint32(counts.length)
     for (const [defId, count] of counts) {
       hasher.writeString(defId)
@@ -714,12 +703,7 @@ export function fireStaff(
   return true
 }
 
-function rejectHire(
-  events: EventSink,
-  tick: number,
-  defId: string,
-  reason: HireRejection,
-): void {
+function rejectHire(events: EventSink, tick: number, defId: string, reason: HireRejection): void {
   events.emit({
     tick,
     kind: STAFF_EVENTS.hireRejected,

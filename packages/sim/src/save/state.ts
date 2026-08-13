@@ -3,7 +3,7 @@
  *
  * A `SaveFile` is JSON — base64 grids, plain objects, no classes. A
  * `SaveState` is the same information in the form the simulation actually runs
- * on, which today means a real `TileGrid` and typed Phase 4 snapshots. 
+ * on, which today means a real `TileGrid` and typed Phase 4 snapshots.
  * `serialise.ts` turns one into the other and `deserialise.ts` turns it back.
  *
  * The hashing here is what makes "the save round-tripped" a testable claim

@@ -56,12 +56,7 @@ export const ESCAPE_EVENTS = {
   rejected: 'escape.rejected',
 } as const
 
-export type EscapeRoute =
-  | 'tunnel'
-  | 'riotDoor'
-  | 'fenceClimb'
-  | 'vehicleTheft'
-  | 'walkOut'
+export type EscapeRoute = 'tunnel' | 'riotDoor' | 'fenceClimb' | 'vehicleTheft' | 'walkOut'
 
 /* -------------------------------------------------------------------------- */
 /* Tunnel entity                                                               */
@@ -352,10 +347,7 @@ export function inmateHasTrait(entity: InmateEntity, traitId: string): boolean {
 }
 
 /** First inventory item flagged `canDigTunnel`, or null. */
-export function diggingToolInInventory(
-  entity: InmateEntity,
-  data: GameData,
-): string | null {
+export function diggingToolInInventory(entity: InmateEntity, data: GameData): string | null {
   for (const itemId of entity.inmate.inventory) {
     const item = data.contraband.find(itemId)
     if (item !== undefined && item.canDigTunnel) return itemId
@@ -363,11 +355,7 @@ export function diggingToolInInventory(
   return null
 }
 
-export function cellHasToilet(
-  world: InmateWorld,
-  cellId: number,
-  data: GameData,
-): boolean {
+export function cellHasToilet(world: InmateWorld, cellId: number, data: GameData): boolean {
   if (cellId === NO_ROOM) return false
   const toiletId = data.balance.tunnels.toiletObjectId
   return world.contents().objectCount(cellId, toiletId) > 0
@@ -378,11 +366,7 @@ export function isDiggingRegime(blockId: RoutineBlockId | null, data: GameData):
   return data.balance.tunnels.diggingRegimeBlocks.includes(blockId)
 }
 
-export function canInmateDig(
-  world: InmateWorld,
-  entity: InmateEntity,
-  data: GameData,
-): boolean {
+export function canInmateDig(world: InmateWorld, entity: InmateEntity, data: GameData): boolean {
   // Switched off at map creation (T6.5): nobody digs, existing tunnels stay.
   if (!mutatorEnabled(world, 'tunnels')) return false
 
@@ -1111,10 +1095,7 @@ export function tryVehicleTheft(
     if (obj !== undefined) {
       const def = data.objects.find(obj.object.defId)
       // Supply trucks / vehicles: objects whose id contains "truck" or room is dock.
-      if (
-        def !== undefined &&
-        (def.id.includes('truck') || obj.object.defId.includes('vehicle'))
-      ) {
+      if (def !== undefined && (def.id.includes('truck') || obj.object.defId.includes('vehicle'))) {
         onVehicle = true
       }
     }

@@ -18,12 +18,7 @@ import {
   SHELL_CSS,
 } from '../src/index'
 import type { InspectorModel, TopBarModel } from '../src/index'
-import {
-  FIXTURE_INMATE,
-  FIXTURE_OBJECT,
-  FIXTURE_ROOM,
-  FIXTURE_STAFF,
-} from './fixtures/inspectors'
+import { FIXTURE_INMATE, FIXTURE_OBJECT, FIXTURE_ROOM, FIXTURE_STAFF } from './fixtures/inspectors'
 import { mountShell, unmount } from './helpers/mount'
 
 const TOP_BAR: TopBarModel = {

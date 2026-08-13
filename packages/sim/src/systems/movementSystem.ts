@@ -285,11 +285,7 @@ function continueMove(
   agent.ticksSinceTileChange = 0
   intents.delete(agent.id)
 
-  if (
-    world !== undefined &&
-    data !== undefined &&
-    isInmateWorld(world as unknown as World)
-  ) {
+  if (world !== undefined && data !== undefined && isInmateWorld(world as unknown as World)) {
     accrueAgentPassDirt(world as InmateWorld, data, agent.ty * grid.size + agent.tx)
   }
 

@@ -23,7 +23,7 @@ import {
 import type { NeedFillContext } from '../../src/entities/needs'
 import { placeObject } from '../../src/entities/objects'
 import type { ObjectDeps } from '../../src/entities/objects'
-import type { InmateWorld } from '../../src/systems/intakeSystem';
+import type { InmateWorld } from '../../src/systems/intakeSystem'
 import { createInmateWorld } from '../../src/systems/intakeSystem'
 import {
   NEEDS_SYSTEM_NAME,
@@ -273,17 +273,16 @@ describe('need fill and discharge maths', () => {
       mode: 'set',
       value: 70,
     })
-    expect(
-      computeNeedFill(warmth, DATA.balance.needs, baseFillCtx({ temperatureC: 2 })),
-    ).toEqual({
+    expect(computeNeedFill(warmth, DATA.balance.needs, baseFillCtx({ temperatureC: 2 }))).toEqual({
       mode: 'set',
       value: clampNeed(
         (DATA.balance.needs.warmthColdThresholdC - 2) * DATA.balance.needs.warmthPerDegreeBelow,
       ),
     })
-    expect(
-      computeNeedFill(warmth, DATA.balance.needs, baseFillCtx({ temperatureC: 18 })),
-    ).toEqual({ mode: 'set', value: 0 })
+    expect(computeNeedFill(warmth, DATA.balance.needs, baseFillCtx({ temperatureC: 18 }))).toEqual({
+      mode: 'set',
+      value: 0,
+    })
   })
 
   it('skips trait-gated needs without the trait, and scales addiction fill', () => {

@@ -14,13 +14,8 @@ import {
 } from '../../src/entities/inmate'
 import { placeObject } from '../../src/entities/objects'
 import type { ObjectDeps } from '../../src/entities/objects'
-import type {
-  InmateWorld} from '../../src/systems/intakeSystem';
-import {
-  arriveInmate,
-  createInmateWorld,
-  runBusArrival,
-} from '../../src/systems/intakeSystem'
+import type { InmateWorld } from '../../src/systems/intakeSystem'
+import { arriveInmate, createInmateWorld, runBusArrival } from '../../src/systems/intakeSystem'
 import { refreshPassability } from '../../src/world/construction'
 import type { Rect } from '../../src/world/construction'
 import { initialLockState } from '../../src/world/doors'
@@ -130,7 +125,12 @@ function furnishCell(world: InmateWorld, events: RecordingSink, shell: Rect): nu
 function furnishHoldingPen(world: InmateWorld, events: RecordingSink, shell: Rect): number {
   const roomId = makeRoom(world, events, shell, 'holding_pen')
   const interior = interiorOf(shell)
-  const toilet = placeObject(objectDeps(world, events), { x: interior.x, y: interior.y }, 'toilet', 0)
+  const toilet = placeObject(
+    objectDeps(world, events),
+    { x: interior.x, y: interior.y },
+    'toilet',
+    0,
+  )
   const bench = placeObject(
     objectDeps(world, events),
     { x: interior.x + 1, y: interior.y },
@@ -459,12 +459,15 @@ describe('intake capacity edge cases', () => {
     world.intake.nextBusAtTick = 0
 
     const arrived = runBusArrival(world, DATA, new Rng(SEED), events, 0)
-    // Capacity 2, maxPerBus 8 → two seats; requests sorted: medium then minimum? 
+    // Capacity 2, maxPerBus 8 → two seats; requests sorted: medium then minimum?
     // Keys sorted alphabetically: medium, minimum.
     expect(arrived).toBe(2)
     expect(world.inmates.size).toBe(2)
     // medium was first alphabetically with 1 requested, then minimum.
-    const categories = world.inmates.all().map((inmate) => inmate.inmate.category).sort()
+    const categories = world.inmates
+      .all()
+      .map((inmate) => inmate.inmate.category)
+      .sort()
     expect(categories).toEqual(['medium', 'minimum'])
     expect(world.intake.requestedCounts.get('minimum')).toBe(4)
     expect(world.intake.requestedCounts.has('medium')).toBe(false)

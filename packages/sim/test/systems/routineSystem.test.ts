@@ -15,7 +15,7 @@ import type { InmateEntity } from '../../src/entities/inmate'
 import { NeedIndex } from '../../src/entities/needs'
 import { NO_OBJECT, placeObject } from '../../src/entities/objects'
 import type { ObjectDeps } from '../../src/entities/objects'
-import type { InmateWorld } from '../../src/systems/intakeSystem';
+import type { InmateWorld } from '../../src/systems/intakeSystem'
 import { createInmateWorld } from '../../src/systems/intakeSystem'
 import {
   ACTIVITY_SYSTEM_NAME,
@@ -116,12 +116,7 @@ function interiorOf(rect: Rect): Rect {
   return { x: rect.x + 1, y: rect.y + 1, width: rect.width - 2, height: rect.height - 2 }
 }
 
-function spawnInmate(
-  world: InmateWorld,
-  x: number,
-  y: number,
-  category = 'medium',
-): InmateEntity {
+function spawnInmate(world: InmateWorld, x: number, y: number, category = 'medium'): InmateEntity {
   const component = generateInmate({
     data: world.data,
     rng: new Rng(SEED).stream('test'),
@@ -147,11 +142,7 @@ function spawnInmate(
   return entity
 }
 
-function contextAt(
-  world: InmateWorld,
-  events: RecordingSink,
-  tick: number,
-): SystemContext {
+function contextAt(world: InmateWorld, events: RecordingSink, tick: number): SystemContext {
   const clock = new Clock(tick)
   return {
     clock,

@@ -187,21 +187,26 @@ describe('buildTrace', () => {
 
   it('limits cause walking to the configured depth', () => {
     const log = new CausalEventLog()
-    let prev = log.record({ tick: 0, kind: TRACE_KINDS.kitchenUnderCapacity, causeIds: [], data: {
-      kitchenName: 'K',
-      cookers: 1,
-      cooks: 1,
-      mealsPerCookerPerHour: 12,
-      assistFactor: 1.25,
-      mealsPerHour: 15,
-      needed: 10,
-      prepHours: 4,
-      neededCookers: 2,
-      neededCooks: 2,
-      altCookers: 2,
-      altCooks: 2,
-      cookerCost: 700,
-    } })
+    let prev = log.record({
+      tick: 0,
+      kind: TRACE_KINDS.kitchenUnderCapacity,
+      causeIds: [],
+      data: {
+        kitchenName: 'K',
+        cookers: 1,
+        cooks: 1,
+        mealsPerCookerPerHour: 12,
+        assistFactor: 1.25,
+        mealsPerHour: 15,
+        needed: 10,
+        prepHours: 4,
+        neededCookers: 2,
+        neededCooks: 2,
+        altCookers: 2,
+        altCooks: 2,
+        cookerCost: 700,
+      },
+    })
 
     // Build a chain deeper than TRACE_MAX_DEPTH using a registered kind that
     // only needs a few placeholders — kitchen.producedShortfall for the rest.
@@ -331,10 +336,20 @@ describe('traceStrings catalogue', () => {
 
   it('has resolvable strings for meal-chain failure kinds', () => {
     const log = new CausalEventLog()
-    const samples: { kind: (typeof TRACE_KINDS)[keyof typeof TRACE_KINDS]; data: Record<string, string | number> }[] = [
+    const samples: {
+      kind: (typeof TRACE_KINDS)[keyof typeof TRACE_KINDS]
+      data: Record<string, string | number>
+    }[] = [
       {
         kind: TRACE_KINDS.kitchenNoIngredients,
-        data: { kitchenName: 'K2', needed: 40, variety: 2, varietyPlural: 's', day: 1, time: '08:00' },
+        data: {
+          kitchenName: 'K2',
+          needed: 40,
+          variety: 2,
+          varietyPlural: 's',
+          day: 1,
+          time: '08:00',
+        },
       },
       {
         kind: TRACE_KINDS.kitchenNoCookAssigned,

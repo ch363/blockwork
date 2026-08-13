@@ -213,8 +213,7 @@ export class AudioMixer {
   get silent(): boolean {
     return (
       this.#settings.muted ||
-      (effectiveVolume(this.#settings, 'music') <= 0 &&
-        effectiveVolume(this.#settings, 'sfx') <= 0)
+      (effectiveVolume(this.#settings, 'music') <= 0 && effectiveVolume(this.#settings, 'sfx') <= 0)
     )
   }
 }

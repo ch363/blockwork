@@ -122,14 +122,7 @@ export type ArtSwatch = (typeof ART_SWATCHES)[number]
  * Structural rather than free text: each maps onto a cell the atlas actually
  * generates, so a definition cannot ask for a shape that has no sprite.
  */
-export const OBJECT_SHAPES = [
-  'square',
-  'wide',
-  'tall',
-  'block',
-  'large',
-  'fixture',
-] as const
+export const OBJECT_SHAPES = ['square', 'wide', 'tall', 'block', 'large', 'fixture'] as const
 
 export type ObjectShapeId = (typeof OBJECT_SHAPES)[number]
 

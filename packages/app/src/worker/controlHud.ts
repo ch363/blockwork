@@ -299,9 +299,7 @@ function postDetail(
 ): string {
   const role = staffRole.replace(/_/g, ' ')
   if (windows.length === 0) return `${role} · Continuous`
-  const ranges = windows
-    .map((w) => `${padHour(w.startHour)} to ${padHour(w.endHour)}`)
-    .join(', ')
+  const ranges = windows.map((w) => `${padHour(w.startHour)} to ${padHour(w.endHour)}`).join(', ')
   return `${role} · ${ranges}`
 }
 

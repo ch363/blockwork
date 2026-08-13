@@ -60,10 +60,7 @@ export function riotTriggerProbability(
   const scaled = Math.pow(Math.max(0, ratio), balance.dangerExponent)
   const lockdown = lockdownActive ? balance.lockdownFactor : 1
   return (
-    balance.baseProbability *
-    scaled *
-    (1 + agitatorsActive * balance.agitatorFactor) *
-    lockdown
+    balance.baseProbability * scaled * (1 + agitatorsActive * balance.agitatorFactor) * lockdown
   )
 }
 
@@ -101,12 +98,7 @@ export function riotSpreadProbability(mood: number, balance: Balance['riot']): n
   return p
 }
 
-export function chebyshevTiles(
-  ax: number,
-  ay: number,
-  bx: number,
-  by: number,
-): number {
+export function chebyshevTiles(ax: number, ay: number, bx: number, by: number): number {
   return Math.max(Math.abs(ax - bx), Math.abs(ay - by))
 }
 
@@ -255,10 +247,7 @@ function spreadRiot(
 
     let near = false
     for (const rioter of rioters) {
-      if (
-        chebyshevTiles(rioter.tx, rioter.ty, candidate.tx, candidate.ty) <=
-        balance.spreadTiles
-      ) {
+      if (chebyshevTiles(rioter.tx, rioter.ty, candidate.tx, candidate.ty) <= balance.spreadTiles) {
         near = true
         break
       }
@@ -479,10 +468,7 @@ function advanceContainment(
     data: { quietMinutes: balance.containedMinutes },
   })
   // Direct cancel so failure timing tests don't depend on system order.
-  if (
-    world.emergency.warningAtTick !== null ||
-    world.emergency.failureAtTick !== null
-  ) {
+  if (world.emergency.warningAtTick !== null || world.emergency.failureAtTick !== null) {
     world.emergency.cancelFailureCountdown()
     context.events.emit({
       tick: context.clock.tick,

@@ -65,9 +65,7 @@ describe('graph correctness (T2.1)', () => {
 
     const dest = run.graph.getRegion(right)
     expect(dest).toBeDefined()
-    expect(across[0]?.cost).toBe(
-      run.graph.doorTraverseTicks + (dest?.meanCrossingDistance ?? 0),
-    )
+    expect(across[0]?.cost).toBe(run.graph.doorTraverseTicks + (dest?.meanCrossingDistance ?? 0))
 
     const path = run.graph.findRegionPath(rooms.left, rooms.right, ACCESS.INMATE)
     expect(path).toEqual([left, right])
@@ -93,7 +91,9 @@ describe('graph correctness (T2.1)', () => {
     putWall(run, 4, 4)
     rebuildAll(run)
 
-    expect(run.graph.findRegionPath(run.world.grid.idx(2, 2), run.world.grid.idx(4, 4), ACCESS_ALL)).toBeNull()
+    expect(
+      run.graph.findRegionPath(run.world.grid.idx(2, 2), run.world.grid.idx(4, 4), ACCESS_ALL),
+    ).toBeNull()
   })
 
   it('derives mean crossing distance from the region bounds', () => {

@@ -164,9 +164,7 @@ describe('directorate — starting research', () => {
     sim.step()
 
     expect(world.economy.balance).toBe(before - node.cost)
-    expect(
-      world.economy.entries.filter((entry) => entry.category === 'research'),
-    ).toHaveLength(1)
+    expect(world.economy.entries.filter((entry) => entry.category === 'research')).toHaveLength(1)
 
     // A second start on an already-active node is refused, and free.
     sim.enqueue(start('welfare'))
@@ -253,9 +251,9 @@ describe('directorate — the administrator gate (T5.1 acceptance)', () => {
     // It is a pause, not a cancellation: rehiring resumes from where it stopped.
     hireStaff({ world, defId: 'security_director', events, tick: sim.tick, tx: 5, ty: 5 })
     step(sim, TICKS_PER_HOUR)
-    expect(
-      world.directorate.activeResearch('surveillance')?.elapsedTicks ?? 0,
-    ).toBeGreaterThan(surveillanceBefore)
+    expect(world.directorate.activeResearch('surveillance')?.elapsedTicks ?? 0).toBeGreaterThan(
+      surveillanceBefore,
+    )
     expect(events.of(DIRECTORATE_EVENTS.resumed).length).toBeGreaterThan(0)
   })
 

@@ -285,8 +285,7 @@ function functionalRooms(world: InmateWorld, roomDefId: string): Room[] {
   return world.rooms
     .all()
     .filter(
-      (room) =>
-        room.defId === roomDefId && world.rooms.statusOf(room.id)?.functional === true,
+      (room) => room.defId === roomDefId && world.rooms.statusOf(room.id)?.functional === true,
     )
 }
 
@@ -556,10 +555,7 @@ export function advanceGrove(
 
     world.labour.grownTrees.set(room.id, standing - cut)
     const timber = cut * cfg.timberPerTree
-    world.supply.storeStock.set(
-      'timber',
-      (world.supply.storeStock.get('timber') ?? 0) + timber,
-    )
+    world.supply.storeStock.set('timber', (world.supply.storeStock.get('timber') ?? 0) + timber)
     felled += cut
     events.emit({
       tick,
@@ -636,11 +632,7 @@ export function runCommissary(
 }
 
 /** Buys commissary stock when the shelves run dry. */
-export function restockCommissary(
-  world: InmateWorld,
-  data: GameData,
-  tick: number,
-): number {
+export function restockCommissary(world: InmateWorld, data: GameData, tick: number): number {
   const cfg = data.balance.labour.commissary
   if (world.labour.commissaryGoods > 0) return 0
   if (functionalRooms(world, LABOUR_ROOMS.commissary).length === 0) return 0
@@ -709,8 +701,7 @@ export interface LabourSystemOptions {
 export function createLabourSystem(options: LabourSystemOptions): System {
   const { data } = options
   const needIndex = NeedIndex.fromData(data)
-  const truckIntervalTicks =
-    data.balance.logistics.truckIntervalHours * TICKS_PER_HOUR
+  const truckIntervalTicks = data.balance.logistics.truckIntervalHours * TICKS_PER_HOUR
   let reportedWrongWorld = false
 
   return {
@@ -761,9 +752,7 @@ export const LABOUR_COMMANDS = {
   unassign: 'labour.unassign',
 } as const
 
-export function labourCommandHandlers(
-  data: GameData,
-): Readonly<Record<string, CommandHandler>> {
+export function labourCommandHandlers(data: GameData): Readonly<Record<string, CommandHandler>> {
   return {
     [LABOUR_COMMANDS.assign]: (command, context) => {
       handleAssign(command, context, data)

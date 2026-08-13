@@ -141,13 +141,8 @@ export function buildReportsModel(options: BuildReportsOptions): ReportsModel {
  * pinned-but-evicted traces, so callers that persist a time window must sort
  * before slicing or one ancient pinned trace can displace a recent event.
  */
-export function newestCausalEvents(
-  events: readonly CausalEvent[],
-  limit: number,
-): CausalEvent[] {
-  return [...events]
-    .sort((a, b) => a.tick - b.tick || a.id - b.id)
-    .slice(-Math.max(0, limit))
+export function newestCausalEvents(events: readonly CausalEvent[], limit: number): CausalEvent[] {
+  return [...events].sort((a, b) => a.tick - b.tick || a.id - b.id).slice(-Math.max(0, limit))
 }
 
 function reportAccess(
@@ -591,8 +586,7 @@ function eventEntity(event: CausalEvent): EventEntity {
   const agentId = numberFromData(event.data, 'agentId')
   if (agentId > 0) {
     const agentKind =
-      entityKindFromData(event.data, 'agentKind') ??
-      entityKindFromData(event.data, 'claimantKind')
+      entityKindFromData(event.data, 'agentKind') ?? entityKindFromData(event.data, 'claimantKind')
     if (agentKind === 'inmate' || agentKind === 'staff') {
       return { id: agentId, kind: agentKind }
     }
