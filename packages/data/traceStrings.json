@@ -259,6 +259,101 @@
       "title": "{branch} research paused — no {administrator}",
       "detail": "{nodeId} needs the {administrator} in post with a functional office. Reason: {reason}. Nothing advances until the post is filled.",
       "meta": "Day {day} · {time}"
+    },
+    "economy.insolvencyStarted": {
+      "title": "Insolvency countdown started — balance ${balance}",
+      "detail": "Cash flow over the last 24 hours is ${cashFlow24h}. Raise income, cut wages or accept a Rescue Package Contract before the deadline.",
+      "meta": "Day {day} · {time} · fails at tick {deadlineTick}"
+    },
+    "economy.insolvencyFailed": {
+      "title": "Facility failed — insolvency",
+      "detail": "Balance remained ${balance} with negative cash flow (${cashFlow24h} over 24 hours) until the countdown expired.",
+      "meta": "Day {day} · {time} · countdown began tick {startedTick}"
+    },
+    "economy.insolvencyCancelled": {
+      "title": "Insolvency countdown cancelled — balance ${balance}",
+      "detail": "Cash flow over the last 24 hours is now ${cashFlow24h}. Keep the ledger positive to avoid restarting the countdown.",
+      "meta": "Day {day} · {time}"
+    },
+    "grades.recomputed": {
+      "title": "Inmate {inmateId} grades updated",
+      "detail": "Punishment {punishment}, reform {reform}, security {security}, health {health}. Reoffend chance {reoffendChance}.",
+      "meta": "Day {day} · {time}"
+    },
+    "release.recidivismWarning": {
+      "title": "Parole recidivism warning — {reoffences} reoffences in {windowDays} days",
+      "detail": "Threshold is {threshold}. One more reoffence within the window will fail the facility.",
+      "meta": "Day {day} · {time}"
+    },
+    "release.recidivismFailure": {
+      "title": "Facility failed — parole recidivism",
+      "detail": "{reoffences} paroled inmates reoffended within {windowDays} days, exceeding the threshold of {threshold}.",
+      "meta": "Day {day} · {time}"
+    },
+    "pathing.unreachable": {
+      "title": "Agent {agentId} cannot reach its goal",
+      "detail": "No corridor exists from tile {from} to {to}. Open a route, fix doors or adjust zoning for {category} access.",
+      "meta": "Day {day} · {time}"
+    },
+    "construction.blocked": {
+      "title": "Construction blocked at tile {tileIndex}",
+      "detail": "Job {job} cannot proceed: {reason}. Clear the blocker or cancel the site.",
+      "meta": "Day {day} · {time}"
+    },
+    "supply.noDock": {
+      "title": "Deliveries stalled — no loading dock",
+      "detail": "Orders and inbound trucks have nowhere to unload. Build a loading dock and connect it to a store room.",
+      "meta": "Day {day} · {time}"
+    },
+    "supply.noStore": {
+      "title": "Site {siteId} stalled — no store room",
+      "detail": "{dockUnits} units sit on the dock with no store to receive them. Build a store room linked to the dock.",
+      "meta": "Day {day} · {time} · tile {tileIndex}"
+    },
+    "objects.unsupplied": {
+      "title": "Object {objectDefId} lost utilities",
+      "detail": "Entity {entityId} at tile {tileIndex} needs power={power} water={water}. Restore branch capacity or reroute utilities.",
+      "meta": "Day {day} · room {roomId}"
+    },
+    "intake.noHousing": {
+      "title": "Inmate {inmateId} has nowhere to sleep",
+      "detail": "{reason}. Assign a cell or holding pen matching {category} entitlement {entitlement}.",
+      "meta": "Day {day} · intake hall {roomId}"
+    },
+    "program.blocked": {
+      "title": "Program {programId} cannot run",
+      "detail": "Blocked: {reason}. Need {need}, have {have} ({subject}). Fix the room, schedule or teacher assignment.",
+      "meta": "Day {day} · {time}"
+    },
+    "program.droppedOut": {
+      "title": "Inmate dropped out of {programId}",
+      "detail": "Missed {sessionsMissed} consecutive sessions. Re-enrol after fixing attendance blocks or room access.",
+      "meta": "Day {day} · inmate {subjectId}"
+    },
+    "punishment.isolationOverflow": {
+      "title": "Isolation full — inmate {inmateId} moved to {fallback}",
+      "detail": "No isolation cell was free. Build more isolation capacity or reduce incoming punishments.",
+      "meta": "Day {day} · {time}"
+    },
+    "job.abandoned": {
+      "title": "Job {jobId} abandoned ({kind})",
+      "detail": "Reason: {reason}. Agent {agentId} ({claimantKind}) dropped the task. Repost or assign a replacement.",
+      "meta": "Day {day} · {time}"
+    },
+    "intelligence.blown": {
+      "title": "Informant cover blown",
+      "detail": "Reveal chance was {chance}; this was reveal {revealCount}. Expect retribution from the wing.",
+      "meta": "Day {day} · inmate {subjectId}"
+    },
+    "meal.missed": {
+      "title": "Mess {messRoomId} left {missed} inmates hungry",
+      "detail": "Served {served} of {needed} meals. Trace kitchen production, delivery routes and counter capacity.",
+      "meta": "Day {day} · {time}"
+    },
+    "staffNeeds.breakAbandoned": {
+      "title": "Staff {staffId} abandoned a break",
+      "detail": "Reason: {reason}. Restore break rooms, staffing levels or reduce duty load so needs can be met on schedule.",
+      "meta": "Day {day} · {time}"
     }
   }
 }

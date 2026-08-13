@@ -398,6 +398,7 @@ describe('grades — accrual and the hourly pass', () => {
     expect(entity?.inmate.grades.security).toBe(100)
     expect(entity?.inmate.grades.health).toBeGreaterThan(0)
     expect(entity?.inmate.reoffendChance).toBeGreaterThan(0)
+    expect(events.of(GRADES_EVENTS.recomputed)).toHaveLength(1)
   })
 
   it('reports a world it cannot grade rather than throwing', () => {

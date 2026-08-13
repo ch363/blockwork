@@ -1232,8 +1232,10 @@ export type { MovementSystem, MovementSystemOptions } from './systems/movementSy
 
 export {
   CausalEventLog,
+  EMITTED_NOTIFICATION_KINDS,
   REGISTERED_TRACE_KINDS,
   TRACE_BUFFER_CAPACITY,
+  TRACE_INFO_KINDS,
   TRACE_KINDS,
   TRACE_MAX_DEPTH,
   eventDataObject,
@@ -1279,6 +1281,7 @@ export {
   siteCancellationRefund,
   tileRestoreRefund,
   undoCommand,
+  redoCommand,
   validateBlueprint,
 } from './core/blueprint'
 export type {
@@ -1339,7 +1342,7 @@ export {
   EMERGENCY_COMMANDS,
 } from './systems/emergencySystem'
 export type { EmergencySystemOptions } from './systems/emergencySystem'
-export { requestMeleeAttack, STUB_MELEE_DAMAGE } from './entities/combat'
+export { requestMeleeAttack } from './entities/combat'
 export type { CombatActorRef, MeleeAttackResult, CombatActorKind } from './entities/combat'
 
 export {

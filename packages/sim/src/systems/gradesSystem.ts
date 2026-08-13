@@ -430,9 +430,34 @@ export function createGradesSystem(options: GradesSystemOptions): System {
 
       accrueExposure(world, hours)
       for (const entity of world.inmates.all()) {
+        const previous = entity.inmate.grades
+        const previousChance = entity.inmate.reoffendChance
         const result = computeGrades(world, data, entity, tick)
         entity.inmate.grades = result.grades
         entity.inmate.reoffendChance = result.reoffendChance
+
+        if (
+          previous.punishment !== result.grades.punishment ||
+          previous.reform !== result.grades.reform ||
+          previous.security !== result.grades.security ||
+          previous.health !== result.grades.health ||
+          previousChance !== result.reoffendChance
+        ) {
+          context.events.emit({
+            tick,
+            kind: GRADES_EVENTS.recomputed,
+            subjectId: entity.id,
+            causeIds: [],
+            data: {
+              inmateId: entity.id,
+              punishment: result.grades.punishment,
+              reform: result.grades.reform,
+              security: result.grades.security,
+              health: result.grades.health,
+              reoffendChance: result.reoffendChance,
+            },
+          })
+        }
       }
     },
   }

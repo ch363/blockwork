@@ -9,14 +9,17 @@ import { TICKS_PER_DAY } from '../../src/core/clock'
 import { loadGameData } from '../../src/data/loader'
 import {
   CausalEventLog,
+  EMITTED_NOTIFICATION_KINDS,
   PRD_STARVATION_EXAMPLE,
   REGISTERED_TRACE_KINDS,
   TRACE_BUFFER_CAPACITY,
+  TRACE_INFO_KINDS,
   TRACE_KINDS,
   TRACE_MAX_DEPTH,
   buildTrace,
   catalogueCoversKinds,
   emitPrdStarvationChain,
+  isTraceKind,
   parseTraceStrings,
   tickAt,
 } from '../../src/index'
@@ -296,6 +299,26 @@ describe('traceStrings catalogue', () => {
   it('has a string entry for every registered event kind', () => {
     const coverage = catalogueCoversKinds(CATALOGUE, REGISTERED_TRACE_KINDS)
     expect(coverage).toEqual({ ok: true })
+  })
+
+  it('registers every emitted warn/critical notification kind', () => {
+    const unregistered = EMITTED_NOTIFICATION_KINDS.filter((kind) => !isTraceKind(kind))
+    expect(unregistered).toEqual([])
+  })
+
+  it('has catalogue entries for every emitted notification kind', () => {
+    const coverage = catalogueCoversKinds(CATALOGUE, EMITTED_NOTIFICATION_KINDS)
+    expect(coverage).toEqual({ ok: true })
+  })
+
+  it('keeps emitted notification kinds aligned with registered info kinds', () => {
+    const info = new Set<string>(TRACE_INFO_KINDS)
+    for (const kind of EMITTED_NOTIFICATION_KINDS) {
+      expect(info.has(kind), `${kind} must not be info-only`).toBe(false)
+    }
+    for (const kind of TRACE_INFO_KINDS) {
+      expect(REGISTERED_TRACE_KINDS.includes(kind)).toBe(true)
+    }
   })
 
   it('fails loudly when a registered kind is missing a string', () => {

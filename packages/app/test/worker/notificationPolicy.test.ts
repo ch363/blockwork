@@ -22,6 +22,7 @@ describe('notification severity (PRD 6.5)', () => {
 
   it('keeps the periodic danger recompute off the toast rail', () => {
     expect(severityForKind('danger.recomputed')).toBe(NOTIFICATION_SEVERITY.INFO)
+    expect(severityForKind('grades.recomputed')).toBe(NOTIFICATION_SEVERITY.INFO)
   })
 
   it('promotes deaths, escapes, riots and failures to critical', () => {

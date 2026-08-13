@@ -109,6 +109,39 @@ export const TRACE_KINDS = {
   utilitiesBrownout: 'utilities.brownout',
   // T5.1 Directorate
   directorateResearchPaused: 'directorate.paused',
+  // T3.6 economy / insolvency
+  economyInsolvencyStarted: 'economy.insolvencyStarted',
+  economyInsolvencyFailed: 'economy.insolvencyFailed',
+  economyInsolvencyCancelled: 'economy.insolvencyCancelled',
+  // T5.4 grades
+  gradesRecomputed: 'grades.recomputed',
+  // T5.4 release / recidivism
+  releaseRecidivismWarning: 'release.recidivismWarning',
+  releaseRecidivismFailure: 'release.recidivismFailure',
+  // T2.x pathing
+  pathingUnreachable: 'pathing.unreachable',
+  // T1.x construction
+  constructionBlocked: 'construction.blocked',
+  // T2.6 supply
+  supplyNoDock: 'supply.noDock',
+  supplyNoStore: 'supply.noStore',
+  // T1.x objects
+  objectsUnsupplied: 'objects.unsupplied',
+  // T2.4 intake
+  intakeNoHousing: 'intake.noHousing',
+  // T5.3 programs
+  programBlocked: 'program.blocked',
+  programDroppedOut: 'program.droppedOut',
+  // T4.4 punishment
+  punishmentIsolationOverflow: 'punishment.isolationOverflow',
+  // T2.3 jobs
+  jobAbandoned: 'job.abandoned',
+  // T5.6 intelligence
+  intelligenceBlown: 'intelligence.blown',
+  // T2.5 meals
+  mealMissed: 'meal.missed',
+  // T4.2 staff needs
+  staffNeedsBreakAbandoned: 'staffNeeds.breakAbandoned',
 } as const
 
 export type TraceKind = (typeof TRACE_KINDS)[keyof typeof TRACE_KINDS]
@@ -167,6 +200,112 @@ export const REGISTERED_TRACE_KINDS: readonly TraceKind[] = [
   TRACE_KINDS.fireOverloadMarked,
   TRACE_KINDS.utilitiesBrownout,
   TRACE_KINDS.directorateResearchPaused,
+  TRACE_KINDS.economyInsolvencyStarted,
+  TRACE_KINDS.economyInsolvencyFailed,
+  TRACE_KINDS.economyInsolvencyCancelled,
+  TRACE_KINDS.gradesRecomputed,
+  TRACE_KINDS.releaseRecidivismWarning,
+  TRACE_KINDS.releaseRecidivismFailure,
+  TRACE_KINDS.pathingUnreachable,
+  TRACE_KINDS.constructionBlocked,
+  TRACE_KINDS.supplyNoDock,
+  TRACE_KINDS.supplyNoStore,
+  TRACE_KINDS.objectsUnsupplied,
+  TRACE_KINDS.intakeNoHousing,
+  TRACE_KINDS.programBlocked,
+  TRACE_KINDS.programDroppedOut,
+  TRACE_KINDS.punishmentIsolationOverflow,
+  TRACE_KINDS.jobAbandoned,
+  TRACE_KINDS.intelligenceBlown,
+  TRACE_KINDS.mealMissed,
+  TRACE_KINDS.staffNeedsBreakAbandoned,
+]
+
+/**
+ * Periodic recomputes logged at info severity — registered for Trace but not
+ * toasts.
+ */
+export const TRACE_INFO_KINDS: readonly TraceKind[] = [
+  TRACE_KINDS.dangerRecomputed,
+  TRACE_KINDS.gradesRecomputed,
+]
+
+/**
+ * Kinds simulation systems emit as warn/critical notifications.
+ *
+ * Every entry must appear in {@link TRACE_KINDS} and `traceStrings.json`. The
+ * coverage test fails when an emitted kind is missing from the catalogue.
+ */
+export const EMITTED_NOTIFICATION_KINDS: readonly TraceKind[] = [
+  TRACE_KINDS.inmateStarved,
+  TRACE_KINDS.inmateMissedMeal,
+  TRACE_KINDS.messEmptyAtMealtime,
+  TRACE_KINDS.messFull,
+  TRACE_KINDS.kitchenProducedShortfall,
+  TRACE_KINDS.kitchenUnderCapacity,
+  TRACE_KINDS.kitchenNoIngredients,
+  TRACE_KINDS.kitchenNoCookAssigned,
+  TRACE_KINDS.kitchenNoRouteToMess,
+  TRACE_KINDS.laundryNoRouteToHousing,
+  TRACE_KINDS.laundryUnderCapacity,
+  TRACE_KINDS.laundryNoLabour,
+  TRACE_KINDS.cleaningNoCleaners,
+  TRACE_KINDS.staffBribeTaken,
+  TRACE_KINDS.staffStrikeStarted,
+  TRACE_KINDS.staffPayDemand,
+  TRACE_KINDS.postUnfilled,
+  TRACE_KINDS.contrabandThrowInIntercepted,
+  TRACE_KINDS.searchPerformed,
+  TRACE_KINDS.searchFound,
+  TRACE_KINDS.searchIntakeDelayed,
+  TRACE_KINDS.searchMetalDetect,
+  TRACE_KINDS.searchDogDetect,
+  TRACE_KINDS.searchStandingOrderApplied,
+  TRACE_KINDS.misconductCommitted,
+  TRACE_KINDS.punishmentStarted,
+  TRACE_KINDS.combatFightStarted,
+  TRACE_KINDS.combatDied,
+  TRACE_KINDS.riotStarted,
+  TRACE_KINDS.riotContained,
+  TRACE_KINDS.emergencyRiotSquadCalled,
+  TRACE_KINDS.emergencyNationalGuardCalled,
+  TRACE_KINDS.emergencyPlayerFired,
+  TRACE_KINDS.failureRiotWarning,
+  TRACE_KINDS.failureRiot,
+  TRACE_KINDS.failureRiotCancelled,
+  TRACE_KINDS.escapeTunnelDiscovered,
+  TRACE_KINDS.escapeInmateEscaped,
+  TRACE_KINDS.escapeFailureWarning,
+  TRACE_KINDS.escapeFailure,
+  TRACE_KINDS.fireIgnited,
+  TRACE_KINDS.fireSpread,
+  TRACE_KINDS.fireExtinguished,
+  TRACE_KINDS.fireObjectDestroyed,
+  TRACE_KINDS.fireAgentDamaged,
+  TRACE_KINDS.fireSprinklerActive,
+  TRACE_KINDS.fireFirefighterSummoned,
+  TRACE_KINDS.fireFirefighterRejected,
+  TRACE_KINDS.fireOverloadMarked,
+  TRACE_KINDS.utilitiesBrownout,
+  TRACE_KINDS.directorateResearchPaused,
+  TRACE_KINDS.economyInsolvencyStarted,
+  TRACE_KINDS.economyInsolvencyFailed,
+  TRACE_KINDS.economyInsolvencyCancelled,
+  TRACE_KINDS.releaseRecidivismWarning,
+  TRACE_KINDS.releaseRecidivismFailure,
+  TRACE_KINDS.pathingUnreachable,
+  TRACE_KINDS.constructionBlocked,
+  TRACE_KINDS.supplyNoDock,
+  TRACE_KINDS.supplyNoStore,
+  TRACE_KINDS.objectsUnsupplied,
+  TRACE_KINDS.intakeNoHousing,
+  TRACE_KINDS.programBlocked,
+  TRACE_KINDS.programDroppedOut,
+  TRACE_KINDS.punishmentIsolationOverflow,
+  TRACE_KINDS.jobAbandoned,
+  TRACE_KINDS.intelligenceBlown,
+  TRACE_KINDS.mealMissed,
+  TRACE_KINDS.staffNeedsBreakAbandoned,
 ]
 
 export interface CausalEventLogOptions {

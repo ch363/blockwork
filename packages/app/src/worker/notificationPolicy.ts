@@ -51,8 +51,10 @@ export function categoryOfKind(kind: string): string {
  */
 export function severityForKind(kind: string): NotificationSeverity {
   if (!isTraceKind(kind)) return NOTIFICATION_SEVERITY.INFO
-  // Periodic recomputes belong on the top-bar meter, not in the toast rail.
-  if (kind === 'danger.recomputed') return NOTIFICATION_SEVERITY.INFO
+  // Periodic recomputes belong on the inspector / top-bar meters, not the toast rail.
+  if (kind === 'danger.recomputed' || kind === 'grades.recomputed') {
+    return NOTIFICATION_SEVERITY.INFO
+  }
   if (CRITICAL_KINDS.has(kind)) return NOTIFICATION_SEVERITY.CRITICAL
   return NOTIFICATION_SEVERITY.WARN
 }
@@ -76,6 +78,7 @@ const CRITICAL_KINDS: ReadonlySet<string> = new Set([
   'emergency.playerFired',
   'release.recidivismFailure',
   'release.recidivismWarning',
+  'economy.insolvencyFailed',
 ])
 
 /* -------------------------------------------------------------------------- */
