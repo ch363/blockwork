@@ -40,6 +40,7 @@ import {
   ticksToDay,
   ticksToTimeString,
   undoCommand,
+  redoCommand,
   utilityPathToLines,
 } from '@blockwork/sim'
 import type {
@@ -217,6 +218,7 @@ export interface SessionState {
   readonly hud: Signal<string | null>
   readonly committing: Signal<boolean>
   readonly canUndo: Signal<boolean>
+  readonly canRedo: Signal<boolean>
   /** Staged strokes. Drives the Commit button, which the report cannot. */
   readonly stagedCount: Signal<number>
 }
@@ -544,6 +546,7 @@ export class Session {
       hud: signal<string | null>(null),
       committing: signal(false),
       canUndo: signal(false),
+      canRedo: signal(false),
       stagedCount: signal(0),
     }
 
@@ -1724,6 +1727,7 @@ export class Session {
     this.#renderBlueprint()
     this.#abandonValidation()
     this.state.canUndo.value = true
+    this.state.canRedo.value = false
 
     globalThis.setTimeout(() => {
       this.state.committing.value = false
@@ -1740,6 +1744,14 @@ export class Session {
   undo(): void {
     if (this.undoStroke()) return
     this.bridge.sendCommand(undoCommand(this.#tick()))
+    this.state.canRedo.value = true
+  }
+
+  /** Re-applies the most recently undone commit (PRD 3.3). */
+  redo(): void {
+    this.bridge.sendCommand(redoCommand(this.#tick()))
+    this.state.canRedo.value = false
+    this.state.canUndo.value = true
   }
 
   async #revalidate(): Promise<void> {

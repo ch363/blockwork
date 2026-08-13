@@ -255,7 +255,7 @@ export function App({ session }: AppProps): JSX.Element {
         session.undo()
       }}
       onRedo={() => {
-        // Redo needs the inverse of an inverse; T1.5 covers undo.
+        session.redo()
       }}
       onAlerts={() => {
         // The alerts panel is T3.2.
@@ -264,7 +264,7 @@ export function App({ session }: AppProps): JSX.Element {
         // The pause menu is T5.4.
       }}
       canUndo={state.canUndo.value || state.blueprint.value !== null}
-      canRedo={false}
+      canRedo={state.canRedo.value}
       hint={state.hint.value}
       hud={state.hud.value}
     />

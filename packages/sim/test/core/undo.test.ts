@@ -743,6 +743,103 @@ describe('the commit and undo commands', () => {
     expect(run.ledger.size).toBe(1)
     run.undo()
     expect(run.ledger.size).toBe(0)
+    expect(run.ledger.redoSize).toBe(1)
+  })
+})
+
+describe('redoing a commit', () => {
+  it('restores structure and money after undo then redo', () => {
+    const run = scenario({ workers: 0 })
+    const actions: BuildAction[] = [
+      {
+        kind: 'placeFoundation',
+        rect: { x: 3, y: 3, width: 4, height: 4 },
+        material: WALL_MATERIAL,
+      },
+    ]
+
+    const before = structure(run.world)
+    run.commit(actions)
+    const committed = structure(run.world)
+    const spendAfterCommit = run.world.spendOwed
+    const refundAfterCommit = run.world.refundsOwed
+
+    run.undo()
+    expect(structure(run.world)).toBe(before)
+    expect(run.ledger.redoSize).toBe(1)
+
+    run.redo()
+    expect(structure(run.world)).toBe(committed)
+    expect(run.world.spendOwed).toBe(spendAfterCommit)
+    expect(run.world.refundsOwed).toBe(refundAfterCommit)
+    expect(run.ledger.size).toBe(1)
+    expect(run.ledger.redoSize).toBe(0)
+  })
+
+  it('restores a twenty-object placement in full', () => {
+    const run = scenario()
+    const shell = { x: 2, y: 2, width: 14, height: 8 }
+    makeRoom(run, shell, 'mess_hall')
+    const interior = interiorOf(shell)
+
+    const actions: BuildAction[] = []
+    for (let n = 0; n < 20; n += 1) {
+      actions.push({
+        kind: 'placeObject',
+        tile: { x: interior.x + (n % 10), y: interior.y + Math.floor(n / 10) * 2 },
+        objectDefId: 'chair',
+        rotation: 0,
+      })
+    }
+
+    const before = structure(run.world)
+    run.commit(actions)
+    const committed = structure(run.world)
+    const unitCost = run.data.objects.get('chair').cost
+    const spendAfterCommit = run.world.spendOwed
+
+    run.undo()
+    expect([...run.world.objects.all()]).toHaveLength(0)
+    expect(structure(run.world)).toBe(before)
+
+    run.redo()
+    expect([...run.world.objects.all()]).toHaveLength(20)
+    expect(structure(run.world)).toBe(committed)
+    expect(run.world.spendOwed).toBe(spendAfterCommit)
+    expect(run.world.refundsOwed).toBe(0)
+    expect(run.world.takeSpend()).toBe(20 * unitCost)
+    expect(run.world.takeRefunds()).toBe(0)
+  })
+
+  it('emits a CausalEvent when there is nothing left to redo', () => {
+    const run = scenario()
+    run.redo()
+
+    const rejected = run.events.of('blueprint.rejected')
+    expect(rejected).toHaveLength(1)
+    expect(fields(rejected[0])['reason']).toBe('nothing-to-redo')
+  })
+
+  it('clears redo when a new commit lands', () => {
+    const run = scenario({ workers: 0 })
+    run.commit([
+      {
+        kind: 'placeFoundation',
+        rect: { x: 3, y: 3, width: 3, height: 3 },
+        material: WALL_MATERIAL,
+      },
+    ])
+    run.undo()
+    expect(run.ledger.redoSize).toBe(1)
+
+    run.commit([
+      {
+        kind: 'placeFoundation',
+        rect: { x: 9, y: 9, width: 3, height: 3 },
+        material: WALL_MATERIAL,
+      },
+    ])
+    expect(run.ledger.redoSize).toBe(0)
   })
 })
 
@@ -803,7 +900,7 @@ describe('UndoStack', () => {
 })
 
 describe('CommitLedger', () => {
-  const record = { tick: 1, cost: 100, inverse: [] as BuildAction[] }
+  const record = { tick: 1, cost: 100, inverse: [] as BuildAction[], actions: [] as BuildAction[] }
 
   it('numbers commits from one, and keeps numbering past its depth', () => {
     const ledger = new CommitLedger(3)

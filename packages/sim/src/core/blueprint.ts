@@ -181,6 +181,7 @@ export type BuildActionKind = (typeof BUILD_ACTION_KINDS)[number]
 export const BLUEPRINT_COMMANDS = {
   commit: 'blueprint.commit',
   undo: 'blueprint.undo',
+  redo: 'blueprint.redo',
 } as const
 
 /* -------------------------------------------------------------------------- */
@@ -437,6 +438,11 @@ export function commitCommand(actions: readonly BuildAction[], issuedAtTick: num
 /** Reverses the most recent commit. Payloadless: the ledger is a stack. */
 export function undoCommand(issuedAtTick: number): Command {
   return { type: BLUEPRINT_COMMANDS.undo, payload: {}, issuedAtTick }
+}
+
+/** Re-applies the most recently undone commit. Payloadless: the redo stack is a stack. */
+export function redoCommand(issuedAtTick: number): Command {
+  return { type: BLUEPRINT_COMMANDS.redo, payload: {}, issuedAtTick }
 }
 
 /* -------------------------------------------------------------------------- */

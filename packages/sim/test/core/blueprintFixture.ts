@@ -16,7 +16,7 @@ import { Simulation } from '../../src/core/simulation'
 import { blueprintCommandHandlers } from '../../src/core/undo'
 import type { CommitLedger } from '../../src/core/undo'
 import type { BuildAction, BuildDeps } from '../../src/core/blueprint'
-import { commitCommand, undoCommand } from '../../src/core/blueprint'
+import { commitCommand, redoCommand, undoCommand } from '../../src/core/blueprint'
 import type { GameData } from '../../src/data/loader'
 import { createObjectWorld, objectCommandHandlers } from '../../src/entities/objects'
 import type { ObjectDeps, ObjectWorld } from '../../src/entities/objects'
@@ -48,6 +48,8 @@ export interface BlueprintScenario extends Scenario {
   commit(actions: readonly BuildAction[]): void
   /** Sends an undo and runs the tick that applies it. */
   undo(): void
+  /** Sends a redo and runs the tick that applies it. */
+  redo(): void
 }
 
 export interface BlueprintScenarioOptions {
@@ -103,6 +105,10 @@ export function scenario(options: BlueprintScenarioOptions = {}): BlueprintScena
     },
     undo(): void {
       sim.enqueue(undoCommand(sim.tick))
+      sim.step()
+    },
+    redo(): void {
+      sim.enqueue(redoCommand(sim.tick))
       sim.step()
     },
   }

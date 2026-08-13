@@ -286,6 +286,10 @@ export interface CommitRecord {
   readonly cost: number
   /** Applied in order to reverse the commit. */
   readonly inverse: readonly BuildAction[]
+  /** The forward actions the commit applied, kept so redo can replay them. */
+  readonly actions: readonly BuildAction[]
+  /** Net refund the undo settled. Redo pulls this back from the outbox. */
+  readonly undoNet?: number
 }
 
 /**
@@ -300,6 +304,7 @@ export class CommitLedger {
   readonly depth: number
 
   #records: CommitRecord[] = []
+  #redo: CommitRecord[] = []
   #nextSequence = 1
 
   constructor(depth: number) {
@@ -313,6 +318,11 @@ export class CommitLedger {
     return this.#records.length
   }
 
+  /** Commits awaiting a possible redo, newest last. */
+  get redoSize(): number {
+    return this.#redo.length
+  }
+
   /** The sequence number the next commit will be given. */
   get nextSequence(): number {
     return this.#nextSequence
@@ -322,11 +332,20 @@ export class CommitLedger {
     return this.#records.slice()
   }
 
+  redoRecords(): readonly CommitRecord[] {
+    return this.#redo.slice()
+  }
+
   peek(): CommitRecord | undefined {
     return this.#records[this.#records.length - 1]
   }
 
+  peekRedo(): CommitRecord | undefined {
+    return this.#redo[this.#redo.length - 1]
+  }
+
   record(commit: Omit<CommitRecord, 'sequence'>): CommitRecord {
+    this.#redo = []
     const stored: CommitRecord = { ...commit, sequence: this.#nextSequence }
     this.#nextSequence += 1
     this.#records.push(stored)
@@ -340,8 +359,20 @@ export class CommitLedger {
     return this.#records.pop()
   }
 
+  pushRedo(record: CommitRecord): void {
+    this.#redo.push(record)
+    if (this.#redo.length > this.depth) {
+      this.#redo.splice(0, this.#redo.length - this.depth)
+    }
+  }
+
+  takeRedo(): CommitRecord | undefined {
+    return this.#redo.pop()
+  }
+
   clear(): void {
     this.#records = []
+    this.#redo = []
   }
 }
 
@@ -349,9 +380,14 @@ export class CommitLedger {
 /* Commands                                                                    */
 /* -------------------------------------------------------------------------- */
 
-/** Why a commit or undo, or part of one, produced nothing. */
+/** Why a commit, undo, or redo, or part of one, produced nothing. */
 export type BlueprintRejection =
-  'invalid-payload' | 'invalid-action' | 'empty-blueprint' | 'nothing-to-undo' | 'wrong-world'
+  | 'invalid-payload'
+  | 'invalid-action'
+  | 'empty-blueprint'
+  | 'nothing-to-undo'
+  | 'nothing-to-redo'
+  | 'wrong-world'
 
 function reject(
   events: EventSink,
@@ -450,7 +486,12 @@ export function blueprintCommandHandlers(data: GameData): BlueprintCommands {
           const { inverse, run } = captureInverses(deps, actions)
           settle(deps, run)
 
-          const record = ledger.record({ tick: deps.tick, cost: run.cost, inverse })
+          const record = ledger.record({
+            tick: deps.tick,
+            cost: run.cost,
+            inverse,
+            actions,
+          })
 
           deps.events.emit({
             tick: deps.tick,
@@ -477,6 +518,7 @@ export function blueprintCommandHandlers(data: GameData): BlueprintCommands {
 
           const run = applyBuildActions(deps, record.inverse)
           settle(deps, run)
+          ledger.pushRedo({ ...record, undoNet: run.refund - run.cost })
 
           deps.events.emit({
             tick: deps.tick,
@@ -486,6 +528,39 @@ export function blueprintCommandHandlers(data: GameData): BlueprintCommands {
               sequence: record.sequence,
               spent: record.cost,
               refund: run.refund - run.cost,
+            },
+          })
+        })
+      },
+
+      [BLUEPRINT_COMMANDS.redo]: (command, context) => {
+        bind(context, command, (deps) => {
+          const record = ledger.takeRedo()
+          if (record === undefined) {
+            reject(deps.events, deps.tick, command.type, 'nothing-to-redo')
+            return
+          }
+
+          const { inverse, run } = captureInverses(deps, record.actions)
+          settleRedo(deps, run, record)
+
+          const restored = ledger.record({
+            tick: deps.tick,
+            cost: run.cost,
+            inverse,
+            actions: record.actions,
+          })
+
+          deps.events.emit({
+            tick: deps.tick,
+            kind: 'blueprint.redone',
+            causeIds: [],
+            data: {
+              sequence: restored.sequence,
+              actions: record.actions.length,
+              tiles: run.tiles,
+              objects: run.objects,
+              cost: run.cost,
             },
           })
         })
@@ -505,4 +580,33 @@ function settle(deps: BuildDeps, run: BuildRun): void {
   const net = run.refund - run.cost
   if (net > 0) deps.world.addRefund(net)
   else if (net < 0) deps.world.addSpend(-net)
+}
+
+/** Pulls `amount` out of the refund outbox, leaving any remainder untouched. */
+function pullRefunds(deps: BuildDeps, amount: number): void {
+  if (amount <= 0 || deps.world.refundsOwed <= 0) return
+  const taken = deps.world.takeRefunds()
+  const keep = Math.max(0, taken - amount)
+  if (keep > 0) deps.world.addRefund(keep)
+}
+
+/** Pulls `amount` out of the spend outbox, leaving any remainder untouched. */
+function pullSpend(deps: BuildDeps, amount: number): void {
+  if (amount <= 0 || deps.world.spendOwed <= 0) return
+  const taken = deps.world.takeSpend()
+  const keep = Math.max(0, taken - amount)
+  if (keep > 0) deps.world.addSpend(keep)
+}
+
+/**
+ * Redo's money: take back the undo refund, re-book the build, then drop any
+ * spend the original commit still has waiting in the outbox so redo does not
+ * charge twice.
+ */
+function settleRedo(deps: BuildDeps, run: BuildRun, record: CommitRecord): void {
+  const undoNet = record.undoNet ?? 0
+  pullRefunds(deps, undoNet)
+  settle(deps, run)
+  const redoNet = run.refund - run.cost
+  if (redoNet < 0 && undoNet > 0) pullSpend(deps, Math.min(-redoNet, undoNet))
 }
