@@ -841,6 +841,61 @@ describe('redoing a commit', () => {
     ])
     expect(run.ledger.redoSize).toBe(0)
   })
+
+  it('keeps remaining redo entries after one redo of a multi-undo stack', () => {
+    const run = scenario({ workers: 0 })
+    const first: BuildAction[] = [
+      {
+        kind: 'placeFoundation',
+        rect: { x: 3, y: 3, width: 3, height: 3 },
+        material: WALL_MATERIAL,
+      },
+    ]
+    const second: BuildAction[] = [
+      {
+        kind: 'placeFoundation',
+        rect: { x: 9, y: 9, width: 3, height: 3 },
+        material: WALL_MATERIAL,
+      },
+    ]
+
+    run.commit(first)
+    const afterFirst = structure(run.world)
+    run.commit(second)
+    const afterBoth = structure(run.world)
+
+    run.undo()
+    run.undo()
+    expect(run.ledger.redoSize).toBe(2)
+
+    run.redo()
+    expect(structure(run.world)).toBe(afterFirst)
+    expect(run.ledger.redoSize).toBe(1)
+
+    run.redo()
+    expect(structure(run.world)).toBe(afterBoth)
+    expect(run.ledger.redoSize).toBe(0)
+  })
+
+  it('charges redo after the economy has drained the undo refund', () => {
+    const run = scenario({ workers: 0 })
+    run.commit([
+      {
+        kind: 'placeFoundation',
+        rect: { x: 3, y: 3, width: 4, height: 4 },
+        material: WALL_MATERIAL,
+      },
+    ])
+    const cost = run.world.takeSpend()
+    expect(cost).toBeGreaterThan(0)
+
+    run.undo()
+    expect(run.world.takeRefunds()).toBe(cost)
+
+    run.redo()
+    expect(run.world.spendOwed).toBe(cost)
+    expect(run.world.refundsOwed).toBe(0)
+  })
 })
 
 /* -------------------------------------------------------------------------- */

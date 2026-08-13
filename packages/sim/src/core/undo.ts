@@ -346,8 +346,18 @@ export class CommitLedger {
 
   record(commit: Omit<CommitRecord, 'sequence'>): CommitRecord {
     this.#redo = []
-    const stored: CommitRecord = { ...commit, sequence: this.#nextSequence }
-    this.#nextSequence += 1
+    return this.#pushUndo({ ...commit, sequence: this.#nextSequence++ })
+  }
+
+  /**
+   * Restores a redone commit onto the undo stack without clearing the remaining
+   * redo entries (undo×N → redo×1 must leave N-1 redos).
+   */
+  recordFromRedo(commit: Omit<CommitRecord, 'sequence'>): CommitRecord {
+    return this.#pushUndo({ ...commit, sequence: this.#nextSequence++ })
+  }
+
+  #pushUndo(stored: CommitRecord): CommitRecord {
     this.#records.push(stored)
     if (this.#records.length > this.depth) {
       this.#records.splice(0, this.#records.length - this.depth)
@@ -544,7 +554,7 @@ export function blueprintCommandHandlers(data: GameData): BlueprintCommands {
           const { inverse, run } = captureInverses(deps, record.actions)
           settleRedo(deps, run, record)
 
-          const restored = ledger.record({
+          const restored = ledger.recordFromRedo({
             tick: deps.tick,
             cost: run.cost,
             inverse,
@@ -599,14 +609,17 @@ function pullSpend(deps: BuildDeps, amount: number): void {
 }
 
 /**
- * Redo's money: take back the undo refund, re-book the build, then drop any
- * spend the original commit still has waiting in the outbox so redo does not
- * charge twice.
+ * Redo's money: take back the undo refund, re-book the build, then drop only
+ * the spend that would double-charge residual original commit spend still
+ * sitting in the outbox. After T8.1's minute drain that residual is often
+ * already zero — redo must still charge the full cost in that case.
  */
 function settleRedo(deps: BuildDeps, run: BuildRun, record: CommitRecord): void {
   const undoNet = record.undoNet ?? 0
+  const residualSpend = Math.min(deps.world.spendOwed, record.cost)
   pullRefunds(deps, undoNet)
   settle(deps, run)
-  const redoNet = run.refund - run.cost
-  if (redoNet < 0 && undoNet > 0) pullSpend(deps, Math.min(-redoNet, undoNet))
+  if (residualSpend <= 0) return
+  const redoSpend = Math.max(0, run.cost - run.refund)
+  if (redoSpend > 0) pullSpend(deps, Math.min(redoSpend, residualSpend))
 }
