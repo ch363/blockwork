@@ -430,7 +430,6 @@ export interface EmergencyStateSnapshot extends JsonObject {
   readonly failureAtTick: number | null
   readonly warningEmitted: boolean
   readonly failed: boolean
-  readonly staffHealth: readonly { readonly id: number; readonly hp: number }[]
   readonly prPenalty: number
   readonly riotSquadLastWageTick: number
 }

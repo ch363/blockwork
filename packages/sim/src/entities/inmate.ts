@@ -91,7 +91,6 @@ export interface InmateComponent {
   /** Assigned housing room id, or `NO_ROOM` while in the intake hall. */
   cellId: number
   jobId: string | null
-  programEnrolment: null
   /** Rap sheet (T4.4). */
   misconductLog: MisconductRecord[]
   /** Mutable grades; reform is harmed by isolation suppression (T4.4). */
@@ -226,7 +225,6 @@ export function generateInmate(options: GenerateInmateOptions): InmateComponent 
     entitlement: data.balance.entitlement.start,
     cellId: NO_ROOM,
     jobId: null,
-    programEnrolment: null,
     misconductLog: [],
     grades: { punishment: 0, reform: 0, security: 0, health: 100 },
     reoffendChance: initialReoffendChance(data, addictions),

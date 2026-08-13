@@ -1512,7 +1512,7 @@ function describeInmate(
     entitlement: Math.round(inmate.entitlement),
     suppression: Math.round(inmate.suppression),
     workLabel: inmate.jobId ?? 'Unassigned',
-    programmeLabel: inmate.programEnrolment === null ? 'None' : 'Enrolled',
+    programmeLabel: world.programs.enrolments.has(entity.id) ? 'Enrolled' : 'None',
     grades,
     reoffendPercent: Math.round(inmate.reoffendChance * 100),
     misconduct: [],

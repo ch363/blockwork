@@ -25,7 +25,44 @@ import type { RoomPropertySet } from '../world/rooms'
 import type { InmateWorld } from '../systems/intakeSystem'
 
 import { parseUnfilledReason } from './fromWorld'
+import type { EmergencyStateSnapshot } from './format'
 import type { SaveState } from './state'
+
+type LegacyEmergencySnapshot = EmergencyStateSnapshot & {
+  readonly staffHealth?: readonly { readonly id: number; readonly hp: number }[]
+}
+
+/**
+ * Pre-T8.14 saves stored callable-staff HP on `emergency.staffHealth`. Merge any
+ * entries that are not already on `combat.staffHealth` before restore.
+ */
+export function consolidateLegacyStaffHealth(state: SaveState): SaveState {
+  const emergency = state.emergency as LegacyEmergencySnapshot
+  const legacy = emergency.staffHealth
+  if (legacy === undefined || legacy.length === 0) {
+    return state
+  }
+
+  const combatHealth = new Map(state.combat.staffHealth.map((entry) => [entry.key, entry.hp]))
+  for (const entry of legacy) {
+    const key = `staff:${entry.id}`
+    if (!combatHealth.has(key)) {
+      combatHealth.set(key, entry.hp)
+    }
+  }
+
+  const { staffHealth: _legacy, ...emergencyWithoutLegacy } = emergency
+  return {
+    ...state,
+    emergency: emergencyWithoutLegacy,
+    combat: {
+      ...state.combat,
+      staffHealth: [...combatHealth.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([key, hp]) => ({ key, hp })),
+    },
+  }
+}
 
 function isJsonObject(value: JsonValue | undefined): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -145,7 +182,6 @@ function restoreMinimalInmates(world: InmateWorld, state: SaveState, data: GameD
       entitlement: numberField(entry, 'entitlement'),
       cellId: numberField(entry, 'cellId'),
       jobId: null,
-      programEnrolment: null,
       misconductLog: [],
       grades,
       reoffendChance: numberField(entry, 'reoffendChance'),
@@ -273,6 +309,7 @@ function restoreMinimalObjects(world: InmateWorld, state: SaveState): void {
  * save. Rebuilds sector indexes and pathfinding afterwards.
  */
 export function restoreInmateWorld(world: InmateWorld, state: SaveState, data: GameData): void {
+  const consolidated = consolidateLegacyStaffHealth(state)
   world.sectors.restore(data, {
     nextSectorId: state.sectors.nextSectorId,
     sectors: state.sectors.sectors.map((sector) => ({
@@ -364,9 +401,9 @@ export function restoreInmateWorld(world: InmateWorld, state: SaveState, data: G
   world.contraband.restore(state.contraband)
   world.fire.restore(state.fire)
   world.riot.restore(state.riot)
-  world.emergency.restore(state.emergency)
+  world.emergency.restore(consolidated.emergency)
   world.escapes.restore(state.escapes)
-  world.combat.restore(state.combat)
+  world.combat.restore(consolidated.combat)
   world.punishments.restore(state.punishments)
 
   world.power.hasCable.fill(0)

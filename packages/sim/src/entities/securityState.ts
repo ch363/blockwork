@@ -157,8 +157,6 @@ export class EmergencyState {
   failureAtTick: number | null = null
   warningEmitted = false
   failed = false
-  /** Stub staff HP until T4.5 owns health components. */
-  readonly staffHealth = new Map<number, number>()
   /** Prison-wide PR score penalty accumulator (free fire). */
   prPenalty = 0
   /** Last tick riot-squad wages were charged. */
@@ -218,7 +216,6 @@ export class EmergencyState {
     readonly failureAtTick: number | null
     readonly warningEmitted: boolean
     readonly failed: boolean
-    readonly staffHealth: readonly { readonly id: number; readonly hp: number }[]
     readonly prPenalty: number
     readonly riotSquadLastWageTick: number
   } {
@@ -237,9 +234,6 @@ export class EmergencyState {
       failureAtTick: this.failureAtTick,
       warningEmitted: this.warningEmitted,
       failed: this.failed,
-      staffHealth: [...this.staffHealth.entries()]
-        .sort((a, b) => a[0] - b[0])
-        .map(([id, hp]) => ({ id, hp })),
       prPenalty: this.prPenalty,
       riotSquadLastWageTick: this.riotSquadLastWageTick,
     }
@@ -260,7 +254,6 @@ export class EmergencyState {
     readonly failureAtTick: number | null
     readonly warningEmitted: boolean
     readonly failed: boolean
-    readonly staffHealth: readonly { readonly id: number; readonly hp: number }[]
     readonly prPenalty: number
     readonly riotSquadLastWageTick: number
   }): void {
@@ -281,8 +274,6 @@ export class EmergencyState {
     this.failureAtTick = snapshot.failureAtTick
     this.warningEmitted = snapshot.warningEmitted
     this.failed = snapshot.failed
-    this.staffHealth.clear()
-    for (const entry of snapshot.staffHealth) this.staffHealth.set(entry.id, entry.hp)
     this.prPenalty = snapshot.prPenalty
     this.riotSquadLastWageTick = snapshot.riotSquadLastWageTick
   }

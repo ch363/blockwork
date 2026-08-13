@@ -140,7 +140,6 @@ export function emptyEmergencyState(): EmergencyStateSnapshot {
     failureAtTick: null,
     warningEmitted: false,
     failed: false,
-    staffHealth: [],
     prPenalty: 0,
     riotSquadLastWageTick: 0,
   }

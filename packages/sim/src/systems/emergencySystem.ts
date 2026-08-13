@@ -401,7 +401,11 @@ export function summonCallableStaff(options: {
       },
     }
     world.staff.add(entity)
-    world.emergency.staffHealth.set(id, 100)
+    world.combat.setStaffLoadout(
+      id,
+      [world.data.balance.combat.defaultWeaponId],
+      world.data.balance.combat.maxHealth,
+    )
     ids.push(id)
     events.emit({
       tick,
@@ -421,7 +425,6 @@ function dismissCallableStaff(
 ): void {
   for (const id of staffIds) {
     fireStaff(world, id, events, tick)
-    world.emergency.staffHealth.delete(id)
   }
 }
 

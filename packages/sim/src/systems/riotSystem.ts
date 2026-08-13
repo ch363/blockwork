@@ -293,12 +293,15 @@ function actRioters(
     // Attack nearest staff within range.
     const staffId = nearestStaffId(world, inmate.tx, inmate.ty, balance.attackStaffRangeTiles)
     if (staffId !== undefined) {
-      const bag = world.emergency.staffHealth
-      if (!bag.has(staffId)) bag.set(staffId, 100)
+      const healthKey = world.combat.agentKey('staff', staffId)
+      const maxHealth = data.balance.combat.maxHealth
+      if (!world.combat.staffHealth.has(healthKey)) {
+        world.combat.staffHealth.set(healthKey, maxHealth)
+      }
       const targetRef = {
         kind: 'staff' as const,
         id: staffId,
-        health: bag.get(staffId) ?? 100,
+        health: world.combat.staffHealth.get(healthKey) ?? maxHealth,
       }
       const result = requestMeleeAttack({
         tick,
@@ -317,10 +320,10 @@ function actRioters(
           world.morale.recordDeath(tick)
           world.morale.clearStaff(id)
           world.staff.remove(id)
-          bag.delete(id)
+          world.combat.staffHealth.delete(world.combat.agentKey('staff', id))
         },
       })
-      bag.set(staffId, targetRef.health)
+      world.combat.staffHealth.set(healthKey, targetRef.health)
       if (result.killed || result.injured) {
         context.events.emit({
           tick,
@@ -412,7 +415,8 @@ function nearestStaffId(
   for (const staff of world.staff.all()) {
     const dist = chebyshevTiles(tx, ty, staff.tx, staff.ty)
     if (dist > range) continue
-    const health = world.emergency.staffHealth.get(staff.id) ?? 100
+    const healthKey = world.combat.agentKey('staff', staff.id)
+    const health = world.combat.staffHealth.get(healthKey) ?? world.data.balance.combat.maxHealth
     if (health <= 0) continue
     if (dist < bestDist || (dist === bestDist && (bestId === undefined || staff.id < bestId))) {
       bestDist = dist

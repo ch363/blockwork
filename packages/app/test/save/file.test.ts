@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { SAVE_FILE_EXTENSION } from '@blockwork/sim'
 
-import { exportSaveToFile, importSaveFromFile, readSaveFile, saveFileName } from '../../src/save'
+import { exportSaveToFile, importSaveFromFile, readSaveFile, saveFileName } from '../../src/save/file'
 
 /**
  * The browser plumbing in `file.ts` — pickers, object URLs, hidden inputs —
