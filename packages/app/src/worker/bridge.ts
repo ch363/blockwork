@@ -61,6 +61,7 @@ import type {
   UtilityRouteKind,
   UtilityRouteResult,
 } from '@blockwork/sim'
+import type { ReportsModel } from '@blockwork/ui'
 
 import type {
   ControlHudPayload,
@@ -71,6 +72,8 @@ import type {
   SnapshotTransportKind,
   TraceResult,
 } from './simWorker'
+import type { NotificationSettings } from './notificationPolicy'
+import type { OverlayRequestMode } from './overlayData'
 
 /** Shared empty result, so the common no-alerts frame allocates nothing. */
 const EMPTY_NOTIFICATIONS: readonly SnapshotNotification[] = []
@@ -160,6 +163,8 @@ export class SimBridge {
   readonly #pendingInspections = new Map<number, (result: InspectResult) => void>()
   readonly #pendingTraces = new Map<number, (result: TraceResult | null) => void>()
   readonly #pendingAutoRoutes = new Map<number, (route: UtilityRouteResult | null) => void>()
+  readonly #pendingOverlays = new Map<number, (values: Uint8Array) => void>()
+  readonly #pendingReportSnapshots = new Map<number, (reports: ReportsModel) => void>()
   readonly #pendingSaves = new Map<
     number,
     (result: { bytes: Uint8Array; playedTicks: number }) => void
@@ -175,6 +180,8 @@ export class SimBridge {
   #error: string | null = null
   #materialIds: readonly string[] = []
   #speed: number
+  /** Set when the worker paused itself; drained by `takeSpeedOverride`. */
+  #speedOverride: { readonly speed: number; readonly reason: 'critical' } | null = null
   #nextRequestId = 1
   #disposed = false
 
@@ -420,6 +427,38 @@ export class SimBridge {
     })
   }
 
+  /** Reads one current PRD 6.4 overlay from the authoritative worker world. */
+  async overlay(mode: OverlayRequestMode, needId?: string): Promise<Uint8Array> {
+    this.#assertLive()
+    const requestId = this.#nextRequestId
+    this.#nextRequestId += 1
+
+    return new Promise<Uint8Array>((resolve) => {
+      this.#pendingOverlays.set(requestId, resolve)
+      this.#worker.postMessage(
+        {
+          type: 'sim:overlay',
+          requestId,
+          mode,
+          ...(needId === undefined ? {} : { needId }),
+        },
+        [],
+      )
+    })
+  }
+
+  /** Requests one bounded PRD 6.2 snapshot from the authoritative worker. */
+  async reports(): Promise<ReportsModel> {
+    this.#assertLive()
+    const requestId = this.#nextRequestId
+    this.#nextRequestId += 1
+
+    return new Promise<ReportsModel>((resolve) => {
+      this.#pendingReportSnapshots.set(requestId, resolve)
+      this.#worker.postMessage({ type: 'sim:reports', requestId }, [])
+    })
+  }
+
   /**
    * Captures the live world as `.blockwork` bytes for autosave / export.
    *
@@ -445,6 +484,29 @@ export class SimBridge {
     this.#worker.postMessage({ type: 'sim:speed', speed: multiplier }, [])
   }
 
+  /**
+   * Mute a notification category, or turn auto-pause on (T6.3, PRD 6.5).
+   *
+   * Partial by design: the alerts panel toggles one switch at a time.
+   */
+  setNotificationSettings(settings: Partial<NotificationSettings>): void {
+    this.#assertLive()
+    this.#worker.postMessage({ type: 'sim:notifications', settings }, [])
+  }
+
+  /**
+   * The speed the worker last told us it is running at, or null if it has
+   * never overridden us.
+   *
+   * Auto-pause means the worker can stop the clock on its own, and the speed
+   * control has to show what is true rather than what was asked for.
+   */
+  takeSpeedOverride(): { readonly speed: number; readonly reason: 'critical' } | null {
+    const override = this.#speedOverride
+    this.#speedOverride = null
+    return override
+  }
+
   /** Stops the loop and tears the worker down. The bridge is unusable after. */
   dispose(): void {
     if (this.#disposed) return
@@ -456,6 +518,8 @@ export class SimBridge {
     this.#pendingInspections.clear()
     this.#pendingTraces.clear()
     this.#pendingAutoRoutes.clear()
+    this.#pendingOverlays.clear()
+    this.#pendingReportSnapshots.clear()
     this.#pendingSaves.clear()
   }
 
@@ -507,6 +571,20 @@ export class SimBridge {
         resolve(message.route)
         break
       }
+      case 'sim:overlayed': {
+        const resolve = this.#pendingOverlays.get(message.requestId)
+        if (resolve === undefined) break
+        this.#pendingOverlays.delete(message.requestId)
+        resolve(new Uint8Array(message.buffer))
+        break
+      }
+      case 'sim:reported': {
+        const resolve = this.#pendingReportSnapshots.get(message.requestId)
+        if (resolve === undefined) break
+        this.#pendingReportSnapshots.delete(message.requestId)
+        resolve(message.reports)
+        break
+      }
       case 'sim:saved': {
         const resolve = this.#pendingSaves.get(message.requestId)
         if (resolve === undefined) break
@@ -517,6 +595,10 @@ export class SimBridge {
         })
         break
       }
+      case 'sim:speedChanged':
+        this.#speed = message.speed
+        this.#speedOverride = { speed: message.speed, reason: message.reason }
+        break
       case 'sim:control':
         this.#control = message.control
         break

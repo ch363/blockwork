@@ -98,6 +98,12 @@ function speedLabel(speed: SpeedStop): string {
   return speed === 0 ? 'Pause' : `${String(speed)}x`
 }
 
+function reoffendingTone(value: number): string {
+  if (value < 25) return 'v pos'
+  if (value < 50) return 'v warn'
+  return 'v neg'
+}
+
 export function TopBar({
   model,
   speed,
@@ -110,9 +116,10 @@ export function TopBar({
   canRedo = false,
 }: TopBarProps): JSX.Element {
   const danger = Math.max(0, Math.min(100, model.danger))
+  const dangerState = dangerBand(danger).toLowerCase()
 
   return (
-    <header class="bw-topbar" role="banner">
+    <header class="bw-topbar" role="banner" data-danger={dangerState} data-paused={speed === 0}>
       <div class="bw-speed" role="group" aria-label="Simulation speed">
         {SPEED_STOPS.map((stop) => (
           <button
@@ -138,13 +145,13 @@ export function TopBar({
         </span>
       </div>
 
-      <div class="bw-stat">
+      <div class="bw-stat" data-stat="balance">
         <span class="k">Balance</span>
         <span class={model.balance < 0 ? 'v neg' : 'v pos'}>{formatMoney(model.balance)}</span>
         <span class="sub">{formatRate(model.balancePerDay)} / day</span>
       </div>
 
-      <div class="bw-stat">
+      <div class="bw-stat" data-stat="population">
         <span class="k">Population</span>
         <span class="v">
           {model.population}
@@ -156,15 +163,15 @@ export function TopBar({
         <span class="sub">{model.capacity - model.population} places free</span>
       </div>
 
-      <div class="bw-stat">
+      <div class="bw-stat" data-stat="reoffending">
         <span class="k">Re-offending</span>
-        <span class="v warn">{model.reoffending}%</span>
+        <span class={reoffendingTone(model.reoffending)}>{model.reoffending}%</span>
         <span class="sub">Estimated on release</span>
       </div>
 
       <div class="bw-spacer" />
 
-      <div class="bw-gauge">
+      <div class="bw-gauge" data-danger={dangerState}>
         <div class="row">
           <span>Danger</span>
           <b>
@@ -186,6 +193,7 @@ export function TopBar({
       <button
         type="button"
         class="bw-iconbtn"
+        data-action="undo"
         onClick={onUndo}
         disabled={!canUndo}
         title="Undo"
@@ -196,6 +204,7 @@ export function TopBar({
       <button
         type="button"
         class="bw-iconbtn"
+        data-action="redo"
         onClick={onRedo}
         disabled={!canRedo}
         title="Redo"
@@ -207,6 +216,7 @@ export function TopBar({
       <button
         type="button"
         class="bw-iconbtn"
+        data-action="alerts"
         onClick={onAlerts}
         title="Alerts"
         aria-label={`Alerts: ${String(model.alerts)}`}
@@ -219,7 +229,14 @@ export function TopBar({
         )}
       </button>
 
-      <button type="button" class="bw-iconbtn" onClick={onMenu} title="Menu" aria-label="Menu">
+      <button
+        type="button"
+        class="bw-iconbtn"
+        data-action="menu"
+        onClick={onMenu}
+        title="Menu"
+        aria-label="Menu"
+      >
         <Icon name="menu" size={20} />
       </button>
     </header>

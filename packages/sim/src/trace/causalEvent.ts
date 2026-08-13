@@ -300,6 +300,22 @@ export class CausalEventLog implements EventSink {
     return out
   }
 
+  /**
+   * Events currently retained, oldest first.
+   *
+   * The Reports Log consumes this read-only projection rather than reaching
+   * into the recorder's maps. Pinned-only entries are included after the ring
+   * in the same stable order as {@link retainedIds}.
+   */
+  retainedEvents(): readonly CausalEvent[] {
+    const events: CausalEvent[] = []
+    for (const id of this.retainedIds()) {
+      const event = this.#events.get(id)
+      if (event !== undefined) events.push(event)
+    }
+    return events
+  }
+
   #evict(): void {
     while (this.#ring.length > this.capacity) {
       // Oldest ring entry. Checked: length > 0 above.

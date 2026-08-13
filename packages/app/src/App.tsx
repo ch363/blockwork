@@ -46,6 +46,7 @@ export function App({ session }: AppProps): JSX.Element {
         session.closeDirectorate()
         session.closePrograms()
         session.closeIntelligence()
+        session.closeReports()
       }
     }
 
@@ -77,6 +78,7 @@ export function App({ session }: AppProps): JSX.Element {
       disabledTools={UNBUILT_TOOLS}
       palette={state.palette.value}
       paletteSelection={state.paletteSelection.value}
+      overlayLegend={state.overlayLegend.value}
       onPaletteSelect={(itemId) => {
         session.selectPaletteItem(itemId)
       }}
@@ -200,6 +202,20 @@ export function App({ session }: AppProps): JSX.Element {
       }}
       onIntelligenceFocusInformant={(inmateId) => {
         session.focusInformant(inmateId)
+      }}
+      reports={state.reports.value}
+      reportsTab={state.reportsTab.value}
+      onReportsTab={(tab) => {
+        session.setReportsTab(tab)
+      }}
+      onReportsClose={() => {
+        session.closeReports()
+      }}
+      onReportsNeedHeatmap={(needId) => {
+        session.showNeedHeatmap(needId)
+      }}
+      onReportsTrace={(traceId) => {
+        session.openReportTrace(traceId)
       }}
       emergency={state.emergency.value}
       onEmergencyClose={() => {

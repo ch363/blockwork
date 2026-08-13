@@ -1635,3 +1635,38 @@ export type {
   RecruitCheck,
   RecruitRejection,
 } from './systems/intelligenceSystem'
+
+/* -------------------------------------------------------------------------- */
+/* T6.5 — map creation and settings                                            */
+/* -------------------------------------------------------------------------- */
+
+export {
+  FAILURE_CONDITIONS,
+  MAP_SIZE_PRESETS,
+  MUTATORS,
+  defaultNewPrisonConfig,
+  fromMapSettings,
+  isFailureCondition,
+  isMapSizePreset,
+  isMutator,
+  isNoFailureMode,
+  resolveMapSize,
+  seedFromInput,
+  toMapSettings,
+  withoutFailures,
+} from './core/mapSettings'
+export type {
+  FailureCondition,
+  MapSizePreset,
+  Mutator,
+  NewPrisonConfig,
+} from './core/mapSettings'
+
+export { failureArmed, mutatorEnabled } from './systems/intakeSystem'
+
+/* -------------------------------------------------------------------------- */
+/* T6.6 — art vocabulary                                                       */
+/* -------------------------------------------------------------------------- */
+
+export { ART_SWATCHES, OBJECT_SHAPES } from './data/schemas'
+export type { ArtSwatch, ObjectShapeId } from './data/schemas'

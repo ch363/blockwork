@@ -396,9 +396,12 @@ export const FEATURE_GATES: readonly FeatureGate[] = [
   { featureId: 'sanitation_jobs', enforcedIn: 'systems/labourSystem:assignLabour' },
   { featureId: 'grounds_jobs', enforcedIn: 'systems/labourSystem:assignLabour' },
 
+  // Reports are assembled and gated in the worker before their data crosses
+  // to the UI (T6.2).
+  { featureId: 'finance_reports', enforcedIn: 'app/worker/reportData:buildReportsModel' },
+  { featureId: 'needs_report', enforcedIn: 'app/worker/reportData:buildReportsModel' },
+
   // Mechanics that do not exist yet. Each is a flagged gap, not a silent one.
-  { featureId: 'finance_reports', enforcedIn: '-', pending: 'T6.2 reports and statistics' },
-  { featureId: 'needs_report', enforcedIn: '-', pending: 'T6.2 reports and statistics' },
   { featureId: 'danger_meter', enforcedIn: '-', pending: 'T6.1 overlays' },
   { featureId: 'surveillance', enforcedIn: '-', pending: 'T6.1 camera fog overlay' },
   { featureId: 'door_automation', enforcedIn: '-', pending: 'T5.5 logic follow-up' },
@@ -419,8 +422,10 @@ export interface DirectorateWorldView {
 }
 
 function hasDirectorate(world: object): world is DirectorateWorldView {
-  return 'directorate' in world && (world as DirectorateWorldView).directorate instanceof
-    DirectorateState
+  return (
+    'directorate' in world &&
+    (world as DirectorateWorldView).directorate instanceof DirectorateState
+  )
 }
 
 /**
@@ -513,7 +518,10 @@ export function missingPrerequisites(
   state: DirectorateState,
   node: DirectorateNode,
 ): readonly string[] {
-  return node.prerequisites.filter((id) => !state.isComplete(id)).slice().sort()
+  return node.prerequisites
+    .filter((id) => !state.isComplete(id))
+    .slice()
+    .sort()
 }
 
 export interface StartResearchCheck {
@@ -546,7 +554,10 @@ export function checkStartResearch(options: {
   // is the branch itself, so a Security node needs Security Office finished
   // even where its own prerequisite list would already have said so.
   const branchFeature = branchFeatureId(data, node.branch)
-  if (branchFeature !== undefined && !state.isComplete(gatingNode(data, 'features', branchFeature) ?? '')) {
+  if (
+    branchFeature !== undefined &&
+    !state.isComplete(gatingNode(data, 'features', branchFeature) ?? '')
+  ) {
     return { ok: false, reason: 'branch-locked', detail: { nodeId, branch: node.branch } }
   }
 

@@ -32,7 +32,7 @@ import { PowerGrid } from '../world/powerGrid'
 import type { TileGrid } from '../world/tileGrid'
 import { WaterGrid } from '../world/waterGrid'
 
-import { isInmateWorld } from './intakeSystem'
+import { isInmateWorld, mutatorEnabled } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 
 /* -------------------------------------------------------------------------- */
@@ -91,6 +91,8 @@ export function createUtilitiesSystem(options: UtilitiesSystemOptions): System {
       }
 
       if (!data.balance.utilities.utilitiesEnabled) return
+      // Switched off at map creation (T6.5): no grids, no brownouts, no cold.
+      if (!mutatorEnabled(world, 'utilities')) return
 
       rebuildPower(world, data, context.events, tick)
       rebuildWater(world, data)

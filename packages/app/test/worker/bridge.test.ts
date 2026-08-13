@@ -268,6 +268,15 @@ describe.each(transports)('SimBridge over the %s transport', (transport) => {
     await expect(bridge.trace(4242)).resolves.toBeNull()
   })
 
+  it('requests reports on demand instead of adding them to every frame', async () => {
+    const { bridge } = rig({ sharedMemory: shared })
+
+    const reports = await bridge.reports()
+    expect(reports.tick).toBe(0)
+    expect(reports.populationReport.total).toBe(0)
+    expect(bridge.latestSnapshot()).not.toHaveProperty('reports')
+  })
+
   it('refuses a command that would not survive the crossing', () => {
     const { bridge } = rig({ sharedMemory: shared })
 

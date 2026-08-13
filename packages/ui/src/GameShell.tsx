@@ -43,14 +43,15 @@ import { StandingOrders } from './panels/StandingOrders'
 import { Emergency } from './panels/Emergency'
 import type { EmergencyModel } from './panels/Emergency'
 import { Directorate } from './panels/Directorate'
-import type {
-  DirectorateBranchId,
-  DirectorateModel,
-} from './panels/Directorate'
+import type { DirectorateBranchId, DirectorateModel } from './panels/Directorate'
 import { Programs } from './panels/Programs'
 import type { ProgramsModel } from './panels/Programs'
 import { Intelligence } from './panels/Intelligence'
 import type { IntelligenceModel, IntelligenceTab } from './panels/Intelligence'
+import { OverlayLegend } from './panels/OverlayLegend'
+import type { OverlayLegendModel } from './panels/OverlayLegend'
+import { Reports } from './panels/Reports'
+import type { ReportsModel, ReportsTab } from './panels/Reports'
 import type {
   StandingOrdersModel,
   StandingOrdersTab,
@@ -77,6 +78,8 @@ export interface GameShellProps {
   readonly palette: readonly TrayGroup[]
   readonly paletteSelection: string | null
   readonly onPaletteSelect: (itemId: string) => void
+  /** Null when no PRD 6.4 overlay is active. */
+  readonly overlayLegend?: OverlayLegendModel | null
 
   readonly inspector: InspectorModel | null
   readonly onInspectorClose: () => void
@@ -147,10 +150,7 @@ export interface GameShellProps {
   readonly standingOrdersTab?: StandingOrdersTab
   readonly onStandingOrdersTab?: (tab: StandingOrdersTab) => void
   readonly onStandingOrdersClose?: () => void
-  readonly onStandingOrdersPunishment?: (
-    misconduct: string,
-    punishment: StandingPunishment,
-  ) => void
+  readonly onStandingOrdersPunishment?: (misconduct: string, punishment: StandingPunishment) => void
   readonly onStandingOrdersDuration?: (misconduct: string, durationHours: number) => void
   readonly onStandingOrdersSearchTrigger?: (misconduct: string, search: boolean) => void
   readonly onStandingOrdersStrictness?: (strictness: StandingStrictness) => void
@@ -179,6 +179,14 @@ export interface GameShellProps {
   readonly onIntelligenceClose?: () => void
   readonly onIntelligenceRecruit?: (inmateId: number) => void
   readonly onIntelligenceFocusInformant?: (inmateId: number) => void
+
+  /** Null closes the Reports hub (T6.2). */
+  readonly reports?: ReportsModel | null
+  readonly reportsTab?: ReportsTab
+  readonly onReportsTab?: (tab: ReportsTab) => void
+  readonly onReportsClose?: () => void
+  readonly onReportsNeedHeatmap?: (needId: string) => void
+  readonly onReportsTrace?: (traceId: number) => void
 
   /** A one-line instruction for the active tool, shown over the world. */
   readonly hint?: string | null
@@ -211,6 +219,8 @@ export function GameShell(props: GameShellProps): JSX.Element {
         {props.hud != null && <div class="bw-hud">{props.hud}</div>}
 
         {props.hint != null && props.blueprint === null && <div class="bw-hint">{props.hint}</div>}
+
+        <OverlayLegend model={props.overlayLegend ?? null} trayOpen={trayOpen} />
 
         {props.blueprint !== null && (
           <BlueprintBar
@@ -269,12 +279,8 @@ export function GameShell(props: GameShellProps): JSX.Element {
           onTab={props.onPostsTab ?? (() => undefined)}
           onClose={props.onPostsClose ?? (() => undefined)}
           {...(props.onPostsNewPost === undefined ? {} : { onNewPost: props.onPostsNewPost })}
-          {...(props.onPostsNewPatrol === undefined
-            ? {}
-            : { onNewPatrol: props.onPostsNewPatrol })}
-          {...(props.onPostsNewSector === undefined
-            ? {}
-            : { onNewSector: props.onPostsNewSector })}
+          {...(props.onPostsNewPatrol === undefined ? {} : { onNewPatrol: props.onPostsNewPatrol })}
+          {...(props.onPostsNewSector === undefined ? {} : { onNewSector: props.onPostsNewSector })}
           {...(props.onPostsSelectPost === undefined
             ? {}
             : { onSelectPost: props.onPostsSelectPost })}
@@ -354,9 +360,7 @@ export function GameShell(props: GameShellProps): JSX.Element {
           onBranch={props.onDirectorateBranch ?? (() => undefined)}
           onSelect={props.onDirectorateSelect ?? (() => undefined)}
           onClose={props.onDirectorateClose ?? (() => undefined)}
-          {...(props.onDirectorateStart === undefined
-            ? {}
-            : { onStart: props.onDirectorateStart })}
+          {...(props.onDirectorateStart === undefined ? {} : { onStart: props.onDirectorateStart })}
         />
 
         <Programs
@@ -378,6 +382,17 @@ export function GameShell(props: GameShellProps): JSX.Element {
           {...(props.onIntelligenceFocusInformant === undefined
             ? {}
             : { onFocusInformant: props.onIntelligenceFocusInformant })}
+        />
+
+        <Reports
+          model={props.reports ?? null}
+          tab={props.reportsTab ?? 'needs'}
+          onTab={props.onReportsTab ?? (() => undefined)}
+          onClose={props.onReportsClose ?? (() => undefined)}
+          {...(props.onReportsNeedHeatmap === undefined
+            ? {}
+            : { onShowNeedHeatmap: props.onReportsNeedHeatmap })}
+          {...(props.onReportsTrace === undefined ? {} : { onTrace: props.onReportsTrace })}
         />
 
         <Toasts toasts={props.toasts} onTrace={props.onTrace} onDismiss={props.onDismissToast} />

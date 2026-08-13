@@ -40,6 +40,7 @@ import {
   spriteHash,
 } from '../sprites/atlas'
 import type { SpriteAtlas } from '../sprites/atlas'
+import { swatchColour } from '../sprites/palette'
 import { TILE_SIZE } from '../tiles'
 
 import { TERRAIN_CHUNK_TILES, TERRAIN_CHUNK_WORLD } from './terrain'
@@ -68,9 +69,15 @@ export interface ObjectAppearance {
 }
 
 /**
- * A few colours from the world mockup in `docs/04-ui-mockups.html`, keyed by
- * the definition ids that appear there. Anything else gets a stable colour
- * from its id hash so two runs look the same.
+ * The last of the placeholder table (T6.6).
+ *
+ * Every definition now carries an `appearance` in `objects.json`, so the live
+ * game never reaches this: `appearanceFromDef` resolves the swatch and shape
+ * the content author chose. What remains is a fallback for a caller that has
+ * no `GameData` to hand — a unit test of the layer itself, most of the time.
+ *
+ * @deprecated Prefer `appearanceFromDef`. Kept so a data-free render still
+ * draws something recognisable rather than a screen of identical squares.
  */
 export const PLACEHOLDER_OBJECT_APPEARANCES: Readonly<Record<string, ObjectAppearance>> = {
   bed: { colour: 0x8fa0b5, shape: 'wide' },
@@ -147,6 +154,59 @@ export function defaultObjectAppearance(defId: string): ObjectAppearance {
   const known = PLACEHOLDER_OBJECT_APPEARANCES[defId]
   if (known !== undefined) return known
   return { colour: objectColourForId(defId), shape: 'square' }
+}
+
+/**
+ * The appearance a definition actually declares (T6.6).
+ *
+ * This is the live path. Colour comes from the palette by swatch name, so the
+ * whole game re-tints from one table; shape falls back to the footprint class,
+ * because a 2×1 that forgot to say `wide` is still obviously wide.
+ */
+export function appearanceFromDef(def: {
+  readonly size?: { readonly w: number; readonly h: number } | undefined
+  readonly appearance?:
+    | { readonly swatch: string; readonly shape?: string | undefined }
+    | undefined
+}): ObjectAppearance {
+  const declared = def.appearance
+  const width = def.size?.w ?? 1
+  const height = def.size?.h ?? 1
+  if (declared === undefined) {
+    return { colour: swatchColour('concrete'), shape: objectShapeForSize(width, height) }
+  }
+  const shape = declared.shape
+  return {
+    colour: swatchColour(declared.swatch),
+    shape:
+      shape !== undefined && isObjectShape(shape)
+        ? shape
+        : objectShapeForSize(width, height),
+  }
+}
+
+function isObjectShape(value: string): value is ObjectShape {
+  return (OBJECT_SHAPES as readonly string[]).includes(value)
+}
+
+/**
+ * Builds the lookup the layer takes, from the loaded definitions.
+ *
+ * A map rather than a closure over `GameData` so the render package keeps its
+ * one-way dependency: it is handed colours and shapes, never a data loader.
+ */
+export function objectAppearances(
+  defs: Iterable<{
+    readonly id: string
+    readonly size?: { readonly w: number; readonly h: number } | undefined
+    readonly appearance?:
+      | { readonly swatch: string; readonly shape?: string | undefined }
+      | undefined
+  }>,
+): Map<string, ObjectAppearance> {
+  const table = new Map<string, ObjectAppearance>()
+  for (const def of defs) table.set(def.id, appearanceFromDef(def))
+  return table
 }
 
 /**

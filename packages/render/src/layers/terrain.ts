@@ -64,6 +64,7 @@ import {
 import { TILE_SIZE } from '../tiles'
 
 import type { Camera, WorldRect } from '../camera/camera'
+import { swatchColour } from '../sprites/palette'
 
 /** Render chunk edge, in tiles (PRD 7.6). Four simulation chunks. */
 export const TERRAIN_CHUNK_TILES = 32
@@ -115,14 +116,13 @@ export const PLACEHOLDER_TERRAIN_PALETTE: readonly TerrainTileAppearance[] = [
 ]
 
 /**
- * Placeholder floor colours keyed by the material ids in
- * `packages/data/materials.json`, from the terrain and floor swatches in
- * `docs/04-ui-mockups.html`.
+ * The last of the placeholder floor table (T6.6).
  *
- * The mirror of `PLACEHOLDER_WALL_APPEARANCES`, and it exists for the same
- * reason: the appearance of a material belongs in the data file, and
- * `materialDefSchema` does not carry one yet. When it does, both tables go
- * away and the app passes the real thing.
+ * `materialDefSchema` now carries an `appearance`, so the live game resolves
+ * colours through `materialAppearances` instead. This survives as the fallback
+ * for a render with no data to hand.
+ *
+ * @deprecated Prefer `materialAppearances`.
  */
 export const PLACEHOLDER_FLOOR_APPEARANCES: Readonly<Record<string, TerrainTileAppearance>> = {
   concrete_floor: { colour: 0x4a5261, grain: 0.05 },
@@ -667,4 +667,55 @@ function buildChunkPositions(mapSize: number, chunksPerAxis: number): Float32Arr
   }
 
   return positions
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Data-driven appearance (T6.6)                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Turns the material definitions into the appearance table the layers take.
+ *
+ * Keyed by id, and returned as a plain map so the render package never holds a
+ * `GameData`: it is handed colours, which is all a renderer should know about
+ * content.
+ */
+export function materialAppearances(
+  materials: Iterable<{
+    readonly id: string
+    readonly appearance?: { readonly swatch: string; readonly grain: number } | undefined
+  }>,
+): Map<string, TerrainTileAppearance> {
+  const table = new Map<string, TerrainTileAppearance>()
+  for (const material of materials) {
+    const declared = material.appearance
+    table.set(
+      material.id,
+      declared === undefined
+        ? { colour: swatchColour('concrete'), grain: 0.05 }
+        : { colour: swatchColour(declared.swatch), grain: declared.grain },
+    )
+  }
+  return table
+}
+
+/**
+ * The palette in material-table order, which is the order the tile grid's
+ * indices refer to.
+ *
+ * Index 0 is bare ground rather than a material, so it keeps the earth swatch:
+ * an unbuilt tile is not made of anything.
+ */
+export function terrainPaletteFor(
+  materialIds: readonly string[],
+  appearances: ReadonlyMap<string, TerrainTileAppearance>,
+): readonly TerrainTileAppearance[] {
+  const ground: TerrainTileAppearance = { colour: swatchColour('earth'), grain: 0.12 }
+  return [
+    ground,
+    ...materialIds.map(
+      (id) => appearances.get(id) ?? { colour: swatchColour('concrete'), grain: 0.05 },
+    ),
+  ]
 }

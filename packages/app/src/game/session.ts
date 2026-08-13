@@ -50,43 +50,69 @@ import type {
   Tile,
   UtilityRouteKind,
 } from '@blockwork/sim'
-import { BlockworkRenderer, interpolateAgents, parseCssColour, terrainPalette } from '@blockwork/render'
-import type { OverlayMode, RenderAgent, RenderObject, ToolStroke } from '@blockwork/render'
+import {
+  BlockworkRenderer,
+  OVERLAY_MODE_DEFINITIONS,
+  OVERLAY_PALETTES,
+  interpolateAgents,
+  overlayCategoricalPattern,
+  overlayLegendBands,
+  parseCssColour,
+  terrainPalette,
+} from '@blockwork/render'
+import type {
+  OverlayMode,
+  OverlayPaletteId,
+  PrdOverlayMode,
+  RenderAgent,
+  RenderObject,
+  ToolStroke,
+} from '@blockwork/render'
 import { signal } from '@preact/signals'
 import type { Signal } from '@preact/signals'
-import type {
-  DockToolId,
-  DirectorateBranchId,
-  DirectorateModel,
-  EmergencyModel,
-  InspectorModel,
-  IntelligenceModel,
-  IntelligenceTab,
-  PostsModel,
-  PostsTab,
-  ProgramsModel,
-  SpeedStop,
-  StandingMealQuantity,
-  StandingOrdersModel,
-  StandingOrdersTab,
-  StandingPunishment,
-  StandingStrictness,
-  ToastModel,
-  ToastSeverity,
-  TopBarModel,
-  TraceModel,
-  TraceNodeModel,
-  TrayGroup,
+import {
+  categoryToken,
+  resolveWorldTap,
+  traceModelFromView,
+  type DockToolId,
+  type DirectorateBranchId,
+  type DirectorateModel,
+  type EmergencyModel,
+  type InspectorModel,
+  type IntelligenceModel,
+  type IntelligenceTab,
+  type OverlayLegendModel,
+  type PostsModel,
+  type PostsTab,
+  type ProgramsModel,
+  type ReportsModel,
+  type ReportsTab,
+  type SpeedStop,
+  type StandingMealQuantity,
+  type StandingOrdersModel,
+  type StandingOrdersTab,
+  type StandingPunishment,
+  type StandingStrictness,
+  type ToastModel,
+  type ToastSeverity,
+  type TopBarModel,
+  type TraceModel,
+  type TraceNodeModel,
+  type TrayGroup,
 } from '@blockwork/ui'
-import { categoryToken, resolveWorldTap, traceModelFromView } from '@blockwork/ui'
-
 import { SimBridge, createSimWorker } from '../worker/bridge'
 import type { InspectResult, TraceResult } from '../worker/simWorker'
 import { snapshotEntityToRenderAgent } from '../worker/collectAgents'
 import { SaveStore } from '../save/store'
 
-import { createPalettes, gestureHint, unlockSnapshotKey, type UnlockSnapshot } from './palette'
-import type { Palette, PaletteEntry } from './palette'
+import {
+  createPalettes,
+  gestureHint,
+  unlockSnapshotKey,
+  type Palette,
+  type PaletteEntry,
+  type UnlockSnapshot,
+} from './palette'
 
 /** PRD 4.3's Large map. The size a new game starts at until T5.x offers a menu. */
 export const DEFAULT_MAP_SIZE = 220
@@ -97,6 +123,51 @@ export const DEFAULT_MAP_SIZE = 220
  * Phase 2 agents handle escorts and routine motion separately.
  */
 export const STUB_BUILDERS = 1
+
+interface ParsedOverlaySelection {
+  readonly mode: PrdOverlayMode
+  readonly needId?: string
+}
+
+const DIRECT_OVERLAY_MODES = new Set<PrdOverlayMode>([
+  'sectors',
+  'roomGrade',
+  'contrabandRisk',
+  'power',
+  'water',
+  'temperature',
+  'cleanliness',
+  'guardCoverage',
+  'fogOfWar',
+])
+
+const REPORT_TAB_IDS = new Set<ReportsTab>([
+  'needs',
+  'finance',
+  'population',
+  'intelligence',
+  'log',
+  'statistics',
+])
+
+function isReportsTab(value: string | null): value is ReportsTab {
+  return value !== null && REPORT_TAB_IDS.has(value as ReportsTab)
+}
+
+export function parseOverlaySelection(selection: string | null): ParsedOverlaySelection | null {
+  if (selection === null) return null
+  if (selection.startsWith('needs:')) {
+    const needId = selection.slice('needs:'.length)
+    return needId.length === 0 ? null : { mode: 'needs', needId }
+  }
+  return DIRECT_OVERLAY_MODES.has(selection as PrdOverlayMode)
+    ? { mode: selection as PrdOverlayMode }
+    : null
+}
+
+function colourToCss(colour: number): string {
+  return `#${colour.toString(16).padStart(6, '0')}`
+}
 
 /** Where the camera starts: the middle of the map. */
 function centreTile(mapSize: number): number {
@@ -117,6 +188,7 @@ export interface SessionState {
   readonly tool: Signal<DockToolId | null>
   readonly palette: Signal<readonly TrayGroup[]>
   readonly paletteSelection: Signal<string | null>
+  readonly overlayLegend: Signal<OverlayLegendModel | null>
   readonly blueprint: Signal<BlueprintReport | null>
   readonly inspector: Signal<InspectorModel | null>
   readonly toasts: Signal<readonly ToastModel[]>
@@ -138,6 +210,9 @@ export interface SessionState {
   /** Open Intelligence panel, or null when closed (T5.6). */
   readonly intelligence: Signal<IntelligenceModel | null>
   readonly intelligenceTab: Signal<IntelligenceTab>
+  /** Open Reports hub, or null while closed/loading (T6.2). */
+  readonly reports: Signal<ReportsModel | null>
+  readonly reportsTab: Signal<ReportsTab>
   readonly hint: Signal<string | null>
   readonly hud: Signal<string | null>
   readonly committing: Signal<boolean>
@@ -420,6 +495,14 @@ export class Session {
   /** Bumped to drop in-flight auto-route replies after discard / commit. */
   #autoRouteGeneration = 0
   readonly #categoryIds: readonly string[]
+  #overlayPaletteId: OverlayPaletteId = 'standard'
+  #overlayRequestKey = ''
+  #overlayRefreshBucket = -1
+  #overlayGeneration = 0
+  #overlayLegendKey = ''
+  #reportsGeneration = 0
+  #reportsRefreshBucket = -1
+  #reportsOpen = false
 
   private constructor(
     bridge: SimBridge,
@@ -440,6 +523,7 @@ export class Session {
       tool: signal<DockToolId | null>(null),
       palette: signal<readonly TrayGroup[]>([]),
       paletteSelection: signal<string | null>(null),
+      overlayLegend: signal<OverlayLegendModel | null>(null),
       blueprint: signal<BlueprintReport | null>(null),
       inspector: signal<InspectorModel | null>(null),
       toasts: signal<readonly ToastModel[]>([]),
@@ -454,6 +538,8 @@ export class Session {
       programs: signal<ProgramsModel | null>(null),
       intelligence: signal<IntelligenceModel | null>(null),
       intelligenceTab: signal<IntelligenceTab>('sources'),
+      reports: signal<ReportsModel | null>(null),
+      reportsTab: signal<ReportsTab>('needs'),
       hint: signal<string | null>(null),
       hud: signal<string | null>(null),
       committing: signal(false),
@@ -572,6 +658,7 @@ export class Session {
       this.closeDirectorate()
       this.closePrograms()
       this.closeIntelligence()
+      this.closeReports()
     } else if (next === 'posts') {
       this.state.palette.value = []
       this.state.paletteSelection.value = null
@@ -580,6 +667,7 @@ export class Session {
       this.closeDirectorate()
       this.closePrograms()
       this.closeIntelligence()
+      this.closeReports()
       this.openPosts()
     } else if (next === 'emergency') {
       this.state.palette.value = []
@@ -589,6 +677,7 @@ export class Session {
       this.closeDirectorate()
       this.closePrograms()
       this.closeIntelligence()
+      this.closeReports()
       this.openEmergency()
     } else if (next === 'plan') {
       // Plan opens Standing Orders (T4.3 policy matrix).
@@ -599,6 +688,7 @@ export class Session {
       this.closeDirectorate()
       this.closePrograms()
       this.closeIntelligence()
+      this.closeReports()
       this.openStandingOrders()
     } else if (next === 'reports') {
       this.closePosts()
@@ -607,6 +697,7 @@ export class Session {
       this.closeDirectorate()
       this.closePrograms()
       this.closeIntelligence()
+      this.closeReports()
       const palette = this.#palettes.reports
       this.state.palette.value = palette.groups
       this.state.paletteSelection.value = palette.initial
@@ -618,6 +709,7 @@ export class Session {
       this.closeDirectorate()
       this.closePrograms()
       this.closeIntelligence()
+      this.closeReports()
       const palette = this.#palettes[next]
       this.state.palette.value = palette.groups
       this.state.paletteSelection.value = palette.initial
@@ -789,8 +881,7 @@ export class Session {
 
   openStandingOrders(): void {
     const control = this.bridge.latestControl()
-    this.state.standingOrders.value =
-      control?.standingOrders ?? emptyStandingOrdersModel(this.data)
+    this.state.standingOrders.value = control?.standingOrders ?? emptyStandingOrdersModel(this.data)
     this.state.standingOrdersTab.value = 'punishment'
   }
 
@@ -803,10 +894,7 @@ export class Session {
     this.state.standingOrdersTab.value = tab
   }
 
-  #dispatchStandingOrders(
-    type: string,
-    payload: Record<string, number | boolean | string>,
-  ): void {
+  #dispatchStandingOrders(type: string, payload: Record<string, number | boolean | string>): void {
     this.bridge.sendCommand({
       type,
       issuedAtTick: this.#tick(),
@@ -879,9 +967,7 @@ export class Session {
     if (current === null) return
     this.state.standingOrders.value = {
       ...current,
-      rows: current.rows.map((row) =>
-        row.misconduct === misconduct ? { ...row, ...patch } : row,
-      ),
+      rows: current.rows.map((row) => (row.misconduct === misconduct ? { ...row, ...patch } : row)),
     }
   }
 
@@ -892,14 +978,12 @@ export class Session {
         ? undefined
         : model.selectedSectorId === sectorId
           ? { id: sectorId, name: model.selectedSectorName }
-          : this.state.posts.value?.sectors.find((s) => s.id === sectorId) ??
-            this.bridge.latestControl()?.posts.sectors.find((s) => s.id === sectorId)
+          : (this.state.posts.value?.sectors.find((s) => s.id === sectorId) ??
+            this.bridge.latestControl()?.posts.sectors.find((s) => s.id === sectorId))
 
     const selected = sector !== undefined
     const name =
-      sector !== undefined && 'name' in sector
-        ? (sector.name ?? null)
-        : model.selectedSectorName
+      sector !== undefined && 'name' in sector ? (sector.name ?? null) : model.selectedSectorName
 
     return {
       ...model,
@@ -983,16 +1067,14 @@ export class Session {
   }
 
   emergencySectorLockdown(): void {
-    const sectorId =
-      this.state.emergency.value?.selectedSectorId ?? this.#selectedSectorId
+    const sectorId = this.state.emergency.value?.selectedSectorId ?? this.#selectedSectorId
     if (sectorId === null || sectorId === undefined) return
     this.#dispatchEmergency('emergency.sectorLockdown', { sectorId })
     this.#patchEmergencyLevel('sector_lockdown', true)
   }
 
   emergencyLiftSectorLockdown(): void {
-    const sectorId =
-      this.state.emergency.value?.selectedSectorId ?? this.#selectedSectorId
+    const sectorId = this.state.emergency.value?.selectedSectorId ?? this.#selectedSectorId
     if (sectorId === null || sectorId === undefined) return
     this.#dispatchEmergency('emergency.liftSectorLockdown', { sectorId })
     this.#patchEmergencyLevel('sector_lockdown', false)
@@ -1033,17 +1115,12 @@ export class Session {
     this.#patchEmergencyLevel('national_guard', true)
   }
 
-  #patchEmergencyLevel(
-    id: EmergencyModel['levels'][number]['id'],
-    active: boolean,
-  ): void {
+  #patchEmergencyLevel(id: EmergencyModel['levels'][number]['id'], active: boolean): void {
     const current = this.state.emergency.value
     if (current === null) return
     this.state.emergency.value = {
       ...current,
-      levels: current.levels.map((level) =>
-        level.id === id ? { ...level, active } : level,
-      ),
+      levels: current.levels.map((level) => (level.id === id ? { ...level, active } : level)),
     }
   }
 
@@ -1060,9 +1137,10 @@ export class Session {
     this.closeDirectorate()
     this.closePrograms()
     this.closeIntelligence()
+    this.closeReports()
     if (itemId === 'directorate') this.openDirectorate()
     else if (itemId === 'programmes') this.openPrograms()
-    else if (itemId === 'intelligence') this.openIntelligence()
+    else if (isReportsTab(itemId)) this.openReports(itemId)
   }
 
   openDirectorate(): void {
@@ -1108,7 +1186,9 @@ export class Session {
     const control = this.bridge.latestControl()
     const base = control?.programs
     this.state.programs.value =
-      base === undefined ? { rows: [], selectedId: null, canPin: false } : { ...base, selectedId: null }
+      base === undefined
+        ? { rows: [], selectedId: null, canPin: false }
+        : { ...base, selectedId: null }
   }
 
   closePrograms(): void {
@@ -1139,15 +1219,14 @@ export class Session {
 
   openIntelligence(): void {
     const control = this.bridge.latestControl()
-    this.state.intelligence.value =
-      control?.intelligence ?? {
-        sources: [],
-        market: [],
-        informants: [],
-        reputations: [],
-        maxInformants: 0,
-        recruitCandidate: null,
-      }
+    this.state.intelligence.value = control?.intelligence ?? {
+      sources: [],
+      market: [],
+      informants: [],
+      reputations: [],
+      maxInformants: 0,
+      recruitCandidate: null,
+    }
     this.state.intelligenceTab.value = 'sources'
   }
 
@@ -1157,6 +1236,75 @@ export class Session {
 
   setIntelligenceTab(tab: IntelligenceTab): void {
     this.state.intelligenceTab.value = tab
+  }
+
+  openReports(tab: ReportsTab = 'needs'): void {
+    this.#reportsOpen = true
+    this.state.reportsTab.value = tab
+    this.#refreshReports(true)
+  }
+
+  closeReports(): void {
+    this.#reportsOpen = false
+    this.#reportsGeneration += 1
+    this.#reportsRefreshBucket = -1
+    this.state.reports.value = null
+  }
+
+  setReportsTab(tab: ReportsTab): void {
+    this.state.reportsTab.value = tab
+    this.#refreshReports(false)
+  }
+
+  /**
+   * Leaves Reports and turns its selected need into the T6.1 world heatmap.
+   * This is a view transition only; the worker remains the data authority.
+   */
+  showNeedHeatmap(needId: string): void {
+    this.closeDirectorate()
+    this.closePrograms()
+    this.closeIntelligence()
+    this.closeReports()
+    const palette = this.#palettes.overlay
+    this.state.tool.value = 'overlay'
+    this.state.palette.value = palette.groups
+    this.state.paletteSelection.value = `needs:${needId}`
+    this.#syncOverlayMode()
+    this.#syncInput()
+  }
+
+  /** Opens a warn-or-above event from the searchable Log in Trace. */
+  openReportTrace(traceId: number): void {
+    void this.bridge
+      .trace(traceId)
+      .then((result) => {
+        if (result !== null) this.#showTrace(result)
+      })
+      .catch(() => {
+        // A disposed bridge rejects in flight; the session is going away.
+      })
+  }
+
+  /**
+   * Reports are deliberately not part of the up-to-80Hz control message.
+   * While the panel is open, request at most one snapshot per in-game minute.
+   */
+  #refreshReports(force: boolean): void {
+    if (!this.#reportsOpen) return
+    const bucket = Math.floor(this.#tick() / 10)
+    if (!force && bucket === this.#reportsRefreshBucket) return
+    this.#reportsRefreshBucket = bucket
+    const generation = this.#reportsGeneration
+
+    void this.bridge
+      .reports()
+      .then((reports) => {
+        if (generation !== this.#reportsGeneration) return
+        this.state.reports.value = reports
+      })
+      .catch(() => {
+        // See openReportTrace: disposal is not a report failure.
+      })
   }
 
   recruitInformant(inmateId: number): void {
@@ -1242,19 +1390,95 @@ export class Session {
   /** Picks the world overlay from paint mode or the Overlay tool palette. */
   #syncOverlayMode(): void {
     if (this.#paintSectorId !== null) {
+      this.#overlayRequestKey = ''
+      this.#overlayGeneration += 1
       this.renderer.setOverlayMode('sectors')
+      this.#publishOverlayLegend('sectors')
       return
     }
     if (this.state.tool.value !== 'overlay') {
       this.renderer.setOverlayMode('off')
+      this.state.overlayLegend.value = null
+      this.#overlayRequestKey = ''
+      this.#overlayLegendKey = ''
       return
     }
     const selection = this.state.paletteSelection.value
-    const mode: OverlayMode =
-      selection === 'sectors' || selection === 'fire' || selection === 'tunnels'
-        ? selection
-        : 'off'
+    const parsed = parseOverlaySelection(selection)
+    const mode: OverlayMode = parsed?.mode ?? 'off'
     this.renderer.setOverlayMode(mode)
+    if (parsed === null) {
+      this.state.overlayLegend.value = null
+      this.#overlayRequestKey = ''
+      this.#overlayLegendKey = ''
+      return
+    }
+    this.#publishOverlayLegend(parsed.mode, parsed.needId)
+    this.#requestOverlayData(parsed.mode, parsed.needId, false)
+  }
+
+  /** T6.5 will call this from Settings; T6.1 owns the complete palette support. */
+  setOverlayPalette(paletteId: OverlayPaletteId): void {
+    this.#overlayPaletteId = paletteId
+    this.renderer.setOverlayPalette(paletteId)
+    this.#overlayLegendKey = ''
+    const parsed = parseOverlaySelection(this.state.paletteSelection.value)
+    if (parsed !== null) this.#publishOverlayLegend(parsed.mode, parsed.needId)
+  }
+
+  #publishOverlayLegend(mode: PrdOverlayMode, needId?: string): void {
+    const definition = OVERLAY_MODE_DEFINITIONS[mode]
+    const palette = OVERLAY_PALETTES[this.#overlayPaletteId]
+    const control = this.bridge.latestControl()
+    const sectorKey =
+      mode === 'sectors' && control !== null
+        ? control.posts.sectors.map((sector) => `${String(sector.id)}:${sector.name}`).join('|')
+        : ''
+    const legendKey = `${mode}:${needId ?? ''}:${this.#overlayPaletteId}:${sectorKey}`
+    if (legendKey === this.#overlayLegendKey) return
+    this.#overlayLegendKey = legendKey
+    const sectorEntries =
+      mode === 'sectors' && control !== null
+        ? control.posts.sectors.slice(0, 32).map((sector, index) => ({
+            label: sector.name,
+            colour: colourToCss(
+              palette.categorical[index % palette.categorical.length] ?? palette.categorical[0],
+            ),
+            pattern: overlayCategoricalPattern(index),
+          }))
+        : []
+    const entries =
+      sectorEntries.length > 0
+        ? sectorEntries
+        : overlayLegendBands(mode, this.#overlayPaletteId).map((band) => ({
+            label: band.label,
+            colour: colourToCss(band.colour),
+            pattern: band.pattern,
+          }))
+    const needName = needId === undefined ? undefined : this.data.needs.find(needId)?.name
+    this.state.overlayLegend.value = {
+      title:
+        mode === 'needs' && needName !== undefined
+          ? `${definition.label} · ${needName}`
+          : definition.label,
+      paletteLabel: palette.label,
+      entries,
+    }
+  }
+
+  #requestOverlayData(mode: PrdOverlayMode, needId: string | undefined, force: boolean): void {
+    const key = `${mode}:${needId ?? ''}`
+    const bucket = Math.floor(this.#tick() / 10)
+    if (!force && this.#overlayRequestKey === key && this.#overlayRefreshBucket === bucket) return
+    this.#overlayRequestKey = key
+    this.#overlayRefreshBucket = bucket
+    const generation = this.#overlayGeneration + 1
+    this.#overlayGeneration = generation
+    void this.bridge.overlay(mode, needId).then((values) => {
+      if (generation !== this.#overlayGeneration) return
+      if (this.#overlayRequestKey !== key) return
+      this.renderer.setOverlayData(values)
+    })
   }
 
   /* ---------------------------------------------------------------------- */
@@ -1597,6 +1821,7 @@ export class Session {
       this.#publishDigest(snapshot.tick, snapshot.digest)
     }
     this.#refreshOpenControlPanels()
+    this.#refreshReports(false)
     this.#feedOverlay()
     this.#publishToasts()
     this.#publishHud()
@@ -1621,6 +1846,10 @@ export class Session {
     }
 
     this.#syncOverlayMode()
+    const parsed = parseOverlaySelection(this.state.paletteSelection.value)
+    if (this.state.tool.value === 'overlay' && parsed !== null) {
+      this.#requestOverlayData(parsed.mode, parsed.needId, false)
+    }
   }
 
   /* ---------------------------------------------------------------------- */
@@ -1724,7 +1953,17 @@ export class Session {
     this.bridge.releaseTrace(notificationId)
   }
 
-  #publishAgents(entities: readonly { id: number; x: number; y: number; kind: number; spriteIndex: number; facing: number; flags: number }[]): void {
+  #publishAgents(
+    entities: readonly {
+      id: number
+      x: number
+      y: number
+      kind: number
+      spriteIndex: number
+      facing: number
+      flags: number
+    }[],
+  ): void {
     const next = entities.map((entity) =>
       snapshotEntityToRenderAgent(entity, {
         categoryIds: this.#categoryIds,
@@ -1739,7 +1978,12 @@ export class Session {
 
   #publishDigest(
     tick: number,
-    digest: { readonly balance: number; readonly danger: number; readonly population: number; readonly alerts: number },
+    digest: {
+      readonly balance: number
+      readonly danger: number
+      readonly population: number
+      readonly alerts: number
+    },
   ): void {
     const paused = this.state.speed.value === 0
 

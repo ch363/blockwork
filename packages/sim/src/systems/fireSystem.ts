@@ -31,7 +31,7 @@ import {
 import { NO_ROOM } from '../world/rooms'
 import type { TileGrid } from '../world/tileGrid'
 
-import { isInmateWorld } from './intakeSystem'
+import { isInmateWorld, mutatorEnabled } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 
 /* -------------------------------------------------------------------------- */
@@ -336,6 +336,9 @@ export function createFireSystem(options: FireSystemOptions): System {
         })
         return
       }
+
+      // Switched off at map creation (T6.5). The whole subsystem stops.
+      if (!mutatorEnabled(world, 'fires')) return
 
       const fire = world.fire
       const ticksPerMinute = data.balance.time.ticksPerMinute

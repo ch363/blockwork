@@ -390,41 +390,95 @@ function staffPalette(data: GameData, unlocks: UnlockSnapshot | null): Palette {
 /* Overlay                                                                     */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Map visualisation chips (Phase 4 interim). Strokes are no-ops — selecting a
- * chip only switches the renderer's overlay mode via the session.
- */
-function overlayPalette(): Palette {
+/** All PRD 6.4 visualisations. Need definitions expand into individual chips. */
+function overlayPalette(data: GameData): Palette {
   const noop = (): BuildAction => ({ kind: 'restore', tiles: [] })
 
-  const entries: PaletteEntry[] = [
+  const systems: PaletteEntry[] = [
     {
       id: 'sectors',
       name: 'Sectors',
-      note: 'Painted sector colours',
+      note: 'Access and assignment',
       icon: 'posts',
       gesture: 'tile',
       action: noop,
     },
     {
-      id: 'fire',
-      name: 'Fire',
-      note: 'Active fire and smoke',
-      icon: 'emergency',
+      id: 'roomGrade',
+      name: 'Room grade',
+      note: 'Quality 0–10',
+      icon: 'rooms',
       gesture: 'tile',
       action: noop,
     },
     {
-      id: 'tunnels',
-      name: 'Tunnels',
-      note: 'Discovered dig routes',
+      id: 'contrabandRisk',
+      name: 'Contraband',
+      note: 'Source and stash risk',
       icon: 'search',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'power',
+      name: 'Power',
+      note: 'Grid and brownouts',
+      icon: 'power',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'water',
+      name: 'Water',
+      note: 'Network flow',
+      icon: 'water',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'temperature',
+      name: 'Temperature',
+      note: 'Cold to hot',
+      icon: 'overlay',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'cleanliness',
+      name: 'Cleanliness',
+      note: 'Clean to dirty',
+      icon: 'overlay',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'guardCoverage',
+      name: 'Guard coverage',
+      note: 'Visible patrol reach',
+      icon: 'staff',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'fogOfWar',
+      name: 'Fog of war',
+      note: 'Hidden areas',
+      icon: 'overlay',
       gesture: 'tile',
       action: noop,
     },
   ]
 
-  return palette([group('overlays', 'Overlays', entries)], entries)
+  const needs: PaletteEntry[] = data.needs.all.map((need) => ({
+    id: `needs:${need.id}`,
+    name: need.name,
+    note: 'Need heatmap',
+    icon: 'overlay',
+    gesture: 'tile',
+    action: noop,
+  }))
+  const all = [...systems, ...needs]
+  return palette([group('systems', 'Systems', systems), group('needs', 'Needs', needs)], all)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -450,31 +504,66 @@ export function createPalettes(
     flow: EMPTY_PALETTE,
     plan: EMPTY_PALETTE,
     reports: reportsPalette(),
-    overlay: overlayPalette(),
+    overlay: overlayPalette(data),
     emergency: EMPTY_PALETTE,
   }
 }
 
 /** Stable key so the session can skip rebuilds when unlocks have not changed. */
 export function unlockSnapshotKey(unlocks: UnlockSnapshot): string {
-  return [
-    unlocks.rooms.join(','),
-    unlocks.objects.join(','),
-    unlocks.staff.join(','),
-  ].join('|')
+  return [unlocks.rooms.join(','), unlocks.objects.join(','), unlocks.staff.join(',')].join('|')
 }
 
 /** Tools whose systems do not exist yet, so the dock can grey them out. */
 export const UNBUILT_TOOLS: readonly DockToolId[] = ['flow']
 
 /**
- * Reports palette chips open Phase 5 panels (Directorate / Programs /
- * Intelligence). Strokes are no-ops — selecting a chip opens the panel via
- * the session.
+ * Reports palette chips open the PRD 6.2 hub or an existing Phase 5 depth
+ * panel. Strokes are no-ops — selecting a chip opens a panel via the session.
  */
 function reportsPalette(): Palette {
   const noop = (): BuildAction => ({ kind: 'restore', tiles: [] })
   const entries: PaletteEntry[] = [
+    {
+      id: 'needs',
+      name: 'Needs',
+      note: 'Severity and capacity',
+      icon: 'reports',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'finance',
+      name: 'Finance',
+      note: 'Cashflow and projection',
+      icon: 'reports',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'population',
+      name: 'Population',
+      note: 'Mix, sentences and flow',
+      icon: 'staff',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'log',
+      name: 'Log',
+      note: 'Search event history',
+      icon: 'search',
+      gesture: 'tile',
+      action: noop,
+    },
+    {
+      id: 'statistics',
+      name: 'Statistics',
+      note: 'Lifetime outcomes',
+      icon: 'reports',
+      gesture: 'tile',
+      action: noop,
+    },
     {
       id: 'directorate',
       name: 'Directorate',

@@ -34,7 +34,7 @@ import {
   ChunkVersionWriter,
   CausalEventLog,
   DEFAULT_SNAPSHOT_LIMITS,
-  NOTIFICATION_SEVERITY,
+  MAX_SAVED_LOG_ENTRIES,
   SnapshotWriter,
   actionFromJson,
   autoRouteUtility,
@@ -44,7 +44,6 @@ import {
   encodeSnapshotToTransferable,
   encodeTilePatch,
   isInmateWorld,
-  isTraceKind,
   isTruncated,
   loadGameData,
   nextSequence,
@@ -58,19 +57,28 @@ import {
 } from '@blockwork/sim'
 import { RAW_TRACE_STRINGS } from '@blockwork/data'
 import type {
+  DirectorateModel,
+  EmergencyModel,
+  IntelligenceModel,
+  PostsModel,
+  ProgramsModel,
+  ReportsModel,
+  StandingOrdersModel,
+} from '@blockwork/ui'
+import type {
   BlueprintReport,
   BuildAction,
   Command,
   EventSink,
   Game,
   JsonValue,
+  LogEntry,
   RoomRequirement,
   Simulation,
   Tile,
   SimulationEvent,
   SnapshotContents,
   SnapshotEntity,
-  NotificationSeverity,
   SnapshotLimits,
   SnapshotNotification,
   TileGridBuffers,
@@ -85,7 +93,17 @@ import type {
 
 import { buildGameDigest, collectGameEntities } from './collectAgents'
 import { buildControlHud } from './controlHud'
+import { NotificationPolicy, severityForKind } from './notificationPolicy'
+import type { NotificationSettings } from './notificationPolicy'
 import { describeRoomGrade } from './roomGrade'
+import type { UnlockSnapshot } from '../game/palette'
+import { buildOverlayData } from './overlayData'
+import type { OverlayRequestMode } from './overlayData'
+import {
+  buildReportsModel,
+  newestCausalEvents,
+  resolveEventPresentation,
+} from './reportData'
 
 /**
  * Trace copy, validated once at module load.
@@ -162,6 +180,28 @@ export interface SimSpeedMessage {
 
 export interface SimStopMessage {
   readonly type: 'sim:stop'
+}
+
+/**
+ * Per-category mute and auto-pause (T6.3, PRD 6.5). Partial: the alerts panel
+ * toggles one thing at a time and should not have to restate the rest.
+ */
+export interface SimNotificationSettingsMessage {
+  readonly type: 'sim:notifications'
+  readonly settings: Partial<NotificationSettings>
+}
+
+/**
+ * The worker changed the speed itself.
+ *
+ * Only auto-pause does this today. It is a distinct kind from the inbound
+ * `sim:speed` so the main thread cannot mistake its own request echoing back
+ * for the worker overriding it.
+ */
+export interface SimSpeedChangedMessage {
+  readonly type: 'sim:speedChanged'
+  readonly speed: number
+  readonly reason: 'critical'
 }
 
 /**
@@ -247,6 +287,20 @@ export interface SimSaveMessage {
   readonly createdAt: string
 }
 
+/** Requests a fresh authoritative data texture for one PRD 6.4 overlay. */
+export interface SimOverlayMessage {
+  readonly type: 'sim:overlay'
+  readonly requestId: number
+  readonly mode: OverlayRequestMode
+  readonly needId?: string
+}
+
+/** Requests one bounded, authoritative PRD 6.2 report snapshot. */
+export interface SimReportsRequestMessage {
+  readonly type: 'sim:reports'
+  readonly requestId: number
+}
+
 export type SimWorkerInbound =
   | SimInitMessage
   | SimCommandMessage
@@ -257,6 +311,9 @@ export type SimWorkerInbound =
   | SimTraceMessage
   | SimUntraceMessage
   | SimAutoRouteMessage
+  | SimOverlayMessage
+  | SimReportsRequestMessage
+  | SimNotificationSettingsMessage
   | SimSaveMessage
 
 export interface SimReadyMessage {
@@ -466,7 +523,11 @@ export interface SimControlMessage {
  */
 export interface SimEffectsMessage {
   readonly type: 'sim:effects'
-  readonly fire: readonly { readonly index: number; readonly intensity: number; readonly smoke: number }[]
+  readonly fire: readonly {
+    readonly index: number
+    readonly intensity: number
+    readonly smoke: number
+  }[]
   readonly tunnels: readonly {
     readonly id: number
     readonly originTile: number
@@ -476,13 +537,13 @@ export interface SimEffectsMessage {
 
 /** Panel summaries transferred with each snapshot (T4.1 / T4.3 / T4.6 / T5.x). */
 export interface ControlHudPayload {
-  readonly posts: import('@blockwork/ui').PostsModel
-  readonly emergency: import('@blockwork/ui').EmergencyModel
-  readonly standingOrders: import('@blockwork/ui').StandingOrdersModel
-  readonly directorate: import('@blockwork/ui').DirectorateModel
-  readonly programs: import('@blockwork/ui').ProgramsModel
-  readonly intelligence: import('@blockwork/ui').IntelligenceModel
-  readonly unlocks: import('../game/palette').UnlockSnapshot
+  readonly posts: PostsModel
+  readonly emergency: EmergencyModel
+  readonly standingOrders: StandingOrdersModel
+  readonly directorate: DirectorateModel
+  readonly programs: ProgramsModel
+  readonly intelligence: IntelligenceModel
+  readonly unlocks: UnlockSnapshot
 }
 
 export interface SimErrorMessage {
@@ -504,6 +565,19 @@ export interface SimSavedMessage {
   readonly playedTicks: number
 }
 
+export interface SimOverlayResultMessage {
+  readonly type: 'sim:overlayed'
+  readonly requestId: number
+  readonly mode: OverlayRequestMode
+  readonly buffer: ArrayBuffer
+}
+
+export interface SimReportsResultMessage {
+  readonly type: 'sim:reported'
+  readonly requestId: number
+  readonly reports: ReportsModel
+}
+
 export type SimWorkerOutbound =
   | SimReadyMessage
   | SimSnapshotMessage
@@ -513,8 +587,11 @@ export type SimWorkerOutbound =
   | SimTraceResultMessage
   | SimControlMessage
   | SimEffectsMessage
+  | SimOverlayResultMessage
+  | SimReportsResultMessage
   | SimAutoRoutedMessage
   | SimSavedMessage
+  | SimSpeedChangedMessage
   | SimErrorMessage
 
 export type PostToMain = (message: SimWorkerOutbound, transfer: Transferable[]) => void
@@ -542,6 +619,7 @@ export type DigestBuilder = (tick: number, alerts: number) => UiDigest
  */
 class NotificationRelay implements EventSink {
   readonly log: CausalEventLog
+  readonly policy: NotificationPolicy
   readonly #capacity: number
   #pending: SnapshotNotification[] = []
   #nextId = 1
@@ -549,22 +627,49 @@ class NotificationRelay implements EventSink {
   #dropped = 0
   /** notification id → CausalEvent tip, when the host has asked to pin. */
   readonly #pinnedTraces = new Map<number, number>()
+  /** Trace tip of each open group, so a regrouped toast still opens a chain. */
+  readonly #groupTraceIds = new Map<number, number>()
 
-  constructor(capacity: number, log: CausalEventLog = new CausalEventLog()) {
+  constructor(
+    capacity: number,
+    log: CausalEventLog = new CausalEventLog(),
+    policy: NotificationPolicy = new NotificationPolicy(),
+  ) {
     this.#capacity = capacity
     this.log = log
+    this.policy = policy
   }
 
   emit(event: SimulationEvent): void {
     const recorded = this.log.record(event)
 
-    const severity = severityForKind(recorded.kind)
-    if (severity === NOTIFICATION_SEVERITY.INFO) {
+    const action = this.policy.admit({
+      kind: recorded.kind,
+      subjectId: recorded.subjectId,
+      tick: recorded.tick,
+    })
+    // Info and muted categories are logged and nothing else: a muted category
+    // must not badge either, or the mute is a lie (PRD 6.5).
+    if (action.kind === 'drop') return
+
+    if (action.kind === 'group') {
+      // Republished under the *same* id, so the main thread updates the toast
+      // it already has rather than stacking a second one. The count is the
+      // whole point of the collapse.
+      this.#republish({
+        id: action.notificationId,
+        tick: recorded.tick,
+        kindId: notificationKindId(recorded.kind),
+        subjectId: recorded.subjectId,
+        traceId: this.#groupTraceIds.get(action.notificationId) ?? recorded.id,
+        severity: action.severity,
+        count: action.count,
+      })
       return
     }
 
-    // Counted after the INFO gate: the badge means "warnings you have not
-    // read", and every recorded event is neither of those things.
+    // Counted after the INFO / mute gates: the badge means "warnings you have
+    // not read", and neither of those is one.
     this.#alerts += 1
 
     if (this.#pending.length >= this.#capacity) {
@@ -572,16 +677,44 @@ class NotificationRelay implements EventSink {
       return
     }
 
+    const id = this.#nextId
     this.#pending.push({
-      id: this.#nextId,
+      id,
       tick: recorded.tick,
       kindId: notificationKindId(recorded.kind),
       subjectId: recorded.subjectId,
       traceId: recorded.id,
-      severity,
+      severity: action.severity,
       count: 1,
     })
+    this.#groupTraceIds.set(id, recorded.id)
+    this.policy.recordRaised({
+      kind: recorded.kind,
+      subjectId: recorded.subjectId,
+      tick: recorded.tick,
+      notificationId: id,
+    })
     this.#nextId = this.#nextId >= 0xffff_ffff ? 1 : this.#nextId + 1
+  }
+
+  /**
+   * Replaces a pending record with the same id, or appends one.
+   *
+   * A group that fires twice between snapshots must cross the boundary once,
+   * with the final count — otherwise the reader sees the same id twice in one
+   * delta and has to guess which is newer.
+   */
+  #republish(record: SnapshotNotification): void {
+    const index = this.#pending.findIndex((entry) => entry.id === record.id)
+    if (index >= 0) {
+      this.#pending[index] = record
+      return
+    }
+    if (this.#pending.length >= this.#capacity) {
+      this.#dropped += 1
+      return
+    }
+    this.#pending.push(record)
   }
 
   /** Pin a drained notification's tip so its Trace chain survives eviction. */
@@ -599,6 +732,11 @@ class NotificationRelay implements EventSink {
     this.log.unpin(tip)
   }
 
+  /** Every notification raised since the last snapshot, left in place. */
+  peek(): readonly SnapshotNotification[] {
+    return this.#pending
+  }
+
   /** Every notification raised since the last snapshot. */
   drain(): SnapshotNotification[] {
     const drained = this.#pending
@@ -614,6 +752,29 @@ class NotificationRelay implements EventSink {
   get dropped(): number {
     return this.#dropped
   }
+
+  /**
+   * The persistent event-log window written into `SaveFile.log`.
+   *
+   * It is intentionally the same newest 2,000 events the Reports Log reads.
+   * The causal ring may retain more for Trace reconstruction, but old
+   * informational noise must not make saves grow without bound.
+   */
+  savedLog(): readonly LogEntry[] {
+    return newestCausalEvents(this.log.retainedEvents(), MAX_SAVED_LOG_ENTRIES).map((event) => {
+      const presentation = resolveEventPresentation(event, severityForKind)
+      return {
+        id: event.id,
+        tick: event.tick,
+        kind: event.kind,
+        subjectId: event.subjectId,
+        causeIds: [...event.causeIds],
+        data: event.data,
+        severity: presentation.notificationSeverity,
+        traceId: presentation.traceId ?? 0,
+      }
+    })
+  }
 }
 
 /**
@@ -625,14 +786,6 @@ class NotificationRelay implements EventSink {
  * every object placed, every room graded — and treating those as alerts both
  * buries the real ones and makes the badge count meaningless.
  */
-function severityForKind(kind: string): NotificationSeverity {
-  if (!isTraceKind(kind)) return NOTIFICATION_SEVERITY.INFO
-  // Periodic recomputes belong on the top-bar meter, not in the toast rail.
-  if (kind === 'danger.recomputed') return NOTIFICATION_SEVERITY.INFO
-  if (kind === 'inmate.starved') return NOTIFICATION_SEVERITY.CRITICAL
-  return NOTIFICATION_SEVERITY.WARN
-}
-
 export interface SimWorkerLoopOptions {
   readonly seed: number
   /** Tiles per axis. Supplied by the caller: map sizes are content, not code. */
@@ -711,8 +864,7 @@ export class SimWorkerLoop {
         collectGameEntities(this.world, this.game.data, tick, out)
       })
     this.#buildDigest =
-      options.buildDigest ??
-      ((_tick, alerts) => buildGameDigest(this.world, alerts))
+      options.buildDigest ?? ((_tick, alerts) => buildGameDigest(this.world, alerts))
 
     // The renderer has drawn nothing yet, so the first snapshot has to offer
     // it every chunk.
@@ -747,6 +899,32 @@ export class SimWorkerLoop {
   /** Notifications the relay had to discard. Exposed for tests and diagnostics. */
   get droppedNotifications(): number {
     return this.#relay.dropped
+  }
+
+  /**
+   * Unread warn-and-above count — the number on the alerts badge.
+   *
+   * A muted category never reaches it, which is what makes the mute honest
+   * rather than cosmetic (T6.3).
+   */
+  get alerts(): number {
+    return this.#relay.alerts
+  }
+
+  /**
+   * Notifications raised since the last snapshot, without draining them.
+   *
+   * The grouping in PRD 6.5 happens before this point, so what is here is what
+   * the player will actually be shown — which makes it the right thing for a
+   * test, and for a diagnostic overlay, to read.
+   */
+  peekNotifications(): readonly SnapshotNotification[] {
+    return this.#relay.peek()
+  }
+
+  /** Drains the pending notifications, as publishing does. */
+  drainNotifications(): readonly SnapshotNotification[] {
+    return this.#relay.drain()
   }
 
   /**
@@ -806,8 +984,41 @@ export class SimWorkerLoop {
     for (let i = 0; i < steps; i += 1) {
       this.simulation.step()
       this.publish()
+      // Checked per step rather than per slice: at 20x a slice is twenty ticks,
+      // and a player who asked for auto-pause wants the clock stopped on the
+      // tick the death happened, not twenty ticks of riot later.
+      if (this.#applyAutoPause()) {
+        return i + 1
+      }
     }
     return steps
+  }
+
+  /**
+   * Stops the clock when a critical was raised and the player asked for it
+   * (PRD 6.5).
+   *
+   * Returns whether it paused, so the caller can stop spending its slice.
+   * The control message goes out unconditionally after a pause so the speed
+   * control on the main thread stops showing a speed the game is not running.
+   */
+  #applyAutoPause(): boolean {
+    const raised = this.#relay.policy.takeCriticalRaised()
+    if (!raised || !this.#relay.policy.autoPauseOnCritical) return false
+    if (this.#speed === 0) return false
+    this.setSpeed(0)
+    this.#post({ type: 'sim:speedChanged', speed: 0, reason: 'critical' }, [])
+    return true
+  }
+
+  /** Current notification policy, for the settings panel. */
+  notificationSettings(): NotificationSettings {
+    return this.#relay.policy.settings()
+  }
+
+  /** Applies a partial policy change from the alerts panel. */
+  setNotificationSettings(settings: Partial<NotificationSettings>): void {
+    this.#relay.policy.apply(settings)
   }
 
   /** Material ids in table order, for the renderer's palette. */
@@ -919,6 +1130,24 @@ export class SimWorkerLoop {
     return autoRouteUtility(this.world, from, kind) ?? null
   }
 
+  overlay(mode: OverlayRequestMode, needId?: string): Uint8Array {
+    return buildOverlayData(this.world, this.game.data, {
+      mode,
+      ...(needId === undefined ? {} : { needId }),
+    })
+  }
+
+  /** One on-demand PRD 6.2 report snapshot; never published in the hot path. */
+  reports(): ReportsModel {
+    return buildReportsModel({
+      world: this.world,
+      data: this.game.data,
+      clock: this.simulation.clock,
+      log: this.#relay.log,
+      severityForKind,
+    })
+  }
+
   /**
    * Captures the live world into `.blockwork` container bytes (save v3).
    *
@@ -934,6 +1163,7 @@ export class SimWorkerLoop {
       seed: this.simulation.rng.serialise().seed,
       playedTicks,
       rngState: this.simulation.rng.serialise(),
+      log: this.#relay.savedLog(),
     })
     const bytes = await saveToBytes(state, { createdAt, events: this.#relay })
     return { bytes, playedTicks }
@@ -1106,12 +1336,7 @@ export class SimWorkerLoop {
 
   /** Posts / Emergency / Standing Orders summaries for open panels. */
   #publishControl(): void {
-    const control = buildControlHud(
-      this.world,
-      this.game.data,
-      this.simulation.clock,
-      null,
-    )
+    const control = buildControlHud(this.world, this.game.data, this.simulation.clock, null)
     this.#post({ type: 'sim:control', control }, [])
   }
 
@@ -1153,8 +1378,6 @@ export class SimWorkerLoop {
     }
   }
 }
-
-
 
 function needSeverity(
   value: number,
@@ -1241,23 +1464,22 @@ function describeInmate(
   }))
   const unknownReputationCount = inmate.reputations.length - revealed.length
 
-  const cell =
-    inmate.cellId === 0 ? undefined : world.rooms.get(inmate.cellId)
+  const cell = inmate.cellId === 0 ? undefined : world.rooms.get(inmate.cellId)
   const cellDef = cell === undefined ? undefined : data.rooms.find(cell.defId)
   const cellLabel =
-    cell === undefined
-      ? 'Unassigned'
-      : `${cellDef?.name ?? cell.defId} ${String(cell.id)}`
+    cell === undefined ? 'Unassigned' : `${cellDef?.name ?? cell.defId} ${String(cell.id)}`
 
   const activityState = world.needsRuntime.stateOf(entity.id)
   const activity =
     activityState.usingObjectId !== 0
       ? 'Using object'
-      : world.escorts.all().some(
-            (job) =>
-              job.inmateId === entity.id &&
-              (job.state === 'approach_inmate' || job.state === 'escort_to_destination'),
-          )
+      : world.escorts
+            .all()
+            .some(
+              (job) =>
+                job.inmateId === entity.id &&
+                (job.state === 'approach_inmate' || job.state === 'escort_to_destination'),
+            )
         ? 'Escorted'
         : 'Idle'
 
@@ -1345,12 +1567,14 @@ function describeStaff(
     needs,
     moraleContribution: 0,
     currentTask,
-    postAssignment: entity.staff.assignedAreaId === 0 ? 'Unassigned' : `Post ${String(entity.staff.assignedAreaId)}`,
+    postAssignment:
+      entity.staff.assignedAreaId === 0
+        ? 'Unassigned'
+        : `Post ${String(entity.staff.assignedAreaId)}`,
     equipment: [],
     centre: { x: entity.tx, y: entity.ty },
   }
 }
-
 
 function assertSpeed(multiplier: number): void {
   if (!Number.isFinite(multiplier) || multiplier < 0) {
@@ -1476,6 +1700,10 @@ export function startSimWorker(
           loop?.setSpeed(message.speed)
           break
 
+        case 'sim:notifications':
+          loop?.setNotificationSettings(message.settings)
+          break
+
         case 'sim:validate': {
           if (loop === null) break
           const report = loop.validate(message.actions)
@@ -1504,8 +1732,26 @@ export function startSimWorker(
 
         case 'sim:autoRoute': {
           const route = loop === null ? null : loop.autoRoute(message.tile, message.kind)
+          scope.postMessage({ type: 'sim:autoRouted', requestId: message.requestId, route }, [])
+          break
+        }
+
+        case 'sim:overlay': {
+          if (loop === null) break
+          const values = loop.overlay(message.mode, message.needId)
+          const copy = values.slice()
+          const buffer = copy.buffer
           scope.postMessage(
-            { type: 'sim:autoRouted', requestId: message.requestId, route },
+            { type: 'sim:overlayed', requestId: message.requestId, mode: message.mode, buffer },
+            [buffer],
+          )
+          break
+        }
+
+        case 'sim:reports': {
+          if (loop === null) break
+          scope.postMessage(
+            { type: 'sim:reported', requestId: message.requestId, reports: loop.reports() },
             [],
           )
           break

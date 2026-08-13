@@ -35,6 +35,8 @@ import {
   NO_INMATE,
 } from '../entities/inmate'
 import type { InmateEntity } from '../entities/inmate'
+import { FAILURE_CONDITIONS, MUTATORS } from '../core/mapSettings'
+import type { FailureCondition, Mutator } from '../core/mapSettings'
 import { isUnlocked } from '../entities/directorate'
 import { NeedsRuntime } from '../entities/needs'
 import { ObjectRegistry, ObjectWorld } from '../entities/objects'
@@ -139,10 +141,52 @@ export function busIntervalTicks(data: GameData): number {
  */
 export interface MapRuntimeSettings {
   staffNeeds: boolean
+  /**
+   * Which failure conditions are armed (T6.5, PRD 5.15 / 7.9).
+   *
+   * Every one off is PRD 7.9's "no failure" mode. The checks consult this
+   * rather than a separate flag, so there is one thing to be wrong about.
+   */
+  failures: Record<FailureCondition, boolean>
+  /** Subsystems switched on. A mutator that is off stops its system dead. */
+  mutators: Record<Mutator, boolean>
+  /** Random events (T6.5). */
+  randomEvents: boolean
 }
 
 export function createMapRuntimeSettings(): MapRuntimeSettings {
-  return { staffNeeds: true }
+  const config = defaultRuntimeFlags()
+  return {
+    staffNeeds: true,
+    failures: config.failures,
+    mutators: config.mutators,
+    randomEvents: true,
+  }
+}
+
+function defaultRuntimeFlags(): {
+  failures: Record<FailureCondition, boolean>
+  mutators: Record<Mutator, boolean>
+} {
+  return {
+    failures: Object.fromEntries(
+      FAILURE_CONDITIONS.map((condition) => [condition, true]),
+    ) as Record<FailureCondition, boolean>,
+    mutators: Object.fromEntries(MUTATORS.map((mutator) => [mutator, true])) as Record<
+      Mutator,
+      boolean
+    >,
+  }
+}
+
+/** Whether a failure condition may fire in this prison (T6.5). */
+export function failureArmed(world: InmateWorld, condition: FailureCondition): boolean {
+  return world.settings.failures[condition]
+}
+
+/** Whether a subsystem is switched on in this prison (T6.5). */
+export function mutatorEnabled(world: InmateWorld, mutator: Mutator): boolean {
+  return world.settings.mutators[mutator]
 }
 
 /* -------------------------------------------------------------------------- */

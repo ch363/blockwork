@@ -184,8 +184,48 @@ export {
 } from './layers/blueprint'
 export type { BlueprintLayerOptions, BlueprintRect } from './layers/blueprint'
 
-export { OverlayLayer, parseCssColour } from './layers/overlay'
-export type { OverlayFireTile, OverlayLayerOptions, OverlayMode, OverlayTunnel } from './layers/overlay'
+export {
+  OVERLAY_MODE_DEFINITIONS,
+  OVERLAY_MODES,
+  OVERLAY_PALETTE_IDS,
+  OVERLAY_PALETTES,
+  OverlayLayer,
+  overlayCategoricalPattern,
+  overlayLegendBands,
+  parseCssColour,
+} from './layers/overlay'
+export type {
+  OverlayFireTile,
+  OverlayLayerOptions,
+  OverlayLegendBand,
+  OverlayMode,
+  OverlayModeDefinition,
+  OverlayPalette,
+  OverlayPaletteId,
+  OverlayPattern,
+  OverlayScale,
+  OverlayTunnel,
+  PrdOverlayMode,
+} from './layers/overlay'
 
 export { BlockworkRenderer, LETTERBOX_COLOUR, MAX_RENDER_RESOLUTION } from './app'
 export type { BlockworkRendererOptions } from './app'
+
+/* -------------------------------------------------------------------------- */
+/* T6.6 — the art pass                                                         */
+/* -------------------------------------------------------------------------- */
+
+export {
+  ACCENT_SWATCHES,
+  ART_PALETTE,
+  LIGHT_SWATCHES,
+  MUTED_SATURATION_CEILING,
+  SATURATED_SWATCHES,
+  paletteEntries,
+  swatchColour,
+  swatchLuma,
+  swatchSaturation,
+} from './sprites/palette'
+
+export { appearanceFromDef, objectAppearances } from './layers/objects'
+export { materialAppearances, terrainPaletteFor } from './layers/terrain'

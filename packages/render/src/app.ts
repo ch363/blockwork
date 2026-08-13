@@ -44,7 +44,12 @@ import { BlueprintLayer } from './layers/blueprint'
 import { GridLayer } from './layers/grid'
 import { ObjectLayer, createObjectAtlas } from './layers/objects'
 import { OverlayLayer } from './layers/overlay'
-import type { OverlayFireTile, OverlayMode, OverlayTunnel } from './layers/overlay'
+import type {
+  OverlayFireTile,
+  OverlayMode,
+  OverlayPaletteId,
+  OverlayTunnel,
+} from './layers/overlay'
 import { PLACEHOLDER_TERRAIN_PALETTE, TerrainLayer, createTerrainAtlas } from './layers/terrain'
 import type { TerrainTileAppearance } from './layers/terrain'
 import { WallLayer, createDoorAtlas, createWallShapeAtlas, wallPalette } from './layers/walls'
@@ -265,6 +270,14 @@ export class BlockworkRenderer {
     this.overlay.setMode(mode)
   }
 
+  setOverlayData(values: Uint8Array): void {
+    this.overlay.setData(values)
+  }
+
+  setOverlayPalette(palette: OverlayPaletteId): void {
+    this.overlay.setPalette(palette)
+  }
+
   setSectorIds(sectorIds: Uint16Array): void {
     this.overlay.setSectorIds(sectorIds)
   }
@@ -299,6 +312,7 @@ export class BlockworkRenderer {
     this.walls.destroy()
     this.objects.destroy()
     this.agents.destroy()
+    this.overlay.destroy()
     this.blueprint.destroy()
     this.grid.destroy()
     this.app.destroy({ removeView: true }, { children: true })

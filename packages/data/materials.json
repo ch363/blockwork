@@ -11,7 +11,11 @@
       "buildMinutes": 2,
       "flammability": 0,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "concrete",
+        "grain": 0.05
+      }
     },
     {
       "_tuning": true,
@@ -24,7 +28,11 @@
       "buildMinutes": 3,
       "flammability": 0,
       "dirtMultiplier": 0.6,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "ceramic",
+        "grain": 0.03
+      }
     },
     {
       "_tuning": true,
@@ -37,7 +45,11 @@
       "buildMinutes": 5,
       "flammability": 0,
       "dirtMultiplier": 0.4,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "concrete_light",
+        "grain": 0.02
+      }
     },
     {
       "_tuning": true,
@@ -50,7 +62,11 @@
       "buildMinutes": 3,
       "flammability": 0.8,
       "dirtMultiplier": 0.8,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "timber",
+        "grain": 0.09
+      }
     },
     {
       "_tuning": true,
@@ -63,7 +79,11 @@
       "buildMinutes": 2,
       "flammability": 0.35,
       "dirtMultiplier": 0.7,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "concrete_light",
+        "grain": 0.04
+      }
     },
     {
       "_tuning": true,
@@ -76,7 +96,11 @@
       "buildMinutes": 1,
       "flammability": 0.5,
       "dirtMultiplier": 1.2,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "turf",
+        "grain": 0.14
+      }
     },
     {
       "_tuning": true,
@@ -89,7 +113,11 @@
       "buildMinutes": 1,
       "flammability": 0,
       "dirtMultiplier": 1.4,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "earth",
+        "grain": 0.18
+      }
     },
     {
       "_tuning": true,
@@ -102,7 +130,11 @@
       "buildMinutes": 2,
       "flammability": 0.1,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "concrete_dark",
+        "grain": 0.08
+      }
     },
     {
       "_tuning": true,
@@ -115,7 +147,11 @@
       "buildMinutes": 2,
       "flammability": 0,
       "dirtMultiplier": 0.9,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "concrete",
+        "grain": 0.06
+      }
     },
     {
       "_tuning": true,
@@ -128,7 +164,11 @@
       "buildMinutes": 3,
       "flammability": 0.2,
       "dirtMultiplier": 0.8,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "amber_dim",
+        "grain": 0.05
+      }
     },
     {
       "_tuning": true,
@@ -141,7 +181,11 @@
       "buildMinutes": 1,
       "flammability": 0,
       "dirtMultiplier": 2.5,
-      "depressing": true
+      "depressing": true,
+      "appearance": {
+        "swatch": "earth",
+        "grain": 0.28
+      }
     },
     {
       "_tuning": true,
@@ -154,7 +198,11 @@
       "buildMinutes": 6,
       "flammability": 0,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "brick",
+        "grain": 0.1
+      }
     },
     {
       "_tuning": true,
@@ -167,7 +215,11 @@
       "buildMinutes": 7,
       "flammability": 0,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "concrete",
+        "grain": 0.06
+      }
     },
     {
       "_tuning": true,
@@ -180,7 +232,11 @@
       "buildMinutes": 12,
       "flammability": 0,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "concrete_dark",
+        "grain": 0.07
+      }
     },
     {
       "_tuning": true,
@@ -193,7 +249,11 @@
       "buildMinutes": 3,
       "flammability": 0,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "steel",
+        "grain": 0.03
+      }
     },
     {
       "_tuning": true,
@@ -206,7 +266,11 @@
       "buildMinutes": 5,
       "flammability": 0,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "steel_dark",
+        "grain": 0.04
+      }
     },
     {
       "_tuning": true,
@@ -219,7 +283,11 @@
       "buildMinutes": 4,
       "flammability": 0,
       "dirtMultiplier": 0.8,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "fluorescent",
+        "grain": 0.02
+      }
     },
     {
       "_tuning": true,
@@ -232,7 +300,11 @@
       "buildMinutes": 4,
       "flammability": 0.9,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "timber",
+        "grain": 0.1
+      }
     },
     {
       "_tuning": true,
@@ -245,7 +317,11 @@
       "buildMinutes": 3,
       "flammability": 0.2,
       "dirtMultiplier": 1.6,
-      "depressing": true
+      "depressing": true,
+      "appearance": {
+        "swatch": "concrete_light",
+        "grain": 0.22
+      }
     },
     {
       "_tuning": true,
@@ -258,7 +334,11 @@
       "buildMinutes": 3,
       "flammability": 0,
       "dirtMultiplier": 1.6,
-      "depressing": true
+      "depressing": true,
+      "appearance": {
+        "swatch": "brick",
+        "grain": 0.24
+      }
     },
     {
       "_tuning": true,
@@ -271,7 +351,11 @@
       "buildMinutes": 4,
       "flammability": 0,
       "dirtMultiplier": 1.8,
-      "depressing": true
+      "depressing": true,
+      "appearance": {
+        "swatch": "turf",
+        "grain": 0.26
+      }
     },
     {
       "_tuning": true,
@@ -284,7 +368,11 @@
       "buildMinutes": 1,
       "flammability": 0.4,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "utility",
+        "grain": 0.02
+      }
     },
     {
       "_tuning": true,
@@ -297,7 +385,11 @@
       "buildMinutes": 2,
       "flammability": 0,
       "dirtMultiplier": 1,
-      "depressing": false
+      "depressing": false,
+      "appearance": {
+        "swatch": "steel",
+        "grain": 0.02
+      }
     }
   ],
   "doors": [

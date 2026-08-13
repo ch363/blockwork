@@ -114,6 +114,23 @@ describe('CausalEventLog', () => {
     expect(log.get(b.id)).toBeUndefined()
   })
 
+  it('projects retained events oldest-first without exposing mutable storage', () => {
+    const log = new CausalEventLog({ capacity: 2 })
+    const pinned = log.record({
+      tick: 1,
+      kind: 'pinned',
+      causeIds: [],
+      data: { marker: 'old' },
+    })
+    log.pin(pinned.id)
+    log.record({ tick: 2, kind: 'middle', causeIds: [], data: {} })
+    log.record({ tick: 3, kind: 'newest', causeIds: [], data: {} })
+
+    const retained = log.retainedEvents()
+    expect(retained.map((event) => event.kind)).toEqual(['middle', 'newest', 'pinned'])
+    expect(retained).not.toBe(log.retainedEvents())
+  })
+
   it('never lets the ring exceed its memory cap under a long busy run', () => {
     // 100 in-game days at one failure per in-game minute ≫ capacity.
     const events = 100 * (TICKS_PER_DAY / 10)

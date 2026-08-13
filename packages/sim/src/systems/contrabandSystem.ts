@@ -21,7 +21,7 @@ import { NO_ROOM } from '../world/rooms'
 import type { Room } from '../world/rooms'
 import { PASSABILITY } from '../world/tileGrid'
 
-import { isInmateWorld } from './intakeSystem'
+import { isInmateWorld, mutatorEnabled } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 
 export type { ArrangedThrowIn, ContrabandStash }
@@ -931,6 +931,9 @@ export function createContrabandSystem(_options: ContrabandSystemOptions): Syste
         })
         return
       }
+
+      // Switched off at map creation (T6.5). The whole subsystem stops.
+      if (!mutatorEnabled(context.world, 'contraband')) return
 
       updateContraband(context.world, context.world.data, context.rng, context.events, tick)
     },

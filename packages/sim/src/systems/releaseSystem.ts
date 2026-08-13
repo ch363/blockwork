@@ -24,7 +24,7 @@ import type { GameData } from '../data/loader'
 import type { InmateEntity } from '../entities/inmate'
 import { NO_ROOM } from '../world/rooms'
 
-import { isInmateWorld } from './intakeSystem'
+import { failureArmed, isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 
 export const RELEASE_SYSTEM_NAME = 'release'
@@ -364,6 +364,11 @@ export function checkRecidivismFailure(
   events: EventSink,
   tick: number,
 ): boolean {
+  // Disarmed at map creation, or PRD 7.9's no-failure mode (T6.5). The
+  // re-offences are still counted and still shown; they simply cannot end
+  // the game.
+  if (!failureArmed(world, 'paroleRecidivism')) return false
+
   const { count, windowDays } = data.balance.failure.paroleRecidivism
   const from = tick - windowDays * TICKS_PER_DAY
 

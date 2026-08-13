@@ -77,6 +77,62 @@ export const ROOM_PROPERTIES = ['enclosed', 'indoors', 'outdoors', 'secure'] as 
 
 export const OBJECT_PLACEMENTS = ['floor', 'wall', 'door', 'ceiling'] as const
 
+/**
+ * The art palette of PRD 7.7, as a closed vocabulary (T6.6).
+ *
+ * "Muted institutional: concrete greys, sodium-light amber, cold fluorescent
+ * blue-white." Naming the swatches rather than writing hex into the data files
+ * is what keeps that direction enforceable — a content file can pick a swatch
+ * but cannot invent a colour, so the palette stays a palette instead of
+ * drifting into ninety-three arbitrary tints. The hex values live in
+ * `packages/render`, because a colour is presentation and the simulation never
+ * reads one.
+ */
+export const ART_SWATCHES = [
+  // Concrete greys: the fabric of the place.
+  'concrete',
+  'concrete_dark',
+  'concrete_light',
+  'steel',
+  'steel_dark',
+  // Warm materials: timber, brick, ground.
+  'timber',
+  'timber_dark',
+  'brick',
+  'earth',
+  'turf',
+  // Sodium amber: the warm institutional light, and anything that signals.
+  'amber',
+  'amber_dim',
+  // Cold fluorescent blue-white: hygiene, medical, electronics.
+  'fluorescent',
+  'ceramic',
+  'medical',
+  // The three accents, used sparingly and never as the only signal.
+  'alarm',
+  'growth',
+  'utility',
+] as const
+
+export type ArtSwatch = (typeof ART_SWATCHES)[number]
+
+/**
+ * Silhouette classes an object sprite is drawn as.
+ *
+ * Structural rather than free text: each maps onto a cell the atlas actually
+ * generates, so a definition cannot ask for a shape that has no sprite.
+ */
+export const OBJECT_SHAPES = [
+  'square',
+  'wide',
+  'tall',
+  'block',
+  'large',
+  'fixture',
+] as const
+
+export type ObjectShapeId = (typeof OBJECT_SHAPES)[number]
+
 export const MATERIAL_SURFACES = ['floor', 'wall', 'cable', 'pipe'] as const
 
 /**
@@ -1060,6 +1116,16 @@ export const materialDefSchema = def({
   dirtMultiplier: rate,
   /** Counts against a graded room via `materialPenalties` (PRD 5.2). */
   depressing: z.boolean(),
+  /**
+   * How the material is drawn (T6.6). `grain` is the strength of the surface
+   * noise, 0 for a flat panel and up toward 1 for churned mud.
+   */
+  appearance: z
+    .strictObject({
+      swatch: z.enum(ART_SWATCHES),
+      grain: fraction,
+    })
+    .optional(),
   unlockedBy: id.optional(),
 })
 
@@ -1203,6 +1269,17 @@ export const objectDefSchema = def({
    * anywhere its surface allows.
    */
   requiresRoom: z.boolean().default(false),
+  /**
+   * How the object is drawn (T6.6). The swatch is required so every one of the
+   * ninety-odd definitions carries a deliberate colour rather than a hash of
+   * its own id; the shape is optional and defaults to the footprint class.
+   */
+  appearance: z
+    .strictObject({
+      swatch: z.enum(ART_SWATCHES),
+      shape: z.enum(OBJECT_SHAPES).optional(),
+    })
+    .optional(),
   /** Watts. 0 means the object never needs a cable. */
   needsPower: count.default(0),
   needsWater: z.boolean().default(false),

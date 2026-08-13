@@ -30,7 +30,7 @@ import { NO_MATERIAL } from '../world/materials'
 import { NO_ROOM } from '../world/rooms'
 import { PASSABILITY } from '../world/tileGrid'
 
-import { isInmateWorld } from './intakeSystem'
+import { failureArmed, isInmateWorld, mutatorEnabled } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 
 /* -------------------------------------------------------------------------- */
@@ -383,6 +383,9 @@ export function canInmateDig(
   entity: InmateEntity,
   data: GameData,
 ): boolean {
+  // Switched off at map creation (T6.5): nobody digs, existing tunnels stay.
+  if (!mutatorEnabled(world, 'tunnels')) return false
+
   const cfg = data.balance.tunnels
   if (!inmateHasTrait(entity, cfg.cleverTraitId)) return false
   if (diggingToolInInventory(entity, data) === null) return false
@@ -1185,6 +1188,9 @@ export function checkEscapeFailure(
   events: EventSink,
   tick: number,
 ): void {
+  // Disarmed at map creation, or PRD 7.9's no-failure mode (T6.5).
+  if (!failureArmed(world, 'escapes')) return
+
   if (world.escapes.failed) return
   const { warningPerDay, thenNextDay } = data.balance.failure.escapes
 
