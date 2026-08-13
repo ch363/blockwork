@@ -474,7 +474,9 @@ export {
   CONSTRUCTION_SYSTEM_NAME,
   CONSTRUCTION_SYSTEM_PERIOD,
   NO_WORKFORCE,
+  countBuildWorkersAt,
   createConstructionSystem,
+  createJobWorkforce,
   uniformWorkforce,
 } from './systems/constructionSystem'
 export type { ConstructionSystemOptions, Workforce } from './systems/constructionSystem'

@@ -2,13 +2,18 @@ import { describe, expect, it } from 'vitest'
 
 import { Simulation, createEmptyWorld } from '../../src/core/simulation'
 import type { GameData } from '../../src/data/loader'
+import { hireStaff } from '../../src/entities/staff'
+import { createInmateWorld } from '../../src/systems/intakeSystem'
+import type { InmateWorld } from '../../src/systems/intakeSystem'
 import {
   CONSTRUCTION_SYSTEM_PERIOD,
   NO_WORKFORCE,
+  countBuildWorkersAt,
   createConstructionSystem,
+  createJobWorkforce,
   uniformWorkforce,
 } from '../../src/systems/constructionSystem'
-import { deliver, isDelivered, placeWall } from '../../src/world/construction'
+import { deliver, isDelivered, placeWall, constructionCommandHandlers } from '../../src/world/construction'
 import type { ConstructionSite } from '../../src/world/construction'
 import { NO_MATERIAL } from '../../src/world/materials'
 import { DATA, RecordingSink, WALL_MATERIAL, scenario } from '../world/constructionFixture'
@@ -160,6 +165,87 @@ describe('constructionSystem (PRD 4.4 slot 9)', () => {
 
   it('defaults to a workforce of nobody', () => {
     expect(NO_WORKFORCE.workersAt(0)).toBe(0)
+  })
+})
+
+describe('job workforce (T8.3)', () => {
+  const BUILD_TILE = { x: 5, y: 5 }
+  const STUB_DATA: GameData = {
+    ...DATA,
+    balance: {
+      ...DATA.balance,
+      construction: { ...DATA.balance.construction, stubMaterialDelivery: true },
+    },
+  }
+
+  function jobScenario(): {
+    readonly world: InmateWorld
+    readonly sim: Simulation
+    readonly events: RecordingSink
+    site(): ConstructionSite
+  } {
+    const events = new RecordingSink()
+    const world = createInmateWorld({
+      size: 24,
+      data: STUB_DATA,
+      continuousIntake: false,
+      research: 'all',
+    })
+    const sim = new Simulation({
+      seed: 0xb10c_0803,
+      world,
+      systems: [createConstructionSystem({ data: STUB_DATA })],
+      commandHandlers: constructionCommandHandlers(STUB_DATA),
+      events,
+    })
+
+    placeWall({ world, data: STUB_DATA, events, tick: 0 }, { x1: 5, y1: 5, x2: 5, y2: 5 }, WALL_MATERIAL)
+
+    return {
+      world,
+      sim,
+      events,
+      site() {
+        const site = world.sites.get(world.grid.idx(BUILD_TILE.x, BUILD_TILE.y))
+        if (site === undefined) throw new Error('expected construction site')
+        return site
+      },
+    }
+  }
+
+  function hireBuilderOnTile(world: InmateWorld, events: RecordingSink, tx: number, ty: number) {
+    const hired = hireStaff({ world, defId: 'maintenance', events, tick: 0, tx, ty })
+    if (hired.entity === undefined) throw new Error('expected maintenance worker')
+    return hired.entity
+  }
+
+  it('builds nothing with no assigned workforce on site', () => {
+    const run = jobScenario()
+
+    for (let i = 0; i < 100; i += 1) run.sim.step()
+
+    expect(run.site().workTicksDone).toBe(0)
+    expect(run.site().blockedBy).toBe('worker')
+  })
+
+  it('advances proportionally when one builder is on site with a claimed build job', () => {
+    const run = jobScenario()
+    const builder = hireBuilderOnTile(run.world, run.events, BUILD_TILE.x, BUILD_TILE.y)
+
+    for (let i = 0; i < CONSTRUCTION_SYSTEM_PERIOD; i += 1) run.sim.step()
+    const job = run.world.jobs.open().find((entry) => entry.kind === 'build')
+    expect(job).toBeDefined()
+    if (job === undefined) throw new Error('expected build job')
+
+    expect(run.world.jobs.claim(job.id, 'staff', builder.id)).toBe(true)
+    builder.staff.duty = { kind: 'job', jobId: job.id }
+
+    expect(createJobWorkforce(run.world).workersAt(run.world.grid.idx(BUILD_TILE.x, BUILD_TILE.y))).toBe(1)
+    expect(countBuildWorkersAt(run.world, run.world.grid.idx(BUILD_TILE.x, BUILD_TILE.y))).toBe(1)
+
+    for (let i = 0; i < CONSTRUCTION_SYSTEM_PERIOD; i += 1) run.sim.step()
+
+    expect(run.site().workTicksDone).toBe(CONSTRUCTION_SYSTEM_PERIOD)
   })
 })
 

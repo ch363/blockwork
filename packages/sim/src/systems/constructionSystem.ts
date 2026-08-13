@@ -15,8 +15,9 @@
  *     construction fixtures that have no dock. With the stub off, sites block
  *     on `materials` until logistics delivers.
  *   - **Workers.** The workforce is an interface the system asks rather than a
- *     scan of the entity store. The default answers zero, so a simulation
- *     wired up without one builds nothing and says why.
+ *     scan of the entity store. When no override is supplied and the world is
+ *     an `InmateWorld`, claimed `build` jobs with staff on the tile supply the
+ *     count. Tests and isolated fixtures pass `uniformWorkforce(n)` instead.
  *
  * A blocked site emits a `CausalEvent` when the reason it is blocked
  * *changes*, not on every update. A prison with two hundred stalled sites
@@ -29,13 +30,17 @@ import type { System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
 import { ConstructionWorld, completeSite, deliverAll, isDelivered } from '../world/construction'
 import type { ConstructionBlocker, ConstructionDeps, ConstructionSite } from '../world/construction'
+import { isInmateWorld } from './intakeSystem'
+import type { InmateWorld } from './intakeSystem'
+import { completeJob, postJob } from './jobSystem'
 
 /**
  * Who is available to build, asked per tile.
  *
- * T2.3's job assignment supplies the real implementation. Keeping it an
- * interface means the construction rules can be tested without an agent, and
- * that the system never scans the entity store itself.
+ * T3.2's job assignment supplies the real implementation via
+ * {@link createJobWorkforce}. Keeping it an interface means the construction
+ * rules can be tested without an agent, and that the system never scans the
+ * entity store itself unless wired to do so.
  */
 export interface Workforce {
   /** Workers on the tile who are building it this update. */
@@ -54,6 +59,32 @@ export function uniformWorkforce(workers: number): Workforce {
   return {
     workersAt(): number {
       return workers
+    },
+  }
+}
+
+/**
+ * Counts staff who have claimed a `build` job at `tileIndex` and are standing
+ * on that tile. Exported for tests that set up jobs manually.
+ */
+export function countBuildWorkersAt(world: InmateWorld, tileIndex: number): number {
+  let count = 0
+  for (const job of world.jobs.claimed()) {
+    if (job.kind !== 'build') continue
+    if (job.location !== tileIndex) continue
+    if (job.claimantKind !== 'staff') continue
+    const staff = world.staff.get(job.claimedBy)
+    if (staff === undefined) continue
+    if (world.grid.idx(staff.tx, staff.ty) === tileIndex) count += 1
+  }
+  return count
+}
+
+/** Live-game workforce: one claimed builder on site counts as one worker-tick. */
+export function createJobWorkforce(world: InmateWorld): Workforce {
+  return {
+    workersAt(tileIndex: number): number {
+      return countBuildWorkersAt(world, tileIndex)
     },
   }
 }
@@ -85,9 +116,59 @@ function setBlocked(
   })
 }
 
+function resolveWorkforce(options: ConstructionSystemOptions, world: unknown): Workforce {
+  if (options.workforce !== undefined) return options.workforce
+  if (isInmateWorld(world)) return createJobWorkforce(world)
+  return NO_WORKFORCE
+}
+
+function hasActiveBuildJob(world: InmateWorld, tileIndex: number): boolean {
+  for (const job of world.jobs.all()) {
+    if (job.kind !== 'build') continue
+    if (job.location !== tileIndex) continue
+    if (job.state === 'open' || job.state === 'claimed') return true
+  }
+  return false
+}
+
+/** Keeps one open `build` job per pending site and drops jobs for removed tiles. */
+function syncBuildJobs(deps: ConstructionDeps, world: InmateWorld): void {
+  const { data, events, tick } = deps
+  const priority = data.balance.jobs.supply.carryPriorityStoreToSite
+  const liveTiles = new Set<number>()
+
+  for (const site of world.sites.all()) {
+    liveTiles.add(site.tileIndex)
+    if (hasActiveBuildJob(world, site.tileIndex)) continue
+    postJob({
+      world,
+      kind: 'build',
+      priority,
+      location: site.tileIndex,
+      tick,
+      events,
+    })
+  }
+
+  for (const job of world.jobs.all()) {
+    if (job.kind !== 'build') continue
+    if (liveTiles.has(job.location)) continue
+    if (job.state === 'completed' || job.state === 'cancelled') continue
+    world.jobs.cancel(job.id)
+  }
+}
+
+function finishBuildJob(world: InmateWorld, tileIndex: number, context: SystemContext): void {
+  for (const job of world.jobs.all()) {
+    if (job.kind !== 'build') continue
+    if (job.location !== tileIndex) continue
+    if (job.state !== 'claimed') continue
+    completeJob(world, job.id, context.events, context.clock.tick)
+  }
+}
+
 export function createConstructionSystem(options: ConstructionSystemOptions): System {
   const { data } = options
-  const workforce = options.workforce ?? NO_WORKFORCE
   const stubDelivery = data.balance.construction.stubMaterialDelivery
   let reportedWrongWorld = false
 
@@ -98,6 +179,7 @@ export function createConstructionSystem(options: ConstructionSystemOptions): Sy
     update(context: SystemContext): void {
       const world = context.world
       const tick = context.clock.tick
+      const workforce = resolveWorkforce(options, world)
 
       if (!(world instanceof ConstructionWorld)) {
         // Once, not once a minute: the wiring is either right or it is not.
@@ -110,6 +192,10 @@ export function createConstructionSystem(options: ConstructionSystemOptions): Sy
           data: { command: CONSTRUCTION_SYSTEM_NAME, reason: 'wrong-world' },
         })
         return
+      }
+
+      if (isInmateWorld(world)) {
+        syncBuildJobs({ world, data, events: context.events, tick }, world)
       }
 
       const deps: ConstructionDeps = { world, data, events: context.events, tick }
@@ -134,6 +220,9 @@ export function createConstructionSystem(options: ConstructionSystemOptions): Sy
 
         if (site.workTicksDone >= site.workTicksRequired) {
           completeSite(deps, site)
+          if (isInmateWorld(world)) {
+            finishBuildJob(world, site.tileIndex, context)
+          }
         }
       }
     },

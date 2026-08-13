@@ -122,13 +122,6 @@ import {
 /** PRD 4.3's Large map. The size a new game starts at until T5.x offers a menu. */
 export const DEFAULT_MAP_SIZE = 220
 
-/**
- * Stand-in construction headcount until hired workers claim build jobs (T3.2).
- * One notional builder per tile keeps Phase 1 construction playable while
- * Phase 2 agents handle escorts and routine motion separately.
- */
-export const STUB_BUILDERS = 1
-
 interface ParsedOverlaySelection {
   readonly mode: PrdOverlayMode
   readonly needId?: string
@@ -600,7 +593,6 @@ export class Session {
       worker: createSimWorker(),
       seed,
       mapSize,
-      builders: STUB_BUILDERS,
     })
 
     // The one id list both palettes must be built from: `floorMaterial` and

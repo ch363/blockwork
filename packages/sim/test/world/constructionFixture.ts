@@ -3,9 +3,9 @@
  *
  * Everything runs against the **real** content files, so a balance edit that
  * breaks construction breaks these tests rather than passing against a fixture
- * that has drifted. The one thing the tests fabricate is the workforce: agents
- * arrive in Phase 2, and until then a stub is the honest way to say "somebody
- * is standing here building".
+ * that has drifted. The one thing the tests fabricate is the workforce:
+ * `uniformWorkforce(n)` stands in for staff on site until a test wires the job
+ * pool explicitly.
  */
 
 import { Simulation } from '../../src/core/simulation'

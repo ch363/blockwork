@@ -52,9 +52,9 @@ import {
   saveToBytes,
   ticksToDay,
   ticksToTimeString,
-  uniformWorkforce,
   validateBlueprint,
 } from '@blockwork/sim'
+import type { Workforce } from '@blockwork/sim'
 import { RAW_TRACE_STRINGS } from '@blockwork/data'
 import type {
   DirectorateModel,
@@ -153,14 +153,6 @@ export interface SimInitMessage {
    * `sim:tiles` messages instead.
    */
   readonly gridBuffers?: TileGridBuffers
-  /**
-   * Headcount the construction system pretends is on every site.
-   *
-   * Phase 2 brings agents and this goes away. Until then a prison with no
-   * workers never finishes a wall, which makes every acceptance case in T1.2
-   * and T1.3 untestable in the running game rather than only in a unit test.
-   */
-  readonly builders?: number
 }
 
 export interface SimCommandMessage {
@@ -795,7 +787,8 @@ export interface SimWorkerLoopOptions {
   /** Shared per-chunk version counters. Present with `gridBuffers`. */
   readonly chunkVersionBuffer?: ArrayBufferLike
   readonly speed?: number
-  readonly builders?: number
+  /** Test-only override; production uses the live job pool. */
+  readonly workforce?: Workforce
   readonly collectEntities?: EntityCollector
   readonly buildDigest?: DigestBuilder
 }
@@ -847,9 +840,7 @@ export class SimWorkerLoop {
       data: loadGameData(),
       events: this.#relay,
       ...(options.gridBuffers === undefined ? {} : { buffers: options.gridBuffers }),
-      ...(options.builders === undefined || options.builders <= 0
-        ? {}
-        : { workforce: uniformWorkforce(options.builders) }),
+      ...(options.workforce === undefined ? {} : { workforce: options.workforce }),
     })
     this.simulation = this.game.simulation
     this.world = this.game.world
@@ -1657,7 +1648,6 @@ export function startSimWorker(
             ...(message.chunkVersionBuffer === undefined
               ? {}
               : { chunkVersionBuffer: message.chunkVersionBuffer }),
-            ...(message.builders === undefined ? {} : { builders: message.builders }),
             ...(overrides.collectEntities === undefined
               ? {}
               : { collectEntities: overrides.collectEntities }),

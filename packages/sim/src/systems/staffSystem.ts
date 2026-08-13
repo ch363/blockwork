@@ -35,6 +35,8 @@ import {
 import { NO_INMATE } from '../entities/inmate'
 import { PASSABILITY } from '../world/tileGrid'
 
+import { tileXy } from '../entities/job'
+
 import { isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 import {
@@ -82,6 +84,7 @@ export function createStaffSystem(options: StaffSystemOptions): System {
 
       claimEscortJobs(world, data, context)
       progressEscorts(world, data, context)
+      stepJobWorkers(world, data, context)
       assistSecureDoors(world, data, context)
       revealFog(world, data)
       wanderOfficers(world, data, context)
@@ -310,6 +313,37 @@ function nearestOfficer(
     }
   }
   return best
+}
+
+/* -------------------------------------------------------------------------- */
+/* General job pool movement (T3.2)                                            */
+/* -------------------------------------------------------------------------- */
+
+/** Walk staff with a claimed pool job toward its work-site tile. */
+function stepJobWorkers(world: InmateWorld, data: GameData, context: SystemContext): void {
+  const speed =
+    data.balance.pathfinding.speedsWorldUnitsPerTick.staff *
+    movementSpeedMultiplier(world.morale.value, data.balance.morale)
+  const units = data.balance.map.tileWorldUnits
+
+  for (const staff of world.staff.all()) {
+    if (staff.staff.duty.kind !== 'job') continue
+    const job = world.jobs.get(staff.staff.duty.jobId)
+    if (job === undefined || job.state !== 'claimed') continue
+    const { x: goalTx, y: goalTy } = tileXy(job.location, world.grid.size)
+    stepEntityToward(
+      world,
+      data,
+      staff,
+      goalTx,
+      goalTy,
+      speed,
+      units,
+      staff.id,
+      context,
+      undefined,
+    )
+  }
 }
 
 /* -------------------------------------------------------------------------- */

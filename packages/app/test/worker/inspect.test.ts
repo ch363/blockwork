@@ -17,6 +17,7 @@ import {
   ROOM_COMMANDS,
   TICKS_PER_MINUTE,
   deliverAll,
+  uniformWorkforce,
 } from '@blockwork/sim'
 import type { Command } from '@blockwork/sim'
 
@@ -40,7 +41,7 @@ function builtLoop(): SimWorkerLoop {
     post: () => {
       // The transfer transport posts snapshots; nothing here reads them.
     },
-    builders: 4,
+    workforce: uniformWorkforce(4),
   })
 
   loop.enqueue(

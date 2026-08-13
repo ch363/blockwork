@@ -150,8 +150,6 @@ export interface SimBridgeOptions {
   readonly limits?: SnapshotLimits
   /** Starting speed multiplier. Defaults to 1x. */
   readonly speed?: number
-  /** Stand-in construction headcount until Phase 2 brings agents. */
-  readonly builders?: number
   /** Overrides transport detection. Tests use it to force the fallback. */
   readonly sharedMemory?: boolean
 }
@@ -242,7 +240,6 @@ export class SimBridge {
       ...(snapshotBuffer === null ? {} : { snapshotBuffer }),
       ...(gridBuffers === null ? {} : { gridBuffers }),
       ...(chunkVersionBuffer === null ? {} : { chunkVersionBuffer }),
-      ...(options.builders === undefined ? {} : { builders: options.builders }),
     }
     this.#worker.postMessage(init, [])
   }

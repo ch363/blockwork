@@ -195,10 +195,9 @@ export interface GameOptions {
   /** Shared buffers for the grid, when the host can share memory. */
   readonly buffers?: TileGridBuffers
   /**
-   * Who builds. Defaults to nobody, which is honest until Phase 2 brings
-   * agents: a site with no worker stalls and says so rather than finishing by
-   * magic. Hosts that want to exercise construction before then pass
-   * `uniformWorkforce(n)`.
+   * Who builds. Defaults to the live job pool on an `InmateWorld`, which is
+   * honest: a site with no worker on tile stalls and says so rather than
+   * finishing by magic. Tests pass `uniformWorkforce(n)` to stub headcount.
    */
   readonly workforce?: Workforce
 }
