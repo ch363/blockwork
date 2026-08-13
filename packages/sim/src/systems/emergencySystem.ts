@@ -417,13 +417,14 @@ export function summonCallableStaff(options: {
   return ids
 }
 
-function dismissCallableStaff(
+export function dismissCallableStaff(
   world: InmateWorld,
   staffIds: readonly number[],
   tick: number,
   events: SystemContext['events'],
 ): void {
   for (const id of staffIds) {
+    world.combat.clearStaffLoadout(id)
     fireStaff(world, id, events, tick)
   }
 }

@@ -556,6 +556,15 @@ export class CombatRuntime {
     if (health !== undefined) this.staffHealth.set(key, health)
   }
 
+  /** Drops combat maps for a staff entity that has left the world. */
+  clearStaffLoadout(staffId: number): void {
+    const key = this.agentKey('staff', staffId)
+    this.staffInventory.delete(key)
+    this.staffHealth.delete(key)
+    this.staffStatus.delete(key)
+    this.vestWearers.delete(key)
+  }
+
   activeFights(): Fight[] {
     return [...this.fights.values()]
       .filter((fight) => fight.state === 'active')

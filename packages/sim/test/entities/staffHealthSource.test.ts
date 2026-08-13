@@ -9,7 +9,7 @@ import { emptyCombatState, emptyEmergencyState } from '../../src/save/defaults'
 import type { EmergencyStateSnapshot } from '../../src/save/format'
 import { consolidateLegacyStaffHealth } from '../../src/save/toWorld'
 import { createInmateWorld } from '../../src/systems/intakeSystem'
-import { summonCallableStaff } from '../../src/systems/emergencySystem'
+import { summonCallableStaff, dismissCallableStaff } from '../../src/systems/emergencySystem'
 import type { SaveState } from '../../src/save/state'
 import { makeSaveState } from '../save/fixture'
 
@@ -41,6 +41,28 @@ describe('staff health source of truth', () => {
     const key = world.combat.agentKey('staff', staffId ?? 0)
     expect(world.combat.staffHealth.get(key)).toBe(DATA.balance.combat.maxHealth)
     expect('staffHealth' in world.emergency).toBe(false)
+  })
+
+  it('dismissing callable staff clears combat health maps', () => {
+    const world = createInmateWorld({ size: 12, data: DATA })
+    const events = new NoopEvents()
+    const ids = summonCallableStaff({
+      world,
+      defId: DATA.balance.emergency.riotSquadDefId,
+      count: 1,
+      tick: 0,
+      events,
+    })
+    const staffId = ids[0]
+    expect(staffId).toBeDefined()
+    const key = world.combat.agentKey('staff', staffId ?? 0)
+    expect(world.combat.staffHealth.has(key)).toBe(true)
+
+    dismissCallableStaff(world, ids, 1, events)
+
+    expect(world.combat.staffHealth.has(key)).toBe(false)
+    expect(world.combat.staffInventory.has(key)).toBe(false)
+    expect(world.staff.get(staffId ?? 0)).toBeUndefined()
   })
 
   it('merges legacy emergency staffHealth into combat when consolidating saves', () => {
