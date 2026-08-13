@@ -45,13 +45,6 @@ const STORE_ROOM = 'store'
 const REFUSE_ROOM = 'refuse'
 const REFUSE_BIN = 'refuse_bin'
 
-const CARRY_PRIORITY_DOCK_TO_STORE = 70
-const CARRY_PRIORITY_STORE_TO_SITE = 85
-const REFUSE_CARRY_PRIORITY = 45
-
-/** Max units moved by one deliver / collectRefuse job. */
-const CARRY_BATCH = 8
-
 /* -------------------------------------------------------------------------- */
 /* Types                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -480,14 +473,14 @@ export function updateSupply(
   }
 
   if (hasDock && hasStore && dock !== undefined && store !== undefined) {
-    postDockToStoreJobs(world, events, tick, dock, store)
+    postDockToStoreJobs(world, events, tick, dock, store, data)
   }
 
   if (hasStore && store !== undefined) {
-    postStoreToSiteJobs(world, events, tick, store)
+    postStoreToSiteJobs(world, events, tick, store, data)
   }
 
-  postBinToRefuseJobs(world, events, tick, refuseRooms)
+  postBinToRefuseJobs(world, events, tick, refuseRooms, data)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -554,9 +547,11 @@ function postDockToStoreJobs(
   tick: number,
   dock: Room,
   _store: Room,
+  data: GameData,
 ): void {
   const supply = world.supply
   const dockTile = firstRoomTile(world, dock)
+  const { carryBatch, carryPriorityDockToStore } = data.balance.jobs.supply
 
   const items = collectDockItemIds(supply)
   for (const itemId of items) {
@@ -564,12 +559,12 @@ function postDockToStoreJobs(
     if (available <= 0) continue
     if (hasOpenCarry(world, 'dockToStore', itemId)) continue
 
-    const units = Math.min(CARRY_BATCH, available)
+    const units = Math.min(carryBatch, available)
     const preferredSite = preferredSiteForDockItem(supply, itemId)
     const job = postJob({
       world,
       kind: 'deliver',
-      priority: CARRY_PRIORITY_DOCK_TO_STORE,
+      priority: carryPriorityDockToStore,
       location: dockTile,
       tick,
       events,
@@ -590,8 +585,10 @@ function postStoreToSiteJobs(
   events: EventSink,
   tick: number,
   _store: Room,
+  data: GameData,
 ): void {
   const supply = world.supply
+  const { carryBatch, carryPriorityStoreToSite } = data.balance.jobs.supply
 
   for (const site of world.sites.all()) {
     if (isDelivered(site)) continue
@@ -602,11 +599,11 @@ function postStoreToSiteJobs(
       if (inStore <= 0) return
       if (hasOpenCarry(world, 'storeToSite', requirement.itemId, site.id)) return
 
-      const units = Math.min(CARRY_BATCH, need, inStore)
+      const units = Math.min(carryBatch, need, inStore)
       const job = postJob({
         world,
         kind: 'deliver',
-        priority: CARRY_PRIORITY_STORE_TO_SITE,
+        priority: carryPriorityStoreToSite,
         location: site.tileIndex,
         tick,
         events,
@@ -628,11 +625,13 @@ function postBinToRefuseJobs(
   events: EventSink,
   tick: number,
   refuseRooms: readonly Room[],
+  data: GameData,
 ): void {
   if (refuseRooms.length === 0) return
   const supply = world.supply
   const refuse = refuseRooms[0]
   if (refuse === undefined) return
+  const { carryBatch, carryPriorityRefuse } = data.balance.jobs.supply
 
   for (const [binId, units] of supply.binRefuse) {
     if (units <= 0) continue
@@ -643,7 +642,7 @@ function postBinToRefuseJobs(
     const job = postJob({
       world,
       kind: 'collectRefuse',
-      priority: REFUSE_CARRY_PRIORITY,
+      priority: carryPriorityRefuse,
       location: bin.tileIndex,
       tick,
       events,
@@ -652,7 +651,7 @@ function postBinToRefuseJobs(
       jobId: job.id,
       hop: 'binToRefuse',
       itemId: 'refuse',
-      units: Math.min(CARRY_BATCH, units),
+      units: Math.min(carryBatch, units),
       siteId: refuse.id,
       fromObjectId: binId,
     })

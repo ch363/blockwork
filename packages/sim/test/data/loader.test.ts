@@ -209,3 +209,47 @@ describe('the shipped data files', () => {
     }
   })
 })
+
+describe('balance sections moved out of code (T8.13)', () => {
+  it('defines supply carry priorities and batch size under jobs', () => {
+    const supply = data.balance.jobs.supply
+    expect(supply.carryBatch).toBe(8)
+    expect(supply.carryPriorityDockToStore).toBe(70)
+    expect(supply.carryPriorityStoreToSite).toBe(85)
+    expect(supply.carryPriorityRefuse).toBe(45)
+  })
+
+  it('defines stub melee damage under combat', () => {
+    expect(data.balance.combat.stubMeleeDamage).toBe(15)
+  })
+
+  it('defines standing-order defaults under contraband', () => {
+    const defaults = data.balance.contraband.standingOrders.defaults
+    expect(defaults.contraband.durationHours).toBe(6)
+    expect(defaults.intoxication.durationHours).toBe(4)
+    expect(defaults.destruction.durationHours).toBe(8)
+    expect(defaults.attackInmate.durationHours).toBe(12)
+    expect(defaults.attackStaff.durationHours).toBe(24)
+    expect(defaults.seriousInjury.durationHours).toBe(36)
+    expect(data.balance.kitchen.defaultMealVariety).toBe(1)
+  })
+
+  it('rejects an unknown key in jobs.supply', () => {
+    const raw = cloneRawData()
+    const balance = fileOf(raw, 'balance')
+    const jobs = balance['jobs'] as Record<string, unknown>
+    const supply = jobs['supply'] as Record<string, unknown>
+    supply['extraBatch'] = 99
+
+    expect(() => loadGameData(raw)).toThrow(/balance\.json jobs\.supply/)
+  })
+
+  it('rejects a missing combat.stubMeleeDamage', () => {
+    const raw = cloneRawData()
+    const balance = fileOf(raw, 'balance')
+    const combat = balance['combat'] as Record<string, unknown>
+    delete combat['stubMeleeDamage']
+
+    expect(() => loadGameData(raw)).toThrow(/balance\.json combat\.stubMeleeDamage/)
+  })
+})

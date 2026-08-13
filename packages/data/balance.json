@@ -389,7 +389,13 @@
   "jobs": {
     "_tuning": true,
     "agingPerTick": 0.01,
-    "minTravelTime": 1
+    "minTravelTime": 1,
+    "supply": {
+      "carryBatch": 8,
+      "carryPriorityDockToStore": 70,
+      "carryPriorityStoreToSite": 85,
+      "carryPriorityRefuse": 45
+    }
   },
   "intake": {
     "_tuning": true,
@@ -720,7 +726,8 @@
     },
     "mortuaryJobPriority": 90,
     "hearseDelayMinutes": 30,
-    "bloodOnDamagingHit": true
+    "bloodOnDamagingHit": true,
+    "stubMeleeDamage": 15
   },
   "failure": {
     "uncontainedRiot": {

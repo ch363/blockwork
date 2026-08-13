@@ -2,6 +2,8 @@
  * Empty / default Phase 4 save fields for migrations and fixtures.
  */
 
+import { loadGameData } from '../data/loader'
+import type { GameData } from '../data/loader'
 import { createDefaultStandingOrders } from '../entities/standingOrders'
 
 import type {
@@ -183,8 +185,8 @@ export function emptyUtilitiesState(): UtilitiesStateSnapshot {
   return { cableTiles: [], pipeTiles: [] }
 }
 
-export function defaultStandingOrdersState(): StandingOrdersState {
-  const defaults = createDefaultStandingOrders()
+export function defaultStandingOrdersState(data: GameData = loadGameData()): StandingOrdersState {
+  const defaults = createDefaultStandingOrders(data)
   return {
     misconduct: Object.fromEntries(
       Object.entries(defaults.misconduct).map(([kind, order]) => [

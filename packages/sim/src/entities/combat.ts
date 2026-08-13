@@ -3,7 +3,7 @@
  *
  * `requestMeleeAttack` keeps the small surface riotSystem needs. When a combat
  * balance table is supplied, damage is clamped through {@link applyDamage};
- * otherwise a fixed stub delta is applied so isolated T4.6 tests still run.
+ * otherwise raw subtraction is applied for callers that omit balance.
  */
 
 import type { EventSink } from '../core/simulation'
@@ -16,9 +16,6 @@ export const COMBAT_EVENTS = {
   injured: 'combat.injured',
   killed: 'combat.killed',
 } as const
-
-/** Default stub damage when caller omits an explicit amount. */
-export const STUB_MELEE_DAMAGE = 15
 
 export type CombatActorKind = 'inmate' | 'staff'
 
@@ -44,23 +41,18 @@ export function requestMeleeAttack(options: {
   readonly attacker: CombatActorRef
   readonly target: CombatActorRef
   readonly damage?: number
-  readonly balance?: Balance['combat']
+  readonly balance: Balance['combat']
   /** Optional: mark staff injury on morale when target is staff. */
   readonly onStaffInjured?: (staffId: number) => void
   readonly onStaffKilled?: (staffId: number) => void
 }): MeleeAttackResult {
-  const requested = options.damage ?? STUB_MELEE_DAMAGE
+  const requested = options.damage ?? options.balance.stubMeleeDamage
   const before = options.target.health
   let after: number
   let damage: number
-  if (options.balance !== undefined) {
-    const result = applyDamage(before, requested, options.balance)
-    after = result.healthAfter
-    damage = result.damage
-  } else {
-    after = Math.max(0, before - requested)
-    damage = requested
-  }
+  const result = applyDamage(before, requested, options.balance)
+  after = result.healthAfter
+  damage = result.damage
   options.target.health = after
   const killed = before > 0 && after <= 0
   const injured = !killed && after < before

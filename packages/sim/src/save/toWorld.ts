@@ -46,7 +46,7 @@ function isLedgerCategory(value: string): value is LedgerCategory {
 }
 
 function restoreStandingOrders(world: InmateWorld, state: SaveState): void {
-  const defaults = createDefaultStandingOrders()
+  const defaults = createDefaultStandingOrders(world.data)
   const saved = state.standingOrders
   world.standingOrders.reassignmentStrictness =
     (saved.reassignmentStrictness as ReassignmentStrictness) || defaults.reassignmentStrictness

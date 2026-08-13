@@ -355,7 +355,7 @@ export class InmateWorld extends ObjectWorld {
     this.contracts = contracts
     this.morale = morale
     this.contraband = contraband
-    this.standingOrders = createDefaultStandingOrders()
+    this.standingOrders = createDefaultStandingOrders(data)
     this.punishments = createPunishmentRuntime()
     this.combat = combat
     this.escapes = createEscapeState()

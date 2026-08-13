@@ -716,6 +716,14 @@ export const balanceSchema = z.strictObject({
     agingPerTick: rate,
     /** Floor for travel-time so co-located jobs do not divide by zero. */
     minTravelTime: positiveCount,
+    /** Construction supply carry jobs (T3.4). */
+    supply: z.strictObject({
+      /** Max units moved by one deliver / collectRefuse job. */
+      carryBatch: positiveCount,
+      carryPriorityDockToStore: rate,
+      carryPriorityStoreToSite: rate,
+      carryPriorityRefuse: rate,
+    }),
   }),
 
   /**
@@ -1022,6 +1030,8 @@ export const balanceSchema = z.strictObject({
     mortuaryJobPriority: rate,
     hearseDelayMinutes: positiveCount,
     bloodOnDamagingHit: z.boolean(),
+    /** Default melee damage when caller omits an explicit amount (T4.6 stub). */
+    stubMeleeDamage: rate,
   }),
 
   emergency: def({

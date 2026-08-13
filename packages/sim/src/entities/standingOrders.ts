@@ -7,6 +7,7 @@
  */
 
 import type { Fnv1aHasher } from '../core/hash'
+import type { GameData } from '../data/loader'
 import type { MisconductKind, PunishmentKind, ReassignmentStrictness } from '../data/schemas'
 import { MISCONDUCT_KINDS } from '../data/schemas'
 
@@ -31,22 +32,26 @@ export interface StandingOrdersState {
 }
 
 /** Defaults match the Standing Orders mockup (docs/04-ui-mockups.html §9). */
-export function createDefaultStandingOrders(): StandingOrdersState {
+export function createDefaultStandingOrders(data: GameData): StandingOrdersState {
+  const defaults = data.balance.contraband.standingOrders.defaults
+  const misconduct = {} as Record<MisconductKind, MisconductStandingOrder>
+  for (const kind of MISCONDUCT_KINDS) {
+    const entry = defaults[kind]
+    if (entry === undefined) {
+      misconduct[kind] = { punishment: 'ignore', durationHours: 0, search: false }
+    } else {
+      misconduct[kind] = {
+        punishment: entry.punishment,
+        durationHours: entry.durationHours < 0 ? 0 : entry.durationHours,
+        search: entry.search,
+      }
+    }
+  }
   return {
-    misconduct: {
-      complaint: { punishment: 'ignore', durationHours: 0, search: false },
-      contraband: { punishment: 'lockdown', durationHours: 6, search: true },
-      intoxication: { punishment: 'lockdown', durationHours: 4, search: true },
-      destruction: { punishment: 'lockdown', durationHours: 8, search: false },
-      attackInmate: { punishment: 'isolation', durationHours: 12, search: true },
-      attackStaff: { punishment: 'isolation', durationHours: 24, search: true },
-      seriousInjury: { punishment: 'isolation', durationHours: 36, search: true },
-      homicide: { punishment: 'isolation', durationHours: 0, search: true },
-      escapeAttempt: { punishment: 'isolation', durationHours: 24, search: true },
-    },
-    reassignmentStrictness: 'lenient',
-    mealQuantity: 'normal',
-    mealVariety: 2,
+    misconduct,
+    reassignmentStrictness: data.balance.contraband.standingOrders.defaultReassignmentStrictness,
+    mealQuantity: data.balance.kitchen.defaultMealQuantity,
+    mealVariety: data.balance.kitchen.defaultMealVariety,
   }
 }
 
