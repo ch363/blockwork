@@ -7,8 +7,11 @@
  * balance and the trailing 24-hour cash flow are both negative, and cancels
  * when either recovers.
  *
- * Cadence (PRD 4.4): once per in-game hour.
- *   - Hourly: wages, utility bills, loan interest, drain construction outboxes.
+ * Cadence (PRD 4.4):
+ *   - Every minute: drain the construction / refund / intake outboxes, so a
+ *     committed build is reflected in the balance while the player is still
+ *     looking at the blueprint bar (PRD 6.3).
+ *   - Hourly: wages, utility bills, loan interest, insolvency.
  *   - Daily at midnight (hour 0, tick > 0): per-inmate payments, then tax.
  */
 
@@ -17,6 +20,7 @@ import type { EventSink, System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
 import { hasFeature } from '../entities/directorate'
 import {
+  ECONOMY_DRAIN_PERIOD,
   ECONOMY_EVENTS,
   ECONOMY_SYSTEM_NAME,
   ECONOMY_SYSTEM_PERIOD,
@@ -27,6 +31,7 @@ import { isInmateWorld } from './intakeSystem'
 import type { InmateWorld } from './intakeSystem'
 
 export {
+  ECONOMY_DRAIN_PERIOD,
   ECONOMY_EVENTS,
   ECONOMY_SYSTEM_NAME,
   ECONOMY_SYSTEM_PERIOD,
@@ -260,7 +265,7 @@ export function createEconomySystem(_options: EconomySystemOptions): System {
 
   return {
     name: ECONOMY_SYSTEM_NAME,
-    period: ECONOMY_SYSTEM_PERIOD,
+    period: ECONOMY_DRAIN_PERIOD,
 
     update(context: SystemContext): void {
       const tick = context.clock.tick
@@ -277,8 +282,16 @@ export function createEconomySystem(_options: EconomySystemOptions): System {
       }
 
       const world = context.world
-      // Tick 0 never runs (clock advances before systems). First hour is 600.
+      // Tick 0 never runs (clock advances before systems). First minute is 10.
+      // The outboxes drain every minute so a committed build shows up in the
+      // balance while the player is still looking at it (PRD 6.3).
       drainOutboxes(world, tick)
+
+      // Everything below is an hourly settlement. A minute divides an hour
+      // exactly, so this lands on precisely the ticks it did when the whole
+      // system ran hourly.
+      if (tick % ECONOMY_SYSTEM_PERIOD !== 0) return
+
       payWages(world, context.events, tick)
       billUtilities(world, context.events, tick)
       chargeLoanInterest(world, context.events, tick)

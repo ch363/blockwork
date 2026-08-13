@@ -5,7 +5,7 @@
  * circular import through the hourly settlement system.
  */
 
-import { TICKS_PER_DAY, TICKS_PER_HOUR } from '../core/clock'
+import { TICKS_PER_DAY, TICKS_PER_HOUR, TICKS_PER_MINUTE } from '../core/clock'
 import type { Fnv1aHasher } from '../core/hash'
 import type { EventSink } from '../core/simulation'
 import type { GameData } from '../data/loader'
@@ -56,8 +56,21 @@ export const ECONOMY_EVENTS = {
 
 export const ECONOMY_SYSTEM_NAME = 'economy'
 
-/** PRD 4.4: Economy runs once an in-game hour. */
+/** PRD 4.4: wages, utility bills, loan interest and insolvency are hourly. */
 export const ECONOMY_SYSTEM_PERIOD = TICKS_PER_HOUR
+
+/**
+ * How often the construction/refund/intake outboxes drain into the ledger.
+ *
+ * The settlements above are hourly because that is what they model. Draining
+ * the outboxes is not a settlement, it is bookkeeping transfer, and running it
+ * on the hour made the top bar lie: PRD 6.3 says committing a blueprint
+ * deducts the money, and a player who committed a build watched the balance sit
+ * unchanged for up to a full in-game hour. The ledger entries are identical
+ * either way, they just post promptly. A minute divides an hour exactly, so the
+ * hourly gate still lands on the same ticks it always did.
+ */
+export const ECONOMY_DRAIN_PERIOD = TICKS_PER_MINUTE
 
 /** Facility-level source when no entity owns the transaction. */
 export const FACILITY_SOURCE_ID = 0

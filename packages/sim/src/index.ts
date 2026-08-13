@@ -973,6 +973,7 @@ export {
 export type { LaundrySystemOptions } from './systems/logistics/laundry'
 
 export {
+  ECONOMY_DRAIN_PERIOD,
   ECONOMY_EVENTS,
   ECONOMY_SYSTEM_NAME,
   ECONOMY_SYSTEM_PERIOD,

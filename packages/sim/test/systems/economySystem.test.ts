@@ -12,6 +12,7 @@ import { loadGameData } from '../../src/data/loader'
 import { hireStaff } from '../../src/entities/staff'
 import { createInmateShell, generateInmate, NO_INMATE } from '../../src/entities/inmate'
 import {
+  ECONOMY_DRAIN_PERIOD,
   ECONOMY_EVENTS,
   ECONOMY_SYSTEM_PERIOD,
   FACILITY_SOURCE_ID,
@@ -287,5 +288,64 @@ describe('finance report (T3.6)', () => {
     expect(report.last7Days.length).toBe(4)
     expect(typeof report.projectedDailyNet).toBe('number')
     expect(report.breakdownByCategory.length).toBeGreaterThan(0)
+  })
+})
+
+describe('outbox drain cadence (T8.1, PRD 6.3)', () => {
+  it('posts construction spend within a minute of the commit, not an hour', () => {
+    const events = new RecordingSink()
+    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false })
+    const sim = new Simulation({
+      seed: SEED,
+      world,
+      systems: [createEconomySystem({ data: DATA })],
+      events,
+    })
+
+    world.addSpend(1000)
+    expect(world.economy.balance).toBe(STARTING)
+
+    // A minute is the drain cadence: the balance must move here, because the
+    // player is still looking at the build they just committed.
+    for (let i = 0; i < ECONOMY_DRAIN_PERIOD; i += 1) sim.step()
+
+    expect(world.spendOwed).toBe(0)
+    expect(world.economy.balance).toBe(STARTING - 1000)
+  })
+
+  it('credits demolition refunds on the same cadence', () => {
+    const events = new RecordingSink()
+    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false })
+    const sim = new Simulation({
+      seed: SEED,
+      world,
+      systems: [createEconomySystem({ data: DATA })],
+      events,
+    })
+
+    world.addRefund(250)
+    for (let i = 0; i < ECONOMY_DRAIN_PERIOD; i += 1) sim.step()
+
+    expect(world.refundsOwed).toBe(0)
+    expect(world.economy.balance).toBe(STARTING + 250)
+  })
+
+  it('still settles wages only on the hour', () => {
+    const events = new RecordingSink()
+    const world = createInmateWorld({ size: 24, data: DATA, continuousIntake: false })
+    hireStaff({ world, defId: 'officer', events, tick: 0, tx: 2, ty: 2 })
+    const sim = new Simulation({
+      seed: SEED,
+      world,
+      systems: [createEconomySystem({ data: DATA })],
+      events,
+    })
+
+    // Well past several drain ticks, still short of the first hour.
+    for (let i = 0; i < ECONOMY_SYSTEM_PERIOD - 1; i += 1) sim.step()
+    expect(events.of(ECONOMY_EVENTS.wagesPaid).length).toBe(0)
+
+    sim.step()
+    expect(events.of(ECONOMY_EVENTS.wagesPaid).length).toBe(1)
   })
 })

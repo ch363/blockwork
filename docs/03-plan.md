@@ -1233,27 +1233,30 @@ Each ticket below names the ticket it repairs. Ticket IDs remain stable - these 
 
 ---
 
-### T8.1 - Money moves on build, demolish and hire
+### T8.1 - Committed money reaches the balance promptly
 
-**Goal:** stop the player building and hiring for free.
+**Goal:** make the top bar tell the truth about a build the player just committed.
 
-**Depends on:** T8.0. **Repairs:** T1.5, T3.6
+**Depends on:** T8.0. **Repairs:** T3.6
 
-**Files:** `packages/sim/src/core/blueprint.ts`, `packages/sim/src/systems/staffSystem.ts`, `packages/sim/src/entities/economy.ts`
+**Files:** `packages/sim/src/entities/economy.ts`, `packages/sim/src/systems/economySystem.ts`
 
 **Spec:**
-- `LEDGER_CATEGORIES` declares `construction`, `construction_refund` and `hire`. Nothing posts to any of them. Committing a priced blueprint leaves the balance untouched, as does hiring.
-- `projectRun` already computes `cost` and `refund` correctly. Post them through the existing `EconomyLedger.debit` / `.credit` at commit and at undo/demolish.
-- Refuse a commit the balance cannot cover, the way `directorateSystem` and `programSystem` already refuse, and emit a CausalEvent carrying the shortfall.
-- Debit the hire fee from `staff.json` under the `hire` category.
+
+The money pipeline is complete and correct - this was verified by probe, after an initial reading of the code wrongly concluded that building was free. Committing a blueprint calls `settle`, which tallies into `world.addSpend`; `drainOutboxes` moves the tally into the ledger under the `construction` category; demolition refunds go the same way under `construction_refund`; `hireStaff` calls `addSpend(def.hireCost)`. An unknown material id is refused with a `construction.rejected` CausalEvent rather than silently building for nothing.
+
+The defect is cadence, not correctness. `drainOutboxes` ran on the economy system's hourly period, so a player who committed a $1,536 build watched the balance sit unchanged for up to a full in-game hour - about a minute of real time at 1x. PRD 6.3 step 5 says commit deducts the money.
+
+Drain the outboxes every in-game minute while leaving wages, utility bills, loan interest and insolvency hourly. A minute divides an hour exactly, so the hourly settlements land on precisely the ticks they always did and no balance arithmetic changes; the entries simply post sooner.
 
 **Acceptance:**
-- Committing a blueprint reduces the balance by exactly the figure the blueprint bar showed.
-- An unaffordable commit is refused and traceable.
-- Demolishing refunds `materialRefundOnDemolish` of the value.
-- Hiring debits; the insolvency path is now reachable by overbuilding.
+- A committed build is reflected in the balance within one in-game minute.
+- Demolition refunds credit on the same cadence.
+- Wages, utilities, interest, tax and insolvency are unchanged, hourly and daily respectively.
 
-**Tests:** ledger entry sum equals balance across a build, demolish and hire sequence; unaffordable commit is rejected with the expected event; refund arithmetic matches `balance.json`.
+**Tests:** spend and refund both post within `ECONOMY_DRAIN_PERIOD`; `wagesPaid` still fires on the hour and not before.
+
+**Note:** commit deliberately does *not* check affordability. Balance may go negative and insolvency is a PRD 5.15 failure condition with its own countdown, so refusing the build would remove a designed failure path.
 
 ---
 
