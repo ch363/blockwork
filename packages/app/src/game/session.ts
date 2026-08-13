@@ -101,7 +101,7 @@ import {
   type TraceNodeModel,
   type TrayGroup,
 } from '@blockwork/ui'
-import { SimBridge, createSimWorker } from '../worker/bridge'
+import { SimBridge, createSimWorker, isolationDiagnostic } from '../worker/bridge'
 import type { InspectResult, TraceResult } from '../worker/simWorker'
 import { snapshotEntityToRenderAgent } from '../worker/collectAgents'
 import { SaveStore } from '../save/store'
@@ -505,6 +505,8 @@ export class Session {
   #reportsGeneration = 0
   #reportsRefreshBucket = -1
   #reportsOpen = false
+  /** Set once at boot; isolation does not change at runtime (T8.16). */
+  readonly #isolationDiagnostic = isolationDiagnostic()
 
   private constructor(
     bridge: SimBridge,
@@ -576,6 +578,10 @@ export class Session {
     renderer.tools.active = true
 
     renderer.app.ticker.add(this.#frame)
+
+    if (this.#isolationDiagnostic !== null) {
+      this.state.hud.value = this.#isolationDiagnostic
+    }
   }
 
   static async create(options: SessionOptions): Promise<Session> {
@@ -1527,14 +1533,6 @@ export class Session {
       const index = tile.y * this.mapSize + tile.x
       this.#patrolWaypoints.push(index)
       this.#syncInput()
-      if (this.#patrolWaypoints.length >= 2) {
-        // Auto-confirm once the player has a valid loop start.
-        // They can keep tapping; each pair beyond 2 extends the route until
-        // they open Posts and start a new patrol. Confirm on Escape? No —
-        // Escape cancels. Confirm when they tap "New patrol" again? Better:
-        // auto-send when they leave patrol mode via tab change isn't right.
-        // Keep collecting; confirmPostsPatrol is explicit. Show count in hint.
-      }
       return
     }
 
@@ -2029,13 +2027,17 @@ export class Session {
     this.#frames = 0
     this.#sampledAt = now
 
-    this.state.hud.value = [
+    const stats = [
       `${String(fps)} fps`,
       `zoom ${this.renderer.camera.zoom.toFixed(2)}`,
       `${String(this.renderer.terrain.visibleChunkCount)} terrain`,
       `${String(this.renderer.walls.visibleChunkCount)} walls`,
       `${this.bridge.transport}`,
     ].join('  ·  ')
+    this.state.hud.value =
+      this.#isolationDiagnostic === null
+        ? stats
+        : `${this.#isolationDiagnostic}  ·  ${stats}`
   }
 }
 

@@ -103,6 +103,17 @@ export function sharedMemoryUsable(): boolean {
   return globalThis.crossOriginIsolated === true && sharedMemoryAvailable()
 }
 
+/**
+ * One-line warning when the host is not cross-origin isolated (T8.16).
+ *
+ * The bridge still works over `postMessage`, but snapshot delivery is much
+ * slower and there is no other signal unless we say so here.
+ */
+export function isolationDiagnostic(): string | null {
+  if (globalThis.crossOriginIsolated === true) return null
+  return 'Not cross-origin isolated — using postMessage transport instead of shared memory'
+}
+
 /** Spawns the real worker. Vite bundles the module graph behind this URL. */
 export function createSimWorker(): Worker {
   return new Worker(new URL('./simWorker.ts', import.meta.url), {

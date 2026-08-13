@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { DEFAULT_SNAPSHOT_LIMITS } from '@blockwork/sim'
 import type { Snapshot, SnapshotEntity, SnapshotLimits } from '@blockwork/sim'
 
-import { SimBridge, sharedMemoryUsable } from '../../src/worker/bridge'
+import { SimBridge, isolationDiagnostic, sharedMemoryUsable } from '../../src/worker/bridge'
 import { startSimWorker } from '../../src/worker/simWorker'
 import type { SimWorkerHandle, SnapshotTransportKind } from '../../src/worker/simWorker'
 
@@ -143,8 +143,17 @@ describe('transport selection (PRD 4.6)', () => {
     })
 
     expect(bridge.transport).toBe('transfer')
+    expect(isolationDiagnostic()).toMatch(/cross-origin isolated/i)
     expect(bridge.ready).toBe(true)
     expect(bridge.latestSnapshot()?.tick).toBe(0)
+  })
+
+  it('does not warn when the host is cross-origin isolated', () => {
+    Object.defineProperty(globalThis, 'crossOriginIsolated', {
+      value: true,
+      configurable: true,
+    })
+    expect(isolationDiagnostic()).toBeNull()
   })
 
   it('uses shared memory when the host is isolated', () => {
