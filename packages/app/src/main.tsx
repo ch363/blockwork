@@ -34,6 +34,7 @@ import {
   settingsCssVariables,
   type AppSettings,
 } from './game/appSettings'
+import { autosaveDue } from './game/onboardingView'
 
 const mountPoint = document.querySelector('#root')
 if (!(mountPoint instanceof HTMLElement)) {
@@ -153,8 +154,7 @@ async function boot(): Promise<void> {
   let lastAutosaveTick = 0
   const checkTimedAutosave = (): void => {
     const currentTick = session.bridge.latestSnapshot()?.tick ?? 0
-    const autosaveIntervalTicks = session.autosaveHours * TICKS_PER_HOUR
-    if (currentTick - lastAutosaveTick >= autosaveIntervalTicks) {
+    if (autosaveDue(currentTick, lastAutosaveTick, session.autosaveHours, TICKS_PER_HOUR)) {
       lastAutosaveTick = currentTick
       void session.autosave()
     }

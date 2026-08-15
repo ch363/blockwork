@@ -73,6 +73,7 @@ describe('overlay worker data', () => {
 
   it('keeps unseen fog visible and revealed tiles transparent', () => {
     const worker = loop()
+    worker.world.directorate.grant('surveillance')
     const before = worker.overlay('fogOfWar')
     expect(before.every((value) => value === 1)).toBe(true)
 
@@ -80,5 +81,11 @@ describe('overlay worker data', () => {
     const after = worker.overlay('fogOfWar')
     expect(after[4 * 16 + 4]).toBe(0)
     expect(after[0]).toBe(1)
+  })
+
+  it('returns an empty fog overlay until surveillance is researched', () => {
+    const worker = loop()
+    const locked = worker.overlay('fogOfWar')
+    expect(locked.every((value) => value === 0)).toBe(true)
   })
 })

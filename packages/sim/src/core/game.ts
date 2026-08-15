@@ -97,12 +97,14 @@ import { createEscapeSystem } from '../systems/escapeSystem'
 import { createMisconductSystem } from '../systems/misconductSystem'
 import { createPunishmentSystem } from '../systems/punishmentSystem'
 import { featureGatedHandlers } from '../entities/directorate'
+import { FACILITY_SOURCE_ID } from '../entities/economy'
 import type { GameData } from '../data/loader'
 
 import { blueprintCommandHandlers } from './undo'
 import type { CommitLedger } from './undo'
 import { Simulation } from './simulation'
 import type { EventSink, System } from './simulation'
+import type { NewPrisonConfig } from './mapSettings'
 
 /**
  * Allocates one buffer per tile field.
@@ -209,6 +211,11 @@ export interface GameOptions {
   readonly applyOpening?: boolean
   /** Overrides the default first-order grace from balance. */
   readonly firstOrderGrace?: boolean
+  /**
+   * New-prison choices (T6.5 / T8.8). Applied after the opening layout so
+   * starting funds, intake, failure toggles and mutators match the panel.
+   */
+  readonly prison?: NewPrisonConfig
 }
 
 export interface Game {
@@ -240,6 +247,10 @@ export function createGame(options: GameOptions): Game {
     })
   } else if (options.firstOrderGrace !== undefined) {
     world.settings.firstOrderGrace = options.firstOrderGrace
+  }
+
+  if (options.prison !== undefined) {
+    applyNewPrisonConfig(world, options.prison)
   }
 
   const blueprint = blueprintCommandHandlers(data)
@@ -361,4 +372,29 @@ export function createGame(options: GameOptions): Game {
   })
 
   return { simulation, world, data, ledger: blueprint.ledger }
+}
+
+/**
+ * Writes a New Prison panel's choices onto a live world (T8.8).
+ *
+ * Opening layout may already have posted default starting funds; this
+ * credits or debits the difference so the ledger still sums to the balance.
+ */
+export function applyNewPrisonConfig(world: InmateWorld, config: NewPrisonConfig): void {
+  world.settings.firstOrderGrace = config.firstOrderGrace
+  world.settings.randomEvents = config.randomEvents
+  world.settings.failures = { ...config.failures }
+  world.settings.mutators = { ...config.mutators }
+  world.settings.staffNeeds = config.mutators.staffNeeds
+  world.intake.continuous = config.continuousIntake
+
+  const current = world.economy.balance
+  const target = config.startingFunds
+  if (target === current) return
+  const delta = target - current
+  if (delta > 0) {
+    world.economy.credit(0, 'starting_funds', delta, 'Starting funds', FACILITY_SOURCE_ID)
+  } else {
+    world.economy.debit(0, 'starting_funds', -delta, 'Starting funds', FACILITY_SOURCE_ID)
+  }
 }

@@ -76,6 +76,7 @@ export function ToolDock({ active, onSelect, disabled = [] }: ToolDockProps): JS
         key={tool.id}
         type="button"
         class={tool.danger === true ? 'bw-tool danger' : 'bw-tool'}
+        data-tool={tool.id}
         data-on={active === tool.id}
         aria-pressed={active === tool.id}
         aria-label={off ? `${tool.label}, not available yet` : tool.label}

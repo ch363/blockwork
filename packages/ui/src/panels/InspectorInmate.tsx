@@ -16,6 +16,8 @@ export interface InspectorInmateProps {
   readonly onPunish?: () => void
   readonly onProtective?: () => void
   readonly onNeedSelect?: (needId: string) => void
+  readonly onAssignLabour?: () => void
+  readonly onUnassignLabour?: () => void
 }
 
 type InmateTab = 'status' | 'record' | 'grades'
@@ -27,6 +29,8 @@ export function InspectorInmate({
   onPunish,
   onProtective,
   onNeedSelect,
+  onAssignLabour,
+  onUnassignLabour,
 }: InspectorInmateProps): JSX.Element {
   const [tab, setTab] = useState<InmateTab>('status')
   const shownNeeds = model.needs.slice(0, 8)
@@ -225,6 +229,12 @@ export function InspectorInmate({
           ariaLabel="Place inmate in protective custody"
         >
           Protective
+        </Button>
+        <Button onClick={onAssignLabour} disabled={onAssignLabour === undefined} ariaLabel="Assign kitchen labour">
+          Kitchen work
+        </Button>
+        <Button onClick={onUnassignLabour} disabled={onUnassignLabour === undefined} ariaLabel="Unassign labour">
+          Unassign work
         </Button>
       </div>
     </>

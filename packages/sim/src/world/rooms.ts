@@ -286,16 +286,19 @@ export function evaluateRoom(
   room: Room,
   def: RoomDef,
   contents: RoomContents = EMPTY_ROOM_CONTENTS,
+  options: { readonly compactCells?: boolean } = {},
 ): RoomStatus {
   const requirements: RoomRequirement[] = []
+  const compact = options.compactCells === true && def.id === 'cell'
 
   if (def.minTiles > 0) {
-    requirements.push(requirement('minTiles', 'minTiles', def.minTiles, room.tiles.length))
+    const needed = compact ? Math.max(1, Math.ceil(def.minTiles / 2)) : def.minTiles
+    requirements.push(requirement('minTiles', 'minTiles', needed, room.tiles.length))
   }
-  if (def.minWidth > 0) {
+  if (!compact && def.minWidth > 0) {
     requirements.push(requirement('minWidth', 'minWidth', def.minWidth, room.bounds.width))
   }
-  if (def.minHeight > 0) {
+  if (!compact && def.minHeight > 0) {
     requirements.push(requirement('minHeight', 'minHeight', def.minHeight, room.bounds.height))
   }
 

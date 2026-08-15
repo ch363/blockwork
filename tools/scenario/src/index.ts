@@ -13,9 +13,14 @@
  * assertion fails.
  */
 
-import type { Game, GameData, CausalEvent, CausalEventLog } from '@blockwork/sim'
-import { createGame, loadGameData, TICKS_PER_DAY, TICKS_PER_HOUR } from '@blockwork/sim'
-import { CausalEventLog as EventLog } from '@blockwork/sim'
+import {
+  CausalEventLog,
+  createGame,
+  loadGameData,
+  TICKS_PER_DAY,
+  TICKS_PER_HOUR,
+} from '@blockwork/sim'
+import type { CausalEvent, Game, GameData } from '@blockwork/sim'
 
 export const SCENARIO_TOOL_NAME = '@blockwork/scenario'
 
@@ -43,6 +48,8 @@ export interface ScenarioOptions {
   readonly mapSize?: number
   /** Loaded game data; defaults to real data. */
   readonly data?: GameData
+  /** Whether to stamp the opening dock/stockpile. Defaults to true. */
+  readonly applyOpening?: boolean
   /** Callback invoked after each tick, for progress reporting. */
   readonly onTick?: (tick: number) => void
 }
@@ -80,7 +87,7 @@ export async function runScenario(
   options: ScenarioOptions = {},
 ): Promise<ScenarioResult> {
   const data = options.data ?? loadGameData()
-  const events = new EventLog()
+  const events = new CausalEventLog()
   const errors: string[] = []
   let ticksRun = 0
 
@@ -89,7 +96,7 @@ export async function runScenario(
     mapSize: options.mapSize ?? 100,
     data,
     events,
-    applyOpening: true,
+    applyOpening: options.applyOpening !== false,
     firstOrderGrace: true,
   })
 

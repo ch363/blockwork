@@ -26,6 +26,7 @@ import {
   selectMessForKitchen,
   updateMealChain,
 } from '../../../src/systems/logistics/mealChain'
+import { createNeedsSystem } from '../../../src/systems/needsSystem'
 import { CausalEventLog, TRACE_KINDS } from '../../../src/trace/causalEvent'
 import { refreshPassability } from '../../../src/world/construction'
 import type { Rect } from '../../../src/world/construction'
@@ -534,7 +535,58 @@ describe('failure CausalEvents', () => {
     }
     expect(shortfall.causeIds).toContain(under.id)
     expect(empty.causeIds).toContain(shortfall.id)
+
+    const missed = [...log.retainedIds()]
+      .map((id) => log.get(id))
+      .find((event) => event?.kind === TRACE_KINDS.inmateMissedMeal)
+    expect(missed).toBeDefined()
+    if (missed === undefined) throw new Error('expected inmate.missedMeal')
+    expect(missed.causeIds).toContain(empty.id)
+    expect(world.meals.missedMealEventByInmate.size).toBeGreaterThan(0)
     void tick
+  })
+
+  it('inmate.starved points at the missed-meal node (T3.1 / T3.3)', () => {
+    const log = new CausalEventLog()
+    const { world } = buildFacility({ cookers: 1, hireCooks: 1 })
+    spawnInmates(world, 80, 24, 5)
+    stockAllFridges(world, 10_000)
+    for (const category of DATA.securityCategories.all) {
+      const blocks = Array.from({ length: 24 }, (_, hour) => (hour === 12 ? 'meal' : 'lockup'))
+      setCategoryRoutine(world.routines, category.id, blocks)
+    }
+    const prepStart = 12 * TICKS_PER_HOUR - KITCHEN.preparationLeadHours * TICKS_PER_HOUR
+    stepMinutes(world, log, prepStart - TICKS_PER_MINUTE, KITCHEN.preparationLeadHours * 60 + 1)
+
+    const inmateId = [...world.meals.missedMealEventByInmate.keys()][0]
+    expect(inmateId).toBeDefined()
+    if (inmateId === undefined) throw new Error('no missed meal')
+    const entity = world.inmates.get(inmateId)
+    expect(entity).toBeDefined()
+    if (entity === undefined) throw new Error('inmate missing')
+    entity.inmate.health = 0
+    const foodIndex = DATA.needs.ids().indexOf('food')
+    expect(foodIndex).toBeGreaterThanOrEqual(0)
+    entity.inmate.needs[foodIndex] = DATA.needs.get('food').thresholds.critical
+    world.needsRuntime.stateOf(inmateId).starveMinutes = 12
+
+    const sim = new Simulation({
+      seed: SEED,
+      world,
+      systems: [createNeedsSystem({ data: DATA })],
+      events: log,
+    })
+    for (let i = 0; i < TICKS_PER_MINUTE; i += 1) sim.step()
+
+    const starved = [...log.retainedIds()]
+      .map((id) => log.get(id))
+      .find((event) => event?.kind === TRACE_KINDS.inmateStarved)
+    expect(starved).toBeDefined()
+    if (starved === undefined) throw new Error('expected inmate.starved')
+    const missedId = world.meals.missedMealEventByInmate.get(inmateId)
+    expect(missedId).toBeGreaterThan(0)
+    expect(starved.causeIds).toContain(missedId)
+    expect(world.inmates.get(inmateId)).toBeUndefined()
   })
 })
 

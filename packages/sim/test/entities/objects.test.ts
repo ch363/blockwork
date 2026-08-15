@@ -468,6 +468,20 @@ describe('object commands', () => {
     expect(run.world.objects.size).toBe(0)
   })
 
+  it('accepts objectEntityId as an alias for entityId (T8.10)', () => {
+    const run = scenario()
+    putRoomShell(run, { x: 2, y: 2, width: 8, height: 8 })
+    const placed = place(run, 4, 4, COOKER, 0)
+
+    run.sim.enqueue({
+      type: OBJECT_COMMANDS.removeObject,
+      payload: { objectEntityId: placed.id },
+      issuedAtTick: run.sim.tick,
+    })
+    run.sim.step()
+    expect(run.world.objects.get(placed.id)).toBeUndefined()
+  })
+
   it('defaults an absent rotation to upright', () => {
     const run = scenario()
     putRoomShell(run, { x: 2, y: 2, width: 8, height: 8 })

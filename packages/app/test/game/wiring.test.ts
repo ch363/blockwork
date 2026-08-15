@@ -126,4 +126,15 @@ describe('command handler wiring', () => {
       `The following UI commands have handlers but no caller in packages/app:\n${missing.join('\n')}`,
     ).toEqual([])
   })
+
+  it('New Prison, Quit, object appearances and world pins have callers (T8.8 / T8.22 / T8.23)', () => {
+    const srcDir = join(__dirname, '../../src')
+    const source = readFilesRecursively(srcDir, '.ts').join('\n')
+    expect(source).toContain('startNewPrison')
+    expect(source).toContain('quitToNewPrison')
+    expect(source).toContain('unlockAudio')
+    expect(source).toContain('appearanceFor')
+    expect(source).toContain('setPin')
+    expect(source).toContain('setSelections')
+  })
 })

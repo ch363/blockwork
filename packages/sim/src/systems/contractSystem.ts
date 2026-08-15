@@ -511,6 +511,8 @@ export function createContractSystem(options: ContractSystemOptions): System {
 export const CONTRACT_COMMANDS = {
   accept: 'contracts.accept',
   cancel: 'contracts.cancel',
+  takeLoan: 'contracts.takeLoan',
+  repayLoan: 'contracts.repayLoan',
 } as const
 
 export function contractCommandHandlers(data: GameData): Record<string, CommandHandler> {
@@ -522,6 +524,12 @@ export function contractCommandHandlers(data: GameData): Record<string, CommandH
     },
     [CONTRACT_COMMANDS.cancel]: (command, context) => {
       handleCancel(command, context)
+    },
+    [CONTRACT_COMMANDS.takeLoan]: (command, context) => {
+      handleTakeLoan(command, context, data)
+    },
+    [CONTRACT_COMMANDS.repayLoan]: (command, context) => {
+      handleRepayLoan(command, context, data)
     },
   }
 }
@@ -550,6 +558,74 @@ function handleCancel(command: Command, context: SystemContext): void {
     return
   }
   cancelContract(context.world, contractId, context.events, context.clock.tick)
+}
+
+function handleTakeLoan(command: Command, context: SystemContext, data: GameData): void {
+  if (!isInmateWorld(context.world)) {
+    reject(context.events, context.clock.tick, '', 'wrong-world')
+    return
+  }
+  if (!hasFeature(data, context.world.directorate, 'credit_line')) {
+    reject(context.events, context.clock.tick, '', 'locked')
+    return
+  }
+  const amount = readNonNegativeInt(command.payload, 'amount')
+  if (amount === undefined || amount <= 0) {
+    reject(context.events, context.clock.tick, '', 'locked')
+    return
+  }
+  const loan = data.balance.economy.loan
+  const principal = context.world.economy.loanPrincipal
+  const available = Math.max(0, loan.maxCap - principal)
+  const take = Math.min(amount, available)
+  if (take <= 0) {
+    reject(context.events, context.clock.tick, '', 'concurrency-cap')
+    return
+  }
+  context.world.economy.credit(
+    context.clock.tick,
+    'loan_principal',
+    take,
+    'Credit line drawn',
+    FACILITY_SOURCE_ID,
+  )
+  context.world.economy.setLoanPrincipal(principal + take)
+}
+
+function handleRepayLoan(command: Command, context: SystemContext, data: GameData): void {
+  if (!isInmateWorld(context.world)) {
+    reject(context.events, context.clock.tick, '', 'wrong-world')
+    return
+  }
+  if (!hasFeature(data, context.world.directorate, 'credit_line')) {
+    reject(context.events, context.clock.tick, '', 'locked')
+    return
+  }
+  const amount = readNonNegativeInt(command.payload, 'amount')
+  if (amount === undefined || amount <= 0) {
+    reject(context.events, context.clock.tick, '', 'locked')
+    return
+  }
+  const principal = context.world.economy.loanPrincipal
+  const repay = Math.min(amount, principal, Math.max(0, context.world.economy.balance))
+  if (repay <= 0) {
+    reject(context.events, context.clock.tick, '', 'concurrency-cap')
+    return
+  }
+  context.world.economy.debit(
+    context.clock.tick,
+    'loan_principal',
+    repay,
+    'Credit line repaid',
+    FACILITY_SOURCE_ID,
+  )
+  context.world.economy.setLoanPrincipal(principal - repay)
+}
+
+function readNonNegativeInt(payload: JsonValue, key: string): number | undefined {
+  if (payload === null || typeof payload !== 'object' || isJsonArray(payload)) return undefined
+  const value = payload[key]
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : undefined
 }
 
 function readString(payload: JsonValue, key: string): string | undefined {

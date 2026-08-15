@@ -14,7 +14,10 @@ import type { PunishmentKind, ReassignmentStrictness, StatusEffectId, Misconduct
 import { MISCONDUCT_KINDS, PUNISHMENT_KINDS, ROOM_PROPERTIES } from '../data/schemas'
 import type { MealPolicyQuantity } from '../entities/standingOrders'
 import { createDefaultStandingOrders, setMisconductOrder } from '../entities/standingOrders'
-import { createInmateShell } from '../entities/inmate'
+import {
+  ADDICTION_SUBSTANCES,
+  createInmateShell,
+} from '../entities/inmate'
 import type {
   AddictionSubstance,
   InmateAddiction,
@@ -22,9 +25,8 @@ import type {
   InmateConviction,
   InmateReputation,
 } from '../entities/inmate'
-import { ADDICTION_SUBSTANCES } from '../entities/inmate'
 import type { MisconductRecord } from '../entities/misconduct'
-import type { StaffDuty, StaffEntity } from '../entities/staff'
+import type { EscortQueueSnapshot, StaffDuty, StaffEntity } from '../entities/staff'
 import type { ObjectEntity } from '../entities/objects'
 import { isRotation } from '../entities/objects'
 import { isSectorAccessMode } from '../world/sectors'
@@ -39,7 +41,6 @@ import type { RoutineRuntimeSnapshot } from '../world/routine'
 import type { MealLogisticsSnapshot } from '../systems/logistics/mealChain'
 import type { SupplyLogisticsSnapshot } from '../systems/logistics/supply'
 import type { DeliveryScheduleSnapshot } from '../systems/logistics/deliveries'
-import type { EscortQueueSnapshot } from '../entities/staff'
 import type { ConstructionQueueSnapshot } from '../world/construction'
 
 import { parseUnfilledReason } from './fromWorld'

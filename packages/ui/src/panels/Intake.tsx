@@ -68,6 +68,7 @@ export function Intake({
     <div
       ref={trapRef}
       class="bw-intake-panel"
+      data-anchor="panel:intake"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Intake"

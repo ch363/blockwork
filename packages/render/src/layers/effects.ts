@@ -25,7 +25,8 @@
  * update, and remove them independently.
  */
 
-import { Container, Graphics, Sprite, Texture } from 'pixi.js'
+import { Container, Graphics, Sprite } from 'pixi.js'
+import type { Texture } from 'pixi.js'
 
 import {
   createSpriteCanvas,

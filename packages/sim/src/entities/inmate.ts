@@ -18,10 +18,11 @@ import type { RngStream } from '../core/rng'
 import type { GameData } from '../data/loader'
 import type { ConvictionDef, RiskTier, StatusEffectId } from '../data/schemas'
 import type { MisconductRecord } from './misconduct'
-import { inmateAccessMask } from '../pathfinding/regionGraph'
+import { inmateAccessMask, ACCESS_ALL } from '../pathfinding/regionGraph'
 import type { RoomContents } from '../world/rooms'
 import { NO_ROOM } from '../world/rooms'
 import type { ObjectRegistry } from './objects'
+import type { TileGrid } from '../world/tileGrid'
 
 /* -------------------------------------------------------------------------- */
 /* Identity                                                                    */
@@ -598,22 +599,45 @@ export interface HousingAssignment {
 /**
  * Cell → holding pen → intake hall (PRD / T2.4).
  *
+ * **Category sector matching (T4.1 / T5.2).** When access context is supplied,
+ * a cell is eligible only if the inmate's access mask overlaps the sector at
+ * the cell's first tile (unpainted tiles admit everyone). Among eligible cells,
+ * the closest published grade to the inmate's entitlement is preferred.
+ */
+export interface HousingAccess {
+  readonly data: GameData
+  readonly grid: TileGrid
+  readonly sectors: {
+    maskAtTile(grid: TileGrid, tileIndex: number): number
+  }
+  readonly grades?: ReadonlyMap<number, { readonly score: number }>
+}
+
+/**
+ * Cell → holding pen → intake hall (PRD / T2.4).
+ *
  * A cell is free when it is functional and has no occupant. Holding pens accept
- * any number of overflow inmates. Sector and entitlement filters land with
- * T4.1 / T5.2; until then every functional cell is eligible.
+ * any number of overflow inmates. With {@link HousingAccess}, sector and
+ * entitlement filters apply to cells.
  */
 export function findHousing(
   rooms: {
     readonly all: () => Iterable<{
       readonly id: number
       readonly defId: string
+      readonly tiles?: readonly number[]
     }>
     readonly statusOf: (roomId: number) => { readonly functional: boolean } | undefined
   },
   inmates: InmateRegistry,
-  _category: string,
-  _entitlement: number,
+  category: string,
+  entitlement: number,
+  access?: HousingAccess,
 ): HousingAssignment {
+  const agentMask =
+    access === undefined ? ACCESS_ALL : inmateAccessMask(access.data, category)
+
+  const cells: { readonly roomId: number; readonly grade: number }[] = []
   let holdingPen: number | undefined
   let intakeHall: number | undefined
 
@@ -622,7 +646,16 @@ export function findHousing(
     if (status === undefined || !status.functional) continue
 
     if (room.defId === 'cell' && inmates.occupantsInRoom(room.id) === 0) {
-      return { kind: 'cell', roomId: room.id }
+      if (access !== undefined) {
+        const tile = room.tiles?.[0]
+        if (tile !== undefined) {
+          const mask = access.sectors.maskAtTile(access.grid, tile)
+          if ((mask & agentMask) === 0) continue
+        }
+      }
+      const grade = access?.grades?.get(room.id)?.score ?? entitlement
+      cells.push({ roomId: room.id, grade })
+      continue
     }
     if (room.defId === 'holding_pen' && holdingPen === undefined) {
       holdingPen = room.id
@@ -630,6 +663,16 @@ export function findHousing(
     if (room.defId === 'intake_hall' && intakeHall === undefined) {
       intakeHall = room.id
     }
+  }
+
+  if (cells.length > 0) {
+    cells.sort((a, b) => {
+      const da = Math.abs(a.grade - entitlement)
+      const db = Math.abs(b.grade - entitlement)
+      return da !== db ? da - db : a.roomId - b.roomId
+    })
+    const best = cells[0]
+    if (best !== undefined) return { kind: 'cell', roomId: best.roomId }
   }
 
   if (holdingPen !== undefined) {

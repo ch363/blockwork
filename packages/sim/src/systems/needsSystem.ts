@@ -14,7 +14,7 @@
  * (T2.6) claims objects; this system only reads the claim and discharges.
  */
 
-import { TICKS_PER_MINUTE } from '../core/clock'
+import { TICKS_PER_MINUTE, ticksToDay, ticksToTimeString } from '../core/clock'
 import type { EventSink, System, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
 import type { CriticalBehaviour, NeedDef } from '../data/schemas'
@@ -30,8 +30,11 @@ import {
 } from '../entities/needs'
 import type { InmateNeedState, NeedFillContext } from '../entities/needs'
 import type { InmateEntity } from '../entities/inmate'
+import { emitCorpseCreated } from '../entities/health'
+import { TRACE_KINDS } from '../trace/causalEvent'
 import { suppressedNeedFor } from './programSystem'
 import { isInmateWorld } from './intakeSystem'
+import type { InmateWorld } from './intakeSystem'
 import { NO_ROOM } from '../world/rooms'
 import { waterUseMultiplier } from './utilitiesSystem'
 
@@ -128,6 +131,10 @@ export function createNeedsSystem(options: NeedsSystemOptions): System {
             world.grid.setAt('dirt', tile, next)
           },
         })
+
+        if (entity.inmate.health <= 0 && state.starveMinutes > 0) {
+          starveToDeath(world, data, context.events, tick, entity, tileIndex)
+        }
       }
     },
   }
@@ -261,4 +268,41 @@ function sustainCritical(deps: CriticalDeps, def: NeedDef): void {
 function addStatus(entity: InmateEntity, status: 'withdrawal' | 'exposure'): void {
   if (entity.inmate.status.includes(status)) return
   entity.inmate.status.push(status)
+}
+
+function starveToDeath(
+  world: InmateWorld,
+  data: GameData,
+  events: EventSink,
+  tick: number,
+  entity: InmateEntity,
+  tileIndex: number,
+): void {
+  const foodIndex = data.needs.ids().indexOf('food')
+  const foodNeed = foodIndex >= 0 ? (entity.inmate.needs[foodIndex] ?? 0) : 0
+  const causeId = world.meals.missedMealEventByInmate.get(entity.id) ?? 0
+  events.emit({
+    tick,
+    kind: TRACE_KINDS.inmateStarved,
+    subjectId: entity.id,
+    causeIds: causeId > 0 ? [causeId] : [],
+    data: {
+      inmateId: entity.id,
+      foodNeed,
+      hours: Math.max(1, Math.round(world.needsRuntime.stateOf(entity.id).starveMinutes / 60)),
+      day: ticksToDay(tick),
+      time: ticksToTimeString(tick),
+      location: `tile ${String(tileIndex)}`,
+    },
+  })
+  const corpse = world.combat.corpses.create({
+    agentKind: 'inmate',
+    agentId: entity.id,
+    name: entity.inmate.name,
+    tileIndex,
+    diedAtTick: tick,
+  })
+  emitCorpseCreated(events, tick, corpse, [])
+  world.contracts.progress.recordDeath(tick)
+  world.inmates.remove(entity.id)
 }

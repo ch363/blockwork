@@ -8,7 +8,14 @@
 import {
   MISCONDUCT_KINDS,
   NO_SECTOR,
+  TICKS_PER_HOUR,
+  TICKS_PER_MINUTE,
+  gatingNode,
+  hasFeature,
+  housingCapacity,
+  isContractAvailable,
   isUnlocked,
+  maxConcurrentContracts,
   type GameData,
   type InmateWorld,
   type MisconductKind,
@@ -27,6 +34,14 @@ import type {
   DirectorateModel,
   ProgramsModel,
   IntelligenceModel,
+  RoutineModel,
+  RoutineBlockId,
+  ContractsModel,
+  ContractRowModel,
+  IntakeModel,
+  FlowModel,
+  FlowChainModel,
+  FlowStageModel,
 } from '@blockwork/ui'
 import { MISCONDUCT_LABELS, unfilledReasonLabel } from '@blockwork/ui'
 
@@ -47,6 +62,10 @@ export interface ControlHud {
   readonly directorate: DirectorateModel
   readonly programs: ProgramsModel
   readonly intelligence: IntelligenceModel
+  readonly routine: RoutineModel
+  readonly contracts: ContractsModel
+  readonly intake: IntakeModel
+  readonly flow: FlowModel
   readonly unlocks: UnlockSnapshot
 }
 
@@ -65,6 +84,10 @@ export function buildControlHud(
     directorate: depth.directorate,
     programs: depth.programs,
     intelligence: depth.intelligence,
+    routine: buildRoutineModel(world, data),
+    contracts: buildContractsModel(world, data),
+    intake: buildIntakeModel(world, data, clock.tick),
+    flow: buildFlowModel(world, data),
     unlocks: buildUnlockSnapshot(world, data),
   }
 }
@@ -349,3 +372,258 @@ function activeAtHour(
   }
   return false
 }
+
+/* -------------------------------------------------------------------------- */
+/* T8.9 — Routine / Contracts / Intake / Flow                                  */
+/* -------------------------------------------------------------------------- */
+
+const ROUTINE_BLOCK_IDS = new Set<string>([
+  'lockup',
+  'sleep',
+  'meal',
+  'yard',
+  'wash',
+  'free',
+  'work_free',
+  'work_lockup',
+])
+
+function asRoutineBlock(id: string): RoutineBlockId {
+  return (ROUTINE_BLOCK_IDS.has(id) ? id : 'free') as RoutineBlockId
+}
+
+function buildRoutineModel(world: InmateWorld, data: GameData): RoutineModel {
+  return {
+    categories: data.securityCategories.all.map((cat) => {
+      const schedule = world.routines.scheduleFor(cat.id) ?? data.balance.routine.defaults[cat.id]
+      const blocks = (schedule ?? Array(24).fill('free')).map((block) => asRoutineBlock(block))
+      return { id: cat.id, name: cat.name, blocks }
+    }),
+    conflicts: [],
+  }
+}
+
+function buildContractsModel(world: InmateWorld, data: GameData): ContractsModel {
+  const activeIds = new Set(world.contracts.active.map((row) => row.defId))
+  const active: ContractRowModel[] = []
+  for (const record of world.contracts.active) {
+    const def = data.contracts.find(record.defId)
+    if (def === undefined) continue
+    active.push(contractRow(def, record.itemPassed, true, false, null))
+  }
+
+  const available: ContractRowModel[] = []
+  for (const def of data.contracts.all) {
+    if (activeIds.has(def.id) || world.contracts.isFinished(def.id)) continue
+    const open = isContractAvailable(def, world)
+    const locked = !open
+    const lockReason = locked
+      ? def.hidden && !world.contracts.wasRevealed(def.id)
+        ? 'Not yet revealed'
+        : 'Prerequisites unmet'
+      : null
+    if (def.hidden && !world.contracts.wasRevealed(def.id) && locked) continue
+    available.push(contractRow(def, def.todoItems.map(() => false), false, locked, lockReason))
+  }
+
+  const loanBalance = data.balance.economy.loan
+  const principal = world.economy.loanPrincipal
+  const creditUnlocked = hasFeature(data, world.directorate, 'credit_line')
+  return {
+    active,
+    available,
+    maxActive: maxConcurrentContracts(world),
+    loan: {
+      principal,
+      maxPrincipal: loanBalance.maxCap,
+      interestRate: loanBalance.hourlyInterestRate,
+      creditRating: Math.max(0, 100 - Math.round((principal / Math.max(1, loanBalance.maxCap)) * 40)),
+      available: creditUnlocked && principal < loanBalance.maxCap,
+      availableReason: creditUnlocked
+        ? principal >= loanBalance.maxCap
+          ? 'Credit line is fully drawn'
+          : null
+        : 'Research Credit Line in the Directorate',
+    },
+  }
+}
+
+function contractRow(
+  def: { readonly id: string; readonly name: string; readonly description: string; readonly advance: number; readonly completion: number; readonly todoItems: readonly { readonly label: string; readonly predicate: { readonly type: string } }[] },
+  itemPassed: readonly boolean[],
+  active: boolean,
+  locked: boolean,
+  lockReason: string | null,
+): ContractRowModel {
+  const doneCount = itemPassed.filter(Boolean).length
+  const total = def.todoItems.length
+  return {
+    id: def.id,
+    name: def.name,
+    description: def.description,
+    advance: def.advance,
+    completion: def.completion,
+    todos: def.todoItems.map((item, index) => ({
+      id: item.predicate.type,
+      label: item.label,
+      done: itemPassed[index] === true,
+      current: itemPassed[index] === true ? 'done' : 'pending',
+      required: '1',
+    })),
+    progress: total === 0 ? 0 : Math.round((doneCount / total) * 100),
+    active,
+    locked,
+    lockReason,
+  }
+}
+
+function buildIntakeModel(world: InmateWorld, data: GameData, tick: number): IntakeModel {
+  let cells = 0
+  let dormitories = 0
+  let holdingPens = 0
+  for (const room of world.rooms.all()) {
+    const status = world.rooms.statusOf(room.id)
+    if (status === undefined || !status.functional) continue
+    if (room.defId === 'cell') cells += 1
+    else if (room.defId === 'dormitory') dormitories += 1
+    else if (room.defId === 'holding_pen') holdingPens += 1
+  }
+
+  const population = [...world.inmates.all()].length
+  const capacity = housingCapacity(world.rooms, world.objects)
+  const nextBusTick = world.intake.nextBusAtTick
+
+  return {
+    continuous: world.intake.continuous,
+    categories: data.securityCategories.all.map((cat) => {
+      const unlocked = isUnlocked(data, world.directorate, 'securityCategories', cat.id)
+      const node = gatingNode(data, 'securityCategories', cat.id)
+      return {
+        id: cat.id,
+        name: cat.name,
+        requested: world.intake.requestedCounts.get(cat.id) ?? 0,
+        locked: !unlocked,
+        lockReason: unlocked ? null : node === undefined ? 'Locked' : `Requires ${node}`,
+      }
+    }),
+    capacityModel: {
+      population,
+      capacity,
+      housing: { cells, dormitories, holdingPens },
+    },
+    nextBusLabel: nextBusTick <= tick ? 'Bus arriving' : relativeTickLabel(nextBusTick, tick),
+    nextBusTick,
+  }
+}
+
+function relativeTickLabel(targetTick: number, tick: number): string {
+  const remaining = Math.max(0, targetTick - tick)
+  const hours = Math.floor(remaining / TICKS_PER_HOUR)
+  const minutes = Math.floor((remaining % TICKS_PER_HOUR) / TICKS_PER_MINUTE)
+  if (hours <= 0) return `in ${String(minutes)}m`
+  if (minutes <= 0) return `in ${String(hours)}h`
+  return `in ${String(hours)}h ${String(minutes)}m`
+}
+
+function sumMap(values: ReadonlyMap<number, number> | ReadonlyMap<string, number>): number {
+  let total = 0
+  for (const value of values.values()) total += value
+  return total
+}
+
+function stage(
+  id: string,
+  name: string,
+  throughput: number,
+  capacity: number,
+  detail: string,
+): FlowStageModel {
+  const bottleneck = capacity > 0 && throughput < capacity
+  return { id, name, throughput, capacity, bottleneck, detail }
+}
+
+function chainFrom(
+  id: FlowChainModel['id'],
+  name: string,
+  stages: readonly FlowStageModel[],
+  healthySummary: string,
+  blockedSummary: string,
+): FlowChainModel {
+  const bottleneck = stages.some((entry) => entry.bottleneck)
+  return {
+    id,
+    name,
+    stages,
+    healthy: !bottleneck,
+    summary: bottleneck ? blockedSummary : healthySummary,
+  }
+}
+
+function buildFlowModel(world: InmateWorld, data: GameData): FlowModel {
+  const meals = world.meals
+  const fridge = sumFridge(meals)
+  const counters = sumMap(meals.counterMeals)
+  const served = meals.mealsServed
+  const missed = meals.missedMeals
+  const mealNeed = served + missed
+  const mealStages = [
+    stage('delivery', 'Delivery', fridge, Math.max(fridge, mealNeed), fridge > 0 ? `${fridge} ingredients` : 'No ingredients in fridges'),
+    stage('storage', 'Storage', fridge, Math.max(fridge, 1), `${fridge} stored`),
+    stage('kitchen', 'Kitchen', served, Math.max(mealNeed, 1), missed > 0 ? `${missed} missed` : `${served} cooked`),
+    stage('serving', 'Serving', served, Math.max(mealNeed, counters, 1), `${counters} on counters`),
+  ]
+
+  const dirty = sumMap(world.laundry.bedDirty) + sumMap(world.laundry.basketDirty) + sumMap(world.laundry.pendingWash)
+  const washed = sumMap(world.laundry.washedReady)
+  const ironed = sumMap(world.laundry.ironedReady)
+  const distributed = world.laundry.uniformsDistributed
+  const laundryStages = [
+    stage('collect', 'Collect', dirty, Math.max(dirty, 1), `${dirty} dirty uniforms`),
+    stage('wash', 'Wash', washed, Math.max(dirty + washed, 1), `${washed} washed`),
+    stage('iron', 'Iron', ironed, Math.max(washed + ironed, 1), `${ironed} ironed`),
+    stage('distribute', 'Distribute', distributed, Math.max(distributed, dirty, 1), `${distributed} issued`),
+  ]
+
+  let dirtTotal = 0
+  const dirt = world.grid.dirt
+  for (let i = 0; i < dirt.length; i += 1) dirtTotal += dirt[i] ?? 0
+  const dirtMax = data.balance.logistics.dirt.max
+  const meanDirt = dirt.length === 0 ? 0 : Math.round(dirtTotal / dirt.length)
+  const cleaningStages = [
+    stage('dirt', 'Dirt', meanDirt, dirtMax, `Mean dirt ${meanDirt}`),
+    stage('clean', 'Cleaning', Math.max(0, dirtMax - meanDirt), dirtMax, meanDirt > dirtMax / 2 ? 'Falling behind' : 'Keeping up'),
+  ]
+
+  const store = sumMap(world.supply.storeStock)
+  const supplyStages = [
+    stage('dock', 'Dock', store, Math.max(store, 1), store > 0 ? `${store} in stores` : 'Stores empty'),
+    stage('store', 'Stores', store, Math.max(store, 1), `${store} units`),
+    stage('site', 'Sites', store, Math.max(store, 1), 'Construction supply'),
+  ]
+
+  const goods = sumMap(world.labour.finishedGoods)
+  const exportIncome = world.labour.lifetimeExportIncome
+  const exportStages = [
+    stage('workshop', 'Workshop', goods, Math.max(goods, 1), `${goods} finished goods`),
+    stage('dispatch', 'Dispatch', exportIncome, Math.max(exportIncome, 1), `$${exportIncome} exported`),
+  ]
+
+  return {
+    chains: [
+      chainFrom('meals', 'Meals', mealStages, 'Meal chain is keeping up', 'Kitchen or serving is the bottleneck'),
+      chainFrom('laundry', 'Laundry', laundryStages, 'Uniforms are cycling', 'Laundry is backing up'),
+      chainFrom('cleaning', 'Cleaning', cleaningStages, 'Floors are under control', 'Dirt is accumulating'),
+      chainFrom('supply', 'Supply', supplyStages, 'Materials are moving', 'Stores are empty'),
+      chainFrom('exports', 'Exports', exportStages, 'Workshops are shipping', 'Nothing is ready to export'),
+    ],
+  }
+}
+
+function sumFridge(meals: InmateWorld['meals']): number {
+  let total = 0
+  for (const stock of meals.fridgeStock.values()) {
+    for (const units of stock.values()) total += units
+  }
+  return total
+}
+

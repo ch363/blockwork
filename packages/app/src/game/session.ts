@@ -46,7 +46,9 @@ import {
 import type {
   BlueprintReport,
   BuildAction,
+  Command,
   GameData,
+  NewPrisonConfig,
   NotificationSeverity,
   Tile,
   UtilityRouteKind,
@@ -55,8 +57,11 @@ import {
   BlockworkRenderer,
   OVERLAY_MODE_DEFINITIONS,
   OVERLAY_PALETTES,
+  TILE_SIZE,
   interpolateAgents,
   materialAppearances,
+  objectAppearances,
+  defaultObjectAppearance,
   overlayCategoricalPattern,
   overlayLegendBands,
   parseCssColour,
@@ -137,11 +142,52 @@ import {
 } from './palette'
 import type { AppSettings, AudioSettings, AutosaveHours } from './appSettings'
 import { DEFAULT_APP_SETTINGS } from './appSettings'
-import { AudioEngine, createAudioEngine } from './audio'
+import { createAudioEngine, effectForEventKind } from './audio'
+import type { AudioEngine } from './audio'
 import { WebAudioBackend } from './webAudioBackend'
+import {
+  Onboarding,
+  objectivesFromContract,
+} from './onboarding'
+import {
+  newPrisonConfigFromModel,
+  onboardingModelFromMachine,
+  settingsModelFromAppSettings,
+} from './onboardingView'
+
+/** The first-play contract that *is* the tutorial (T6.4 / T8.8). */
+export const GUIDED_CONTRACT_ID = 'fit_for_purpose'
 
 /** PRD 4.3's Large map. The size a new game starts at until T5.x offers a menu. */
 export const DEFAULT_MAP_SIZE = 220
+
+async function createSessionRenderer(
+  parent: HTMLElement,
+  data: GameData,
+  mapSize: number,
+): Promise<BlockworkRenderer> {
+  const materialIds = data.materials.ids()
+  const appearances = materialAppearances(
+    materialIds.map((id) => {
+      const def = data.materials.find(id)
+      return def === undefined ? { id } : { id, appearance: def.appearance }
+    }),
+  )
+  const objectTable = objectAppearances(
+    data.objects.all.map((def) => ({
+      id: def.id,
+      size: def.size,
+      appearance: def.appearance,
+    })),
+  )
+  return BlockworkRenderer.create({
+    parent,
+    mapSize,
+    palette: terrainPaletteFor(materialIds, appearances),
+    wallMaterialIds: ['none', ...materialIds],
+    appearanceFor: (defId) => objectTable.get(defId) ?? defaultObjectAppearance(defId),
+  })
+}
 
 interface ParsedOverlaySelection {
   readonly mode: PrdOverlayMode
@@ -506,10 +552,10 @@ function toInspectorModel(result: InspectResult): InspectorModel {
 
 export class Session {
   readonly state: SessionState
-  readonly bridge: SimBridge
-  readonly renderer: BlockworkRenderer
+  bridge: SimBridge
+  renderer: BlockworkRenderer
   readonly data: GameData
-  readonly mapSize: number
+  mapSize: number
 
   /** Staged, unsent, and priced by the worker. Nothing here has been paid for. */
   readonly staged = new Blueprint()
@@ -570,8 +616,16 @@ export class Session {
 
   /** Audio engine for ambient bed and one-shots (T8.8). */
   #audioEngine: AudioEngine | null = null
+  #audioContext: { resume(): Promise<void>; state: string } | null = null
+  #audioUnlocked = false
   /** Backed by the app settings; used for timed autosave scheduling. */
   #autosaveHours: AutosaveHours = DEFAULT_APP_SETTINGS.autosaveHours
+  #appSettings: AppSettings = DEFAULT_APP_SETTINGS
+  /** Canvas host, so a New Prison restart can rebuild the renderer. */
+  #host: HTMLElement
+  /** Guided Contract controller; null after skip. */
+  #onboarding: Onboarding | null = null
+  #onboardingStarted = false
 
   /** Callback fired when settings change via the Settings panel. */
   onSettingsChange: ((settings: AppSettings) => void) | null = null
@@ -586,14 +640,17 @@ export class Session {
     renderer: BlockworkRenderer,
     data: GameData,
     mapSize: number,
+    host: HTMLElement,
   ) {
     this.bridge = bridge
     this.renderer = renderer
     this.data = data
     this.mapSize = mapSize
+    this.#host = host
     this.#palettes = createPalettes(data)
     this.#categoryIds = data.securityCategories.ids()
     this.#objectIds = data.objects.ids()
+    this.#installCommandTap()
 
     this.state = {
       topBar: signal(EMPTY_TOP_BAR),
@@ -668,6 +725,8 @@ export class Session {
     if (this.#isolationDiagnostic !== null) {
       this.state.hud.value = this.#isolationDiagnostic
     }
+
+    this.#beginOnboarding()
   }
 
   static async create(options: SessionOptions): Promise<Session> {
@@ -683,28 +742,14 @@ export class Session {
         : { firstOrderGrace: options.firstOrderGrace }),
     })
 
-    // The one id list both palettes must be built from: `floorMaterial` and
-    // `wallMaterial` store positions in this table, so a palette assembled any
-    // other way colours the wrong material.
-    const materialIds = options.data.materials.ids()
-    const appearances = materialAppearances(
-      materialIds.map((id) => {
-        const def = options.data.materials.find(id)
-        return def === undefined ? { id } : { id, appearance: def.appearance }
-      }),
-    )
-
-    const renderer = await BlockworkRenderer.create({
-      parent: options.parent,
-      mapSize,
-      palette: terrainPaletteFor(materialIds, appearances),
-      wallMaterialIds: ['none', ...materialIds],
-    })
+    const renderer = await createSessionRenderer(options.parent, options.data, mapSize)
 
     const centre = centreTile(mapSize) * 32
     renderer.camera.moveTo(centre, centre)
 
-    return new Session(bridge, renderer, options.data, mapSize)
+    const session = new Session(bridge, renderer, options.data, mapSize, options.parent)
+    session.#acceptGuidedContract()
+    return session
   }
 
   /**
@@ -720,6 +765,7 @@ export class Session {
    * Re-parenting a live WebGL canvas is free; re-creating one is not.
    */
   attachTo(stage: HTMLElement): void {
+    this.#host = stage
     if (this.renderer.canvas.parentElement !== stage) {
       stage.appendChild(this.renderer.canvas)
     }
@@ -734,6 +780,203 @@ export class Session {
     this.#audioEngine?.dispose()
   }
 
+  /**
+   * Starts a new prison from the New Prison panel (T8.8).
+   *
+   * Replaces the worker and, when the map size changes, the renderer. UI
+   * state that belonged to the old world is dropped.
+   */
+  async startNewPrison(): Promise<void> {
+    const model = this.state.newPrison.value
+    if (model === null) return
+    const config = this.#configFromNewPrisonModel(model)
+    await this.restart(config)
+  }
+
+  /** Pause and return to the New Prison screen (T8.8 quit). */
+  quitToNewPrison(): void {
+    this.setSpeed(0)
+    this.#closeAllPanels()
+    this.openNewPrison()
+  }
+
+  async restart(config: NewPrisonConfig): Promise<void> {
+    this.setSpeed(0)
+    this.#resetWorldUi()
+    this.bridge.dispose()
+
+    const sizeChanged = config.mapSize !== this.mapSize
+    this.mapSize = config.mapSize
+
+    this.bridge = new SimBridge({
+      worker: createSimWorker(),
+      seed: config.seed,
+      mapSize: config.mapSize,
+      firstOrderGrace: config.firstOrderGrace,
+      prison: config,
+      speed: 1,
+    })
+
+    if (sizeChanged) {
+      this.renderer.app.ticker.remove(this.#frame)
+      this.renderer.destroy()
+      this.renderer = await createSessionRenderer(this.#host, this.data, config.mapSize)
+      this.#bindRenderer()
+      this.attachTo(this.#host)
+    } else {
+      this.renderer.setFloors(this.bridge.tiles.floorMaterial)
+      this.renderer.setWalls(this.bridge.tiles.wallMaterial)
+      this.renderer.setSectorIds(this.bridge.tiles.sectorId)
+      this.renderer.markTilesDirty(0, 0, config.mapSize, config.mapSize)
+    }
+
+    const centre = centreTile(config.mapSize) * 32
+    this.renderer.camera.moveTo(centre, centre)
+    this.state.speed.value = 1
+    this.bridge.setSpeed(1)
+    this.closeNewPrison()
+    this.#installCommandTap()
+    this.#beginOnboarding()
+    this.#acceptGuidedContract()
+  }
+
+  #installCommandTap(): void {
+    this.bridge.onCommandSent = (command: Command) => {
+      this.#onboarding?.noteCommand(command.type, performance.now())
+    }
+  }
+
+  #bindRenderer(): void {
+    this.renderer.setFloors(this.bridge.tiles.floorMaterial)
+    this.renderer.setWalls(this.bridge.tiles.wallMaterial)
+    this.renderer.setSectorIds(this.bridge.tiles.sectorId)
+    this.renderer.tools.handlers = {
+      onTap: (tile) => {
+        this.#onTap(tile)
+      },
+      onStrokeUpdate: (stroke) => {
+        this.#onStrokePreview(stroke)
+      },
+      onStrokeEnd: (stroke) => {
+        this.#onStrokeEnd(stroke)
+      },
+      onStrokeCancel: () => {
+        this.#clearPreview()
+      },
+    }
+    this.renderer.tools.active = true
+    this.renderer.app.ticker.add(this.#frame)
+  }
+
+  #resetWorldUi(): void {
+    this.staged.clear()
+    this.#renderBlueprint()
+    this.#abandonValidation()
+    this.#closeAllPanels()
+    this.state.toasts.value = []
+    this.#traces.clear()
+    this.#requestedTraces.clear()
+    this.#focusTile = null
+    this.#selectedSnapshotId = null
+    this.#selectedSectorId = null
+    this.#paintSectorId = null
+    this.#patrolWaypoints = null
+    this.#openTrace = null
+    this.state.trace.value = null
+    this.state.canUndo.value = false
+    this.state.canRedo.value = false
+    this.#redoDepth = 0
+    this.#lastControlVersion = 0
+    this.renderer.clearPins()
+    this.renderer.setSelections([])
+  }
+
+  #closeAllPanels(): void {
+    this.closeInspector()
+    this.closePosts()
+    this.closeEmergency()
+    this.closeStandingOrders()
+    this.closeTrace()
+    this.closeDirectorate()
+    this.closePrograms()
+    this.closeIntelligence()
+    this.closeReports()
+    this.closeSettings()
+    this.closeAlerts()
+    this.closeRoutine()
+    this.closeContracts()
+    this.closeIntake()
+    this.closeFlow()
+    this.state.tool.value = null
+    this.state.palette.value = []
+    this.state.paletteSelection.value = null
+  }
+
+  #configFromNewPrisonModel(model: NewPrisonModel): NewPrisonConfig {
+    return newPrisonConfigFromModel(model, this.data)
+  }
+
+  #acceptGuidedContract(): void {
+    this.bridge.sendCommand({
+      type: 'contracts.accept',
+      issuedAtTick: this.#tick(),
+      payload: { contractId: GUIDED_CONTRACT_ID },
+    })
+  }
+
+  #beginOnboarding(): void {
+    this.#onboarding = new Onboarding('guided', performance.now())
+    this.#onboardingStarted = true
+    this.#publishOnboarding()
+  }
+
+  #publishOnboarding(): void {
+    const machine = this.#onboarding
+    if (machine === null || machine.mode === 'off') {
+      this.state.onboarding.value = null
+      return
+    }
+    const contractName = this.data.contracts.find(GUIDED_CONTRACT_ID)?.name ?? 'Guided Contract'
+    this.state.onboarding.value = onboardingModelFromMachine(
+      machine,
+      performance.now(),
+      contractName,
+      this.#host,
+    )
+  }
+
+  #updateOnboarding(): void {
+    const machine = this.#onboarding
+    if (machine === null || !this.#onboardingStarted) return
+    const control = this.bridge.latestControl()
+    const contract = control?.contracts.active.find((row) => row.id === GUIDED_CONTRACT_ID) ?? null
+    const view =
+      contract === null
+        ? null
+        : {
+            todoItems: contract.todos.map((todo) => ({
+              label: todo.label,
+              predicate: { type: todo.id },
+            })),
+            itemPassed: contract.todos.map((todo) => todo.done),
+          }
+    machine.update(objectivesFromContract(view), performance.now())
+    if (machine.mode === 'off' || (view !== null && view.itemPassed.every(Boolean) && view.itemPassed.length > 0)) {
+      if (view !== null && view.itemPassed.every(Boolean) && view.itemPassed.length > 0) {
+        this.state.onboarding.value = onboardingModelFromMachine(
+          machine,
+          performance.now(),
+          this.data.contracts.find(GUIDED_CONTRACT_ID)?.name ?? 'Guided Contract',
+          this.#host,
+        )
+      } else {
+        this.state.onboarding.value = null
+      }
+      return
+    }
+    this.#publishOnboarding()
+  }
+
   /* ---------------------------------------------------------------------- */
   /* Audio (T8.8)                                                            */
   /* ---------------------------------------------------------------------- */
@@ -746,40 +989,38 @@ export class Session {
     if (this.#audioEngine !== null) return
 
     try {
-      // Create a real AudioContext - browsers require this to be lazy
-      // (only created after a user gesture). The first tap/click unblocks it.
       const context = new AudioContext()
+      this.#audioContext = context
       const backend = new WebAudioBackend(context)
       this.#audioEngine = createAudioEngine(backend, settings)
     } catch {
-      // No Web Audio available (test runner, old browser, etc.)
       this.#audioEngine = null
+      this.#audioContext = null
     }
   }
 
+  /** Resumes a suspended AudioContext after the first player gesture (T8.8). */
+  unlockAudio(): void {
+    if (this.#audioUnlocked) return
+    this.#audioUnlocked = true
+    void this.#audioContext?.resume()
+  }
+
   /**
-   * Applies full app settings, updating audio, autosave cadence, etc.
+   * Applies full app settings, updating audio, autosave cadence, overlay palette.
    */
   applyAppSettings(settings: AppSettings): void {
+    this.#appSettings = settings
     this.#autosaveHours = settings.autosaveHours
 
     if (this.#audioEngine !== null) {
       this.#audioEngine.applySettings(settings.audio)
     }
 
-    // Load stored settings into the settings panel model if it's open.
+    this.setOverlayPalette(settings.accessibility.palette === 'default' ? 'standard' : settings.accessibility.palette)
+
     if (this.state.settings.value !== null) {
-      this.state.settings.value = {
-        ...this.state.settings.value,
-        music: settings.audio.music,
-        sfx: settings.audio.sfx,
-        muted: settings.audio.muted,
-        palette: settings.accessibility.palette,
-        reduceMotion: settings.accessibility.reduceMotion,
-        typeScale: settings.accessibility.typeScale,
-        preferNoFailure: settings.accessibility.preferNoFailure,
-        autosaveHours: settings.autosaveHours,
-      }
+      this.state.settings.value = settingsModelFromAppSettings(settings)
     }
   }
 
@@ -1319,6 +1560,18 @@ export class Session {
     if (this.state.intelligence.value !== null) {
       this.state.intelligence.value = control.intelligence
     }
+    if (this.state.routine.value !== null) {
+      this.state.routine.value = control.routine
+    }
+    if (this.state.contracts.value !== null) {
+      this.state.contracts.value = control.contracts
+    }
+    if (this.state.intake.value !== null) {
+      this.state.intake.value = control.intake
+    }
+    if (this.state.flow.value !== null) {
+      this.state.flow.value = control.flow
+    }
   }
 
   /** Rebuild trays when Directorate research unlocks rooms / objects / staff. */
@@ -1524,6 +1777,46 @@ export class Session {
     })
   }
 
+  enrolSelectedProgram(): void {
+    const programId = this.state.programs.value?.selectedId
+    const inspector = this.state.inspector.value
+    if (programId === null || programId === undefined) return
+    if (inspector === null || inspector.kind !== 'inmate') {
+      this.state.hint.value = 'Inspect an inmate, then enrol them in this programme'
+      return
+    }
+    this.enrolProgram(programId, inspector.entityId)
+  }
+
+  withdrawSelectedProgram(): void {
+    const programId = this.state.programs.value?.selectedId
+    const inspector = this.state.inspector.value
+    if (programId === null || programId === undefined) return
+    if (inspector === null || inspector.kind !== 'inmate') {
+      this.state.hint.value = 'Inspect an inmate, then withdraw them from this programme'
+      return
+    }
+    this.withdrawProgram(programId, inspector.entityId)
+  }
+
+  inspectorFire(): void {
+    const model = this.state.inspector.value
+    if (model === null || model.kind !== 'staff') return
+    this.fireStaff(model.entityId)
+  }
+
+  inspectorAssignLabour(): void {
+    const model = this.state.inspector.value
+    if (model === null || model.kind !== 'inmate') return
+    this.assignLabour('kitchen', model.entityId)
+  }
+
+  inspectorUnassignLabour(): void {
+    const model = this.state.inspector.value
+    if (model === null || model.kind !== 'inmate') return
+    this.unassignLabour(model.entityId)
+  }
+
   openIntelligence(): void {
     const control = this.bridge.latestControl()
     this.state.intelligence.value = control?.intelligence ?? {
@@ -1634,7 +1927,7 @@ export class Session {
   /* ---------------------------------------------------------------------- */
 
   openRoutine(): void {
-    this.state.routine.value = this.#defaultRoutineModel()
+    this.state.routine.value = this.bridge.latestControl()?.routine ?? this.#defaultRoutineModel()
   }
 
   closeRoutine(): void {
@@ -1665,7 +1958,8 @@ export class Session {
   /* ---------------------------------------------------------------------- */
 
   openContracts(): void {
-    this.state.contracts.value = this.#defaultContractsModel()
+    this.state.contracts.value =
+      this.bridge.latestControl()?.contracts ?? this.#defaultContractsModel()
   }
 
   closeContracts(): void {
@@ -1718,7 +2012,7 @@ export class Session {
   /* ---------------------------------------------------------------------- */
 
   openIntake(): void {
-    this.state.intake.value = this.#defaultIntakeModel()
+    this.state.intake.value = this.bridge.latestControl()?.intake ?? this.#defaultIntakeModel()
   }
 
   closeIntake(): void {
@@ -1774,7 +2068,7 @@ export class Session {
   /* ---------------------------------------------------------------------- */
 
   openFlow(): void {
-    this.state.flow.value = this.#defaultFlowModel()
+    this.state.flow.value = this.bridge.latestControl()?.flow ?? this.#defaultFlowModel()
     this.state.flowChain.value = 'meals'
   }
 
@@ -1936,23 +2230,7 @@ export class Session {
   }
 
   #defaultSettingsModel(): SettingsModel {
-    return {
-      music: 0.6,
-      sfx: 0.8,
-      muted: false,
-      palette: 'default',
-      paletteOptions: [
-        { id: 'default', label: 'Default' },
-        { id: 'deuteranopia', label: 'Deuteranopia' },
-        { id: 'protanopia', label: 'Protanopia' },
-        { id: 'tritanopia', label: 'Tritanopia' },
-      ],
-      reduceMotion: false,
-      typeScale: 1,
-      preferNoFailure: false,
-      autosaveHours: 5,
-      autosaveOptions: [1, 3, 5, 12, 24],
-    }
+    return settingsModelFromAppSettings(this.#appSettings)
   }
 
   /* ---------------------------------------------------------------------- */
@@ -2083,7 +2361,7 @@ export class Session {
   /* ---------------------------------------------------------------------- */
 
   openOnboarding(): void {
-    this.state.onboarding.value = this.#defaultOnboardingModel()
+    this.#beginOnboarding()
   }
 
   closeOnboarding(): void {
@@ -2091,41 +2369,29 @@ export class Session {
   }
 
   skipOnboarding(): void {
-    this.closeOnboarding()
+    this.#onboarding?.skip(performance.now())
+    this.#onboarding = null
+    this.#onboardingStarted = false
+    this.state.onboarding.value = null
   }
 
-  dismissOnboardingMark(objectiveIndex: number): void {
-    const current = this.state.onboarding.value
-    if (current === null) return
-    this.state.onboarding.value = {
-      ...current,
-      marks: current.marks.filter((m) => m.objectiveIndex !== objectiveIndex),
-    }
+  dismissOnboardingMark(_objectiveIndex: number): void {
+    this.#onboarding?.dismissCurrent()
+    this.#publishOnboarding()
   }
 
   setOnboardingMode(mode: OnboardingMode): void {
-    const current = this.state.onboarding.value
-    if (current === null) return
     if (mode === 'off') {
-      this.closeOnboarding()
+      this.skipOnboarding()
       return
     }
-    this.state.onboarding.value = { ...current, mode }
-  }
-
-  #defaultOnboardingModel(): OnboardingModel {
-    return {
-      mode: 'guided',
-      contractName: 'First Steps',
-      objectives: [
-        { index: 0, label: 'Build a holding cell', done: false, current: true },
-        { index: 1, label: 'Accept your first inmate', done: false, current: false },
-        { index: 2, label: 'Build a kitchen', done: false, current: false },
-        { index: 3, label: 'Hire a cook', done: false, current: false },
-      ],
-      marks: [],
-      viewport: { width: 1194, height: 834 },
+    if (this.#onboarding === null) {
+      this.#onboarding = new Onboarding(mode, performance.now())
+      this.#onboardingStarted = true
+    } else {
+      this.#onboarding.setMode(mode, performance.now())
     }
+    this.#publishOnboarding()
   }
 
   /* ---------------------------------------------------------------------- */
@@ -2737,12 +3003,14 @@ export class Session {
     const result = await this.bridge.inspect(tile)
     this.#focusTile = result.centre
     this.state.inspector.value = toInspectorModel(result)
+    this.#syncSelections()
   }
 
   closeInspector(): void {
     this.state.inspector.value = null
     this.#focusTile = null
     this.#selectedSnapshotId = null
+    this.renderer.setSelections([])
   }
 
   /** Triggers an individual search on the inspected inmate. */
@@ -2762,15 +3030,13 @@ export class Session {
     if (model === null) return
     if (model.kind === 'object') {
       this.bridge.sendCommand({
-        type: 'blueprint.commit',
+        type: 'objects.remove',
         issuedAtTick: this.#tick(),
-        payload: {
-          actions: [{ kind: 'removeObject', objectEntityId: model.entityId }],
-        },
+        payload: { entityId: model.entityId },
       })
     } else if (model.kind === 'room') {
       this.bridge.sendCommand({
-        type: 'room.undesignate',
+        type: 'rooms.undesignate',
         issuedAtTick: this.#tick(),
         payload: { roomId: model.roomId },
       })
@@ -2868,6 +3134,7 @@ export class Session {
       this.#updateAudio(snapshot.digest.danger)
     }
     this.#refreshOpenControlPanels()
+    this.#updateOnboarding()
     this.#refreshReports(false)
     this.#feedOverlay()
     this.#publishToasts()
@@ -2879,6 +3146,25 @@ export class Session {
   #updateAudio(dangerLevel: number): void {
     if (this.#audioEngine === null) return
     this.#audioEngine.update(dangerLevel)
+  }
+
+  #playTraceSfx(result: TraceResult): void {
+    if (!this.#audioUnlocked || this.#audioEngine === null) return
+    const node = result.nodes[0]
+    if (node === undefined) return
+    const effect = effectForEventKind(node.kind)
+    if (effect === null) return
+    const camera = this.renderer.camera
+    const listener = {
+      tileX: camera.x / TILE_SIZE,
+      tileY: camera.y / TILE_SIZE,
+      halfWidthTiles: camera.viewportWidth / (2 * TILE_SIZE * Math.max(0.001, camera.zoom)),
+    }
+    const at =
+      node.focus === null
+        ? { tileX: listener.tileX, tileY: listener.tileY }
+        : { tileX: node.focus.x, tileY: node.focus.y }
+    this.#audioEngine.play(effect, at, listener)
   }
 
   /**
@@ -2947,6 +3233,8 @@ export class Session {
         .then((result) => {
           if (result === null) return
           this.#traces.set(notification.id, result)
+          this.#playTraceSfx(result)
+          this.#pinNotification(notification.id, result, notification.severity)
           this.#pushToast({
             id: notification.id,
             severity: severityLabel(notification.severity),
@@ -2996,11 +3284,23 @@ export class Session {
     this.state.trace.value = null
   }
 
-  /** Applies a suggested fix from the Trace panel (T8.10 stub). */
-  traceFix(_fixId: string): void {
-    // Suggested fixes are not yet implemented; the Trace panel shows them but
-    // no command mapping exists. This wires the callback so the control is not
-    // inert per PRD 9 criterion 2.
+  /** Applies a suggested fix from the Trace panel (T8.10). */
+  traceFix(fixId: string): void {
+    if (fixId === 'add_cookers') {
+      this.selectTool('objects')
+      this.selectPaletteItem('cooker')
+      this.state.hint.value = 'Place cookers in the kitchen'
+      return
+    }
+    if (fixId === 'assign_cooks') {
+      const inmate = this.state.inspector.value
+      if (inmate !== null && inmate.kind === 'inmate') {
+        this.assignLabour('kitchen', inmate.entityId)
+        return
+      }
+      this.selectTool('staff')
+      this.state.hint.value = 'Select an inmate and assign kitchen labour, or hire a cook'
+    }
   }
 
   /** Copies a diagnostic report to the clipboard. */
@@ -3026,6 +3326,46 @@ export class Session {
     this.state.toasts.value = this.state.toasts.value.filter((entry) => entry.id !== toast.id)
     if (this.#openTrace?.rootId === toast.traceId) this.closeTrace()
     this.#releaseTrace(toast.id)
+    this.renderer.removePin(String(toast.id))
+  }
+
+  #syncSelections(): void {
+    const model = this.state.inspector.value
+    const focus = this.#focusTile
+    if (model === null || focus === null || model.kind === 'tile' || model.kind === 'room') {
+      this.renderer.setSelections([])
+      return
+    }
+    this.renderer.setSelections([
+      {
+        id: model.entityId,
+        x: (focus.x + 0.5) * TILE_SIZE,
+        y: (focus.y + 0.5) * TILE_SIZE,
+      },
+    ])
+  }
+
+  #pinNotification(
+    notificationId: number,
+    result: TraceResult,
+    severity: NotificationSeverity,
+  ): void {
+    const node = result.nodes[0]
+    const focus = node?.focus
+    if (node === undefined || focus === null || focus === undefined) return
+    const pinSeverity =
+      severity === NOTIFICATION_SEVERITY.CRITICAL
+        ? 'critical'
+        : severity === NOTIFICATION_SEVERITY.WARN
+          ? 'warn'
+          : 'info'
+    this.renderer.setPin({
+      id: String(notificationId),
+      subjectId: node.subjectId,
+      x: (focus.x + 0.5) * TILE_SIZE,
+      y: (focus.y + 0.5) * TILE_SIZE,
+      severity: pinSeverity,
+    })
   }
 
   #showTrace(result: TraceResult): void {

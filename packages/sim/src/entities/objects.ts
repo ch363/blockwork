@@ -878,7 +878,7 @@ export function objectCommandHandlers(data: GameData): Record<string, CommandHan
     },
     [OBJECT_COMMANDS.removeObject]: (command, context) => {
       bind(context, command, (deps, payload) => {
-        const entityId = asInteger(payload['entityId'])
+        const entityId = asInteger(payload['entityId']) ?? asInteger(payload['objectEntityId'])
         if (entityId === undefined) {
           reject(deps, command.type, 'invalid-payload')
           return

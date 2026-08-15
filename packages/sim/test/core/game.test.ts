@@ -18,7 +18,9 @@ import { CONSTRUCTION_COMMANDS } from '../../src/world/construction'
 import { OBJECT_COMMANDS } from '../../src/entities/objects'
 import { ROOM_COMMANDS } from '../../src/world/roomDetection'
 import { TICKS_PER_MINUTE } from '../../src/core/clock'
-import { allocateTileGridBuffers, createGame, createGameWorld } from '../../src/core/game'
+import { allocateTileGridBuffers, applyNewPrisonConfig, createGame, createGameWorld } from '../../src/core/game'
+import { defaultNewPrisonConfig } from '../../src/core/mapSettings'
+import { INTAKE_COMMANDS } from '../../src/systems/intakeSystem'
 import { loadGameData } from '../../src/data/loader'
 import { uniformWorkforce } from '../../src/systems/constructionSystem'
 import type { Command, SimulationEvent } from '../../src/index'
@@ -339,5 +341,52 @@ describe('determinism (PRD 4.1)', () => {
         b.game.simulation.hash(),
       )
     }
+  })
+})
+
+describe('New Prison config (T8.8)', () => {
+  it('writes funds, intake and failure toggles onto a live world', () => {
+    const game = createGame({
+      seed: SEED,
+      mapSize: MAP,
+      data: DATA,
+      applyOpening: false,
+    })
+    const config = {
+      ...defaultNewPrisonConfig(DATA, SEED),
+      mapSize: MAP,
+      startingFunds: 77_000,
+      continuousIntake: false,
+      randomEvents: false,
+      firstOrderGrace: false,
+      failures: { ...defaultNewPrisonConfig(DATA, SEED).failures, insolvency: false },
+    }
+    applyNewPrisonConfig(game.world, config)
+    expect(game.world.economy.balance).toBe(77_000)
+    expect(game.world.intake.continuous).toBe(false)
+    expect(game.world.settings.randomEvents).toBe(false)
+    expect(game.world.settings.firstOrderGrace).toBe(false)
+    expect(game.world.settings.failures.insolvency).toBe(false)
+  })
+})
+
+describe('UI payload aliases (T8.10)', () => {
+  it('accepts intake.setRequested with categoryId', () => {
+    const events: SimulationEvent[] = []
+    const game = createGame({
+      seed: SEED,
+      mapSize: MAP,
+      data: DATA,
+      applyOpening: false,
+      events: { emit(event) { events.push(event) } },
+    })
+    game.simulation.enqueue({
+      type: INTAKE_COMMANDS.setRequested,
+      issuedAtTick: 0,
+      payload: { categoryId: 'medium', count: 3 },
+    })
+    game.simulation.step()
+    expect(events.some((event) => event.kind === 'intake.rejected')).toBe(false)
+    expect(game.world.intake.requestedCounts.get('medium')).toBe(3)
   })
 })

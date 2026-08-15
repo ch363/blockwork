@@ -48,11 +48,9 @@ export function requestMeleeAttack(options: {
 }): MeleeAttackResult {
   const requested = options.damage ?? options.balance.stubMeleeDamage
   const before = options.target.health
-  let after: number
-  let damage: number
   const result = applyDamage(before, requested, options.balance)
-  after = result.healthAfter
-  damage = result.damage
+  const after = result.healthAfter
+  const damage = result.damage
   options.target.health = after
   const killed = before > 0 && after <= 0
   const injured = !killed && after < before

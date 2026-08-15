@@ -263,7 +263,12 @@ export type {
   TraitDef,
 } from './data/schemas'
 
-export { allocateTileGridBuffers, createGame, createGameWorld } from './core/game'
+export {
+  allocateTileGridBuffers,
+  applyNewPrisonConfig,
+  createGame,
+  createGameWorld,
+} from './core/game'
 export type { Game, GameOptions, GameWorldOptions } from './core/game'
 
 export { Simulation, createEmptyWorld, nullEventSink } from './core/simulation'

@@ -210,6 +210,7 @@ export function Directorate({
     <div
       ref={trapRef}
       class="bw-directorate-panel"
+      data-anchor="panel:directorate"
       data-open={open ? 'true' : 'false'}
       role="dialog"
       aria-label="Directorate"

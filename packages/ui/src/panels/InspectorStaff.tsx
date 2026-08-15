@@ -4,15 +4,25 @@
 
 import type { JSX } from 'preact'
 
+import { Button } from '../controls/Button'
 import { NeedRow } from '../controls/NeedRow'
 import type { StaffInspectorModel } from './inspectorTypes'
 
 export interface InspectorStaffProps {
   readonly model: StaffInspectorModel
   readonly onNeedSelect?: (needId: string) => void
+  readonly onFire?: () => void
+  readonly onAcceptPayDemand?: () => void
+  readonly onRefusePayDemand?: () => void
 }
 
-export function InspectorStaff({ model, onNeedSelect }: InspectorStaffProps): JSX.Element {
+export function InspectorStaff({
+  model,
+  onNeedSelect,
+  onFire,
+  onAcceptPayDemand,
+  onRefusePayDemand,
+}: InspectorStaffProps): JSX.Element {
   return (
     <div class="bw-insp-body">
       <div class="bw-block">
@@ -74,6 +84,18 @@ export function InspectorStaff({ model, onNeedSelect }: InspectorStaffProps): JS
             ))}
           </div>
         )}
+      </div>
+
+      <div class="bw-insp-foot">
+        <Button onClick={onAcceptPayDemand} disabled={onAcceptPayDemand === undefined} ariaLabel="Accept pay demand">
+          Accept pay
+        </Button>
+        <Button onClick={onRefusePayDemand} disabled={onRefusePayDemand === undefined} ariaLabel="Refuse pay demand">
+          Refuse pay
+        </Button>
+        <Button variant="danger" onClick={onFire} disabled={onFire === undefined} ariaLabel="Fire staff member">
+          Fire
+        </Button>
       </div>
     </div>
   )

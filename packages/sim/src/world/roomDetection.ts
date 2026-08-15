@@ -51,7 +51,7 @@ import { isJsonArray } from '../core/commands'
 import type { Command, JsonValue } from '../core/commands'
 import type { CommandHandler, EventSink, SystemContext } from '../core/simulation'
 import type { GameData } from '../data/loader'
-import { gatingNode, isUnlocked } from '../entities/directorate'
+import { DirectorateState, gatingNode, hasFeature, isUnlocked } from '../entities/directorate'
 
 import { clipRect, isValidRect, rectTiles } from './construction'
 import type { Rect } from './construction'
@@ -90,6 +90,14 @@ export type RoomRejection =
   /** The room's Directorate node has not completed (T5.1). */
   | 'locked'
   | 'wrong-world'
+
+function compactCellsEnabled(deps: RoomDeps): boolean {
+  const world = deps.world
+  if (!('directorate' in world)) return false
+  const directorate = (world as { directorate?: DirectorateState }).directorate
+  if (!(directorate instanceof DirectorateState)) return false
+  return hasFeature(deps.data, directorate, 'compact_cells')
+}
 
 function reject(
   deps: RoomDeps,
@@ -381,7 +389,9 @@ export function detectRooms(deps: RoomDeps, changedTiles: Iterable<number> = [])
       registry.set(room)
       evaluated.push(room)
 
-      const status = evaluateRoom(room, deps.data.rooms.get(defId), contents)
+      const status = evaluateRoom(room, deps.data.rooms.get(defId), contents, {
+        compactCells: compactCellsEnabled(deps),
+      })
       registry.setStatus(status)
 
       // On the transition only. A prison with two hundred half-built rooms
@@ -448,7 +458,9 @@ export function refreshRoomStatus(deps: RoomDeps, roomId: number): RoomStatus | 
   if (def === undefined) return undefined
 
   const before = registry.statusOf(roomId)
-  const status = evaluateRoom(room, def, deps.contents ?? deps.world.contents())
+  const status = evaluateRoom(room, def, deps.contents ?? deps.world.contents(), {
+    compactCells: compactCellsEnabled(deps),
+  })
   registry.setStatus(status)
 
   if (!status.functional && (before === undefined || before.functional)) {
@@ -640,11 +652,21 @@ export function roomCommandHandlers(data: GameData): Record<string, CommandHandl
     [ROOM_COMMANDS.undesignateRoom]: (command, context) => {
       bind(context, command, (deps, payload) => {
         const rect = asRect(payload['rect'])
-        if (rect === undefined) {
+        if (rect !== undefined) {
+          undesignateRoom(deps, rect)
+          return
+        }
+        const roomId = asInteger(payload['roomId'])
+        if (roomId === undefined) {
           reject(deps, command.type, 'invalid-payload')
           return
         }
-        undesignateRoom(deps, rect)
+        const room = deps.world.rooms.get(roomId)
+        if (room === undefined) {
+          reject(deps, command.type, 'unknown-room', { roomId })
+          return
+        }
+        undesignateRoom(deps, room.bounds)
       })
     },
   }

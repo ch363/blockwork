@@ -57,15 +57,18 @@ import {
   ticksToTimeString,
   validateBlueprint,
 } from '@blockwork/sim'
-import type { Workforce } from '@blockwork/sim'
 import { RAW_TRACE_STRINGS } from '@blockwork/data'
 import type {
+  ContractsModel,
   DirectorateModel,
   EmergencyModel,
+  FlowModel,
   IntelligenceModel,
+  IntakeModel,
   PostsModel,
   ProgramsModel,
   ReportsModel,
+  RoutineModel,
   StandingOrdersModel,
 } from '@blockwork/ui'
 import type {
@@ -90,6 +93,8 @@ import type {
   InmateEntity,
   StaffEntity,
   GameData,
+  NewPrisonConfig,
+  Workforce,
   UtilityRouteKind,
   UtilityRouteResult,
 } from '@blockwork/sim'
@@ -158,6 +163,8 @@ export interface SimInitMessage {
   readonly gridBuffers?: TileGridBuffers
   /** First-order material grace for a new prison (T8.4). */
   readonly firstOrderGrace?: boolean
+  /** New-prison panel choices (T8.8). */
+  readonly prison?: NewPrisonConfig
 }
 
 export interface SimCommandMessage {
@@ -488,6 +495,7 @@ export interface SimInspectResultMessage {
 export interface TraceNodeResult {
   readonly eventId: number
   readonly subjectId: number
+  readonly kind: string
   readonly title: string
   readonly detail: string
   readonly meta: string
@@ -552,6 +560,10 @@ export interface ControlHudPayload {
   readonly directorate: DirectorateModel
   readonly programs: ProgramsModel
   readonly intelligence: IntelligenceModel
+  readonly routine: RoutineModel
+  readonly contracts: ContractsModel
+  readonly intake: IntakeModel
+  readonly flow: FlowModel
   readonly unlocks: UnlockSnapshot
 }
 
@@ -826,6 +838,8 @@ export interface SimWorkerLoopOptions {
   readonly firstOrderGrace?: boolean
   /** When false, skip the opening dock / crew (load path). Default true. */
   readonly applyOpening?: boolean
+  /** New-prison panel choices (T8.8). */
+  readonly prison?: NewPrisonConfig
 }
 
 /**
@@ -882,6 +896,7 @@ export class SimWorkerLoop {
         ? {}
         : { firstOrderGrace: options.firstOrderGrace }),
       ...(options.applyOpening === undefined ? {} : { applyOpening: options.applyOpening }),
+      ...(options.prison === undefined ? {} : { prison: options.prison }),
     })
     this.simulation = this.game.simulation
     this.world = this.game.world
@@ -1082,6 +1097,7 @@ export class SimWorkerLoop {
       nodes: view.nodes.map((node) => ({
         eventId: node.eventId,
         subjectId: node.subjectId,
+        kind: node.kind,
         title: node.title,
         detail: node.detail,
         meta: node.meta,
@@ -1694,6 +1710,7 @@ export function startSimWorker(
             ...(message.firstOrderGrace === undefined
               ? {}
               : { firstOrderGrace: message.firstOrderGrace }),
+            ...(message.prison === undefined ? {} : { prison: message.prison }),
             ...(overrides.collectEntities === undefined
               ? {}
               : { collectEntities: overrides.collectEntities }),

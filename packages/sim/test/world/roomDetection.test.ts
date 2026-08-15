@@ -284,6 +284,24 @@ describe('designation commands (T1.3)', () => {
 
     expect(events).toMatchObject([{ kind: 'rooms.rejected', data: { reason: 'wrong-world' } }])
   })
+
+  it('undesignates by roomId when the UI cannot supply a rect (T8.10)', () => {
+    const { run } = cellRow(1)
+    expect(run.world.rooms.roomCount).toBe(1)
+    const room = [...run.world.rooms.all()][0]
+    expect(room).toBeDefined()
+    if (room === undefined) throw new Error('room')
+
+    run.sim.enqueue({
+      type: ROOM_COMMANDS.undesignateRoom,
+      issuedAtTick: run.sim.tick,
+      payload: { roomId: room.id },
+    })
+    run.sim.step()
+
+    expect(run.world.rooms.get(room.id)).toBeUndefined()
+    expect(run.world.rooms.roomCount).toBe(0)
+  })
 })
 
 describe('room detection performance (T1.3)', () => {

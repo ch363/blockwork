@@ -47,6 +47,11 @@ export interface InspectorProps {
   readonly onPunish?: () => void
   readonly onProtective?: () => void
   readonly onNeedSelect?: (needId: string) => void
+  readonly onFire?: () => void
+  readonly onAcceptPayDemand?: () => void
+  readonly onRefusePayDemand?: () => void
+  readonly onAssignLabour?: () => void
+  readonly onUnassignLabour?: () => void
 }
 
 function heading(model: InspectorModel): {
@@ -161,11 +166,16 @@ export function Inspector({
   onPunish,
   onProtective,
   onNeedSelect,
+  onFire,
+  onAcceptPayDemand,
+  onRefusePayDemand,
+  onAssignLabour,
+  onUnassignLabour,
 }: InspectorProps): JSX.Element {
   const open = model !== null
   const trapRef = useFocusTrap({ active: open, onEscape: onClose })
   const head = model === null ? null : heading(model)
-  const showGenericFoot = model !== null && model.kind !== 'inmate'
+  const showGenericFoot = model !== null && (model.kind === 'room' || model.kind === 'object')
 
   return (
     <aside
@@ -203,12 +213,17 @@ export function Inspector({
               {...(onPunish === undefined ? {} : { onPunish })}
               {...(onProtective === undefined ? {} : { onProtective })}
               {...(onNeedSelect === undefined ? {} : { onNeedSelect })}
+              {...(onAssignLabour === undefined ? {} : { onAssignLabour })}
+              {...(onUnassignLabour === undefined ? {} : { onUnassignLabour })}
             />
           )}
           {model.kind === 'staff' && (
             <InspectorStaff
               model={model}
               {...(onNeedSelect === undefined ? {} : { onNeedSelect })}
+              {...(onFire === undefined ? {} : { onFire })}
+              {...(onAcceptPayDemand === undefined ? {} : { onAcceptPayDemand })}
+              {...(onRefusePayDemand === undefined ? {} : { onRefusePayDemand })}
             />
           )}
           {model.kind === 'room' && <InspectorRoom model={model} />}

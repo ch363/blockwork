@@ -109,6 +109,11 @@ export interface GameShellProps {
   readonly onInspectorPunish?: () => void
   readonly onInspectorProtective?: () => void
   readonly onInspectorNeedSelect?: (needId: string) => void
+  readonly onInspectorFire?: () => void
+  readonly onInspectorAcceptPayDemand?: () => void
+  readonly onInspectorRefusePayDemand?: () => void
+  readonly onInspectorAssignLabour?: () => void
+  readonly onInspectorUnassignLabour?: () => void
 
   /** Null while nothing is staged, which is what hides the bar. */
   readonly blueprint: BlueprintReport | null
@@ -190,6 +195,8 @@ export interface GameShellProps {
   readonly onProgramsClose?: () => void
   readonly onProgramsPin?: (programId: string) => void
   readonly onProgramsUnpin?: (programId: string) => void
+  readonly onProgramsEnrol?: (programId: string) => void
+  readonly onProgramsWithdraw?: (programId: string) => void
 
   /** Null closes the Intelligence panel (T5.6). */
   readonly intelligence?: IntelligenceModel | null
@@ -360,6 +367,19 @@ export function GameShell(props: GameShellProps): JSX.Element {
             {...(props.onInspectorNeedSelect === undefined
               ? {}
               : { onNeedSelect: props.onInspectorNeedSelect })}
+            {...(props.onInspectorFire === undefined ? {} : { onFire: props.onInspectorFire })}
+            {...(props.onInspectorAcceptPayDemand === undefined
+              ? {}
+              : { onAcceptPayDemand: props.onInspectorAcceptPayDemand })}
+            {...(props.onInspectorRefusePayDemand === undefined
+              ? {}
+              : { onRefusePayDemand: props.onInspectorRefusePayDemand })}
+            {...(props.onInspectorAssignLabour === undefined
+              ? {}
+              : { onAssignLabour: props.onInspectorAssignLabour })}
+            {...(props.onInspectorUnassignLabour === undefined
+              ? {}
+              : { onUnassignLabour: props.onInspectorUnassignLabour })}
           />
         </PanelBoundary>
 
@@ -473,6 +493,10 @@ export function GameShell(props: GameShellProps): JSX.Element {
           onClose={props.onProgramsClose ?? (() => undefined)}
           {...(props.onProgramsPin === undefined ? {} : { onPin: props.onProgramsPin })}
           {...(props.onProgramsUnpin === undefined ? {} : { onUnpin: props.onProgramsUnpin })}
+          {...(props.onProgramsEnrol === undefined ? {} : { onEnrol: props.onProgramsEnrol })}
+          {...(props.onProgramsWithdraw === undefined
+            ? {}
+            : { onWithdraw: props.onProgramsWithdraw })}
         />
 
         <Intelligence

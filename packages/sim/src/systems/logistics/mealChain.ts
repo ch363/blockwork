@@ -372,6 +372,8 @@ export class MealLogistics {
   missedMeals = 0
   /** Meals successfully served across all mess halls. */
   mealsServed = 0
+  /** Last `inmate.missedMeal` event id per inmate, for the starvation Trace. */
+  readonly missedMealEventByInmate = new Map<number, EventId>()
 
   constructor(kitchen: GameData['balance']['kitchen']) {
     this.standingOrders = {
@@ -1102,7 +1104,7 @@ function serveMealtime(
       }
 
       if (leftHungry > 0) {
-        recordEvent(events, {
+        const messEmptyId = recordEvent(events, {
           tick,
           kind: TRACE_KINDS.messEmptyAtMealtime,
           subjectId: mess.id,
@@ -1118,6 +1120,25 @@ function serveMealtime(
             day,
           },
         })
+
+        const hungry = hungryInmates(world, data, leftHungry)
+        for (const inmate of hungry) {
+          const missedId = recordEvent(events, {
+            tick,
+            kind: TRACE_KINDS.inmateMissedMeal,
+            subjectId: inmate.id,
+            causeIds: messEmptyId > 0 ? [messEmptyId] : [],
+            data: {
+              inmateId: inmate.id,
+              messName: roomName(meals, mess, 'Mess hall'),
+              mealsEaten: 0,
+              blocks: 1,
+              blockTimes: time,
+              day,
+            },
+          })
+          if (missedId > 0) meals.missedMealEventByInmate.set(inmate.id, missedId)
+        }
       }
 
       if (leftHungry > 0) {
@@ -1294,6 +1315,22 @@ function ensureOpenJob(
     if (job.kind === kind && job.location === location) return
   }
   postJob({ world, kind, priority, location, tick, events })
+}
+
+function hungryInmates(
+  world: InmateWorld,
+  data: GameData,
+  count: number,
+): readonly { readonly id: number }[] {
+  const foodIndex = data.needs.ids().indexOf('food')
+  const ranked = [...world.inmates.all()]
+    .filter((entity) => entity.inmate.health > 0)
+    .sort((a, b) => {
+      const fa = foodIndex >= 0 ? (a.inmate.needs[foodIndex] ?? 0) : 0
+      const fb = foodIndex >= 0 ? (b.inmate.needs[foodIndex] ?? 0) : 0
+      return fb !== fa ? fb - fa : a.id - b.id
+    })
+  return ranked.slice(0, Math.max(0, count))
 }
 
 function recordEvent(

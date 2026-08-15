@@ -41,6 +41,7 @@ import { AgentLayer, createAgentAtlas } from './layers/agents'
 import { BlueprintLayer } from './layers/blueprint'
 import { GridLayer } from './layers/grid'
 import { ObjectLayer, createObjectAtlas } from './layers/objects'
+import type { ObjectAppearance } from './layers/objects'
 import { OverlayLayer } from './layers/overlay'
 import type {
   OverlayFireTile,
@@ -84,6 +85,8 @@ export interface BlockworkRendererOptions {
    * `prefers-reduced-motion` media query.
    */
   readonly reducedMotion?: boolean
+  /** Per-object silhouettes from `objects.json` (T8.22). */
+  readonly appearanceFor?: (defId: string) => ObjectAppearance
 }
 
 function prefersReducedMotion(): boolean {
@@ -208,7 +211,11 @@ export class BlockworkRenderer {
       doors: createDoorAtlas(),
       palette: wallPalette(options.wallMaterialIds ?? ['none'], options.wallAppearances),
     })
-    const objects = new ObjectLayer({ mapSize, atlas: createObjectAtlas() })
+    const objects = new ObjectLayer({
+      mapSize,
+      atlas: createObjectAtlas(),
+      ...(options.appearanceFor === undefined ? {} : { appearanceFor: options.appearanceFor }),
+    })
     const agents = new AgentLayer({ mapSize, atlas: createAgentAtlas() })
     const overlay = new OverlayLayer({ mapSize })
     const effects = new EffectsLayer({ mapSize, atlas: createEffectsAtlas() })

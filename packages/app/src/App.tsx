@@ -54,6 +54,18 @@ export function App({ session }: AppProps): JSX.Element {
     if (stage !== null) session.attachTo(stage)
   }, [session])
 
+  useEffect(() => {
+    const unlock = (): void => {
+      session.unlockAudio()
+    }
+    window.addEventListener('pointerdown', unlock)
+    window.addEventListener('keydown', unlock)
+    return () => {
+      window.removeEventListener('pointerdown', unlock)
+      window.removeEventListener('keydown', unlock)
+    }
+  }, [session])
+
   const refreshSaveSlots = useCallback(async () => {
     try {
       const store = await SaveStore.open()
@@ -264,6 +276,21 @@ export function App({ session }: AppProps): JSX.Element {
       onInspectorNeedSelect={(needId) => {
         session.inspectorNeedSelect(needId)
       }}
+      onInspectorFire={() => {
+        session.inspectorFire()
+      }}
+      onInspectorAcceptPayDemand={() => {
+        session.acceptPayDemand()
+      }}
+      onInspectorRefusePayDemand={() => {
+        session.refusePayDemand()
+      }}
+      onInspectorAssignLabour={() => {
+        session.inspectorAssignLabour()
+      }}
+      onInspectorUnassignLabour={() => {
+        session.inspectorUnassignLabour()
+      }}
       blueprint={state.blueprint.value}
       onCommit={() => {
         session.commit()
@@ -376,6 +403,12 @@ export function App({ session }: AppProps): JSX.Element {
       onProgramsUnpin={(programId) => {
         session.unpinProgram(programId)
       }}
+      onProgramsEnrol={() => {
+        session.enrolSelectedProgram()
+      }}
+      onProgramsWithdraw={() => {
+        session.withdrawSelectedProgram()
+      }}
       intelligence={state.intelligence.value}
       intelligenceTab={state.intelligenceTab.value}
       onIntelligenceTab={(tab) => {
@@ -464,7 +497,8 @@ export function App({ session }: AppProps): JSX.Element {
         session.openNewPrison()
       }}
       onPauseMenuQuit={() => {
-        // T8.8 — quit flow
+        closePauseMenu()
+        session.quitToNewPrison()
       }}
       canUndo={state.canUndo.value || state.blueprint.value !== null}
       canRedo={state.canRedo.value}
@@ -525,8 +559,7 @@ export function App({ session }: AppProps): JSX.Element {
         session.setNewPrisonMutator(id, enabled)
       }}
       onNewPrisonStart={() => {
-        session.closeNewPrison()
-        // T8.8 — will actually start the new prison
+        void session.startNewPrison()
       }}
       onNewPrisonCancel={() => {
         session.closeNewPrison()

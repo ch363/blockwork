@@ -402,17 +402,17 @@ export const FEATURE_GATES: readonly FeatureGate[] = [
   { featureId: 'needs_report', enforcedIn: 'app/worker/reportData:buildReportsModel' },
 
   // Mechanics that do not exist yet. Each is a flagged gap, not a silent one.
-  { featureId: 'danger_meter', enforcedIn: '-', pending: 'T6.1 overlays' },
-  { featureId: 'surveillance', enforcedIn: '-', pending: 'T6.1 camera fog overlay' },
+  { featureId: 'danger_meter', enforcedIn: 'systems/dangerSystem' },
+  { featureId: 'surveillance', enforcedIn: 'app/worker/overlayData:fogData' },
   { featureId: 'door_automation', enforcedIn: '-', pending: 'T5.5 logic follow-up' },
   { featureId: 'stun_devices', enforcedIn: '-', pending: 'staff equipment, unscheduled' },
   { featureId: 'general_issue_stun', enforcedIn: '-', pending: 'staff equipment, unscheduled' },
-  { featureId: 'protective_vests', enforcedIn: '-', pending: 'staff equipment, unscheduled' },
-  { featureId: 'compact_cells', enforcedIn: '-', pending: 'room minimum override, unscheduled' },
+  { featureId: 'protective_vests', enforcedIn: 'entities/staff:hireStaff' },
+  { featureId: 'compact_cells', enforcedIn: 'world/rooms:evaluateRoom' },
   { featureId: 'reduced_liability', enforcedIn: '-', pending: 'legal liability, unscheduled' },
   { featureId: 'retainer', enforcedIn: '-', pending: 'legal liability, unscheduled' },
   { featureId: 'counsel_reprieve', enforcedIn: '-', pending: 'T6.x failure reprieve' },
-  { featureId: 'credit_line', enforcedIn: '-', pending: 'loans, unscheduled' },
+  { featureId: 'credit_line', enforcedIn: 'systems/contractSystem:handleTakeLoan' },
   { featureId: 'land_purchase', enforcedIn: '-', pending: 'T6.5 map expansion' },
 ]
 

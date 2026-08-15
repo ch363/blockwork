@@ -120,7 +120,7 @@ export function TopBar({
 
   return (
     <header class="bw-topbar" role="banner" data-danger={dangerState} data-paused={speed === 0}>
-      <div class="bw-speed" role="group" aria-label="Simulation speed">
+      <div class="bw-speed" role="group" aria-label="Simulation speed" data-anchor="topbar:speed">
         {SPEED_STOPS.map((stop) => (
           <button
             key={stop}
@@ -217,6 +217,7 @@ export function TopBar({
         type="button"
         class="bw-iconbtn"
         data-action="alerts"
+        data-anchor="topbar:alerts"
         onClick={onAlerts}
         title="Alerts"
         aria-label={`Alerts: ${String(model.alerts)}`}
