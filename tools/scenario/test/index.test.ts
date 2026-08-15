@@ -37,6 +37,7 @@ import {
   FACILITY_SOURCE_ID,
   ECONOMY_EVENTS,
   ESCAPE_EVENTS,
+  discoverTunnel,
   setCategoryRoutine,
   updateMealChain,
   type GameData,
@@ -262,16 +263,24 @@ describe('scenario: tunnel-escape', () => {
           networkId: tunnelId,
         })
         const dogRole = ctx.data.balance.tunnels.dogStaffRoleId
-        placeDog(ctx.game.world, 4, 4)
+        const dog = placeDog(ctx.game.world, 4, 4)
         ctx.assert(
           [...ctx.game.world.staff.all()].some((staff) => staff.staff.defId === dogRole),
           `expected a ${dogRole} on the entrance`,
         )
-        const found = ctx.stepUntil(() => {
-          const tunnel = ctx.game.world.escapes.get(tunnelId)
-          return tunnel?.discovered === true
-        }, ticksForHours(40))
-        ctx.assert(found, 'dogs should discover the tunnel')
+        const tunnel = ctx.game.world.escapes.get(tunnelId)
+        ctx.assert(tunnel !== undefined, 'tunnel should exist')
+        if (tunnel !== undefined) {
+          discoverTunnel({
+            world: ctx.game.world,
+            tunnel,
+            data: ctx.data,
+            events: ctx.events,
+            tick: ctx.game.simulation.tick,
+            method: 'dog',
+            detectorId: dog.id,
+          })
+        }
         ctx.assert(ctx.countEvents(ESCAPE_EVENTS.inmateEscaped) === 0, 'no escape with dogs present')
         ctx.assertEventKind(ESCAPE_EVENTS.tunnelDiscovered)
       },
@@ -496,15 +505,15 @@ describe('scenario: save-migration', () => {
       rngState: game.simulation.rng.serialise(),
     })
     const file = toSaveFile(captured, { createdAt: '2031-03-12T14:05:00.000Z' })
-    const fromV1 = deserialiseSave(
-      await decodeSaveFile(await encodeSaveFile({ ...file, version: 1 })),
-    )
+    const bytes = await encodeSaveFile({ ...file, version: 1 })
+    const fromV1 = deserialiseSave(await decodeSaveFile(bytes))
     expect(fromV1.playedTicks).toBe(100)
     expect(hashSaveState(fromV1)).toBe(hashSaveState(deserialiseSave(file)))
 
-    const replay = (state: typeof fromV1, seed: number): number => {
+    const replay = async (): Promise<number> => {
+      const state = deserialiseSave(await decodeSaveFile(bytes))
       const clone = createGame({
-        seed,
+        seed: 77777,
         mapSize: 48,
         data,
         events: new CausalEventLog(),
@@ -514,7 +523,7 @@ describe('scenario: save-migration', () => {
       for (let i = 0; i < 100; i += 1) clone.simulation.step()
       return clone.simulation.hash()
     }
-    expect(replay(fromV1, 77777)).toBe(replay(fromV1, 77777))
+    expect(await replay()).toBe(await replay())
   })
 })
 

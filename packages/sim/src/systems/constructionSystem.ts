@@ -201,8 +201,12 @@ export function createConstructionSystem(options: ConstructionSystemOptions): Sy
       }
 
       const deps: ConstructionDeps = { world, data, events: context.events, tick }
+      // Isolated construction fixtures are a ConstructionWorld, not an
+      // InmateWorld. Stub delivery still has to fill the bill there, or every
+      // T1.2 test stalls on materials. First-order grace is the live-game
+      // equivalent and only exists on InmateWorld.
       const grace =
-        isInmateWorld(world) && (stubDelivery || firstOrderGraceActive(world))
+        stubDelivery || (isInmateWorld(world) && firstOrderGraceActive(world))
 
       for (const site of world.sites.all()) {
         if (!isDelivered(site)) {

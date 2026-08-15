@@ -152,6 +152,8 @@ function buildFacility(options: FacilityOptions = {}): Facility {
     continuousIntake: false,
   })
 
+  world.settings.firstOrderGrace = false
+
   if (options.withDock !== false) {
     const dockShell = { x: 2, y: 2, width: 5, height: 5 }
     putRoomShell(world, dockShell, true)

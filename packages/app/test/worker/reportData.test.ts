@@ -20,6 +20,7 @@ function loop(): SimWorkerLoop {
     mapSize: 32,
     limits: DEFAULT_SNAPSHOT_LIMITS,
     post: () => undefined,
+    applyOpening: false,
   })
 }
 
@@ -87,12 +88,15 @@ describe('worker report snapshots', () => {
     expect(rows[0]?.traceId).toBe(rows[0]?.id)
     expect(worker.trace(rows[0]?.traceId ?? 0)).not.toBeNull()
     expect(rows[1]?.traceId).toBeNull()
-    expect(rows[2]?.traceId).toBeNull()
+    expect(rows[2]?.traceId).toBe(rows[2]?.id)
+    expect(worker.trace(rows[2]?.traceId ?? 0)).not.toBeNull()
 
     const { bytes } = await worker.exportSave('2031-07-28T12:00:00.000Z')
     const loaded = await loadFromBytes(bytes)
-    const savedUnregistered = loaded.log.find((row) => row['kind'] === 'intake.noHousing')
-    expect(savedUnregistered?.['severity']).toBe(NOTIFICATION_SEVERITY.WARN)
+    const savedIntake = loaded.log.find((row) => row['kind'] === 'intake.noHousing')
+    expect(savedIntake?.['severity']).toBe(NOTIFICATION_SEVERITY.WARN)
+    expect(savedIntake?.['traceId']).toBe(1)
+    const savedUnregistered = loaded.log.find((row) => row['kind'] === 'utilities.fixtureOffline')
     expect(savedUnregistered?.['traceId']).toBe(0)
   })
 

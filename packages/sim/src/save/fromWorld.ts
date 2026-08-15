@@ -568,7 +568,7 @@ export function captureInmateWorld(
       dirtRemoved: world.cleaning.dirtRemoved,
     } satisfies CleaningStateSnapshot,
     laundry: captureLaundry(world),
-    dangerLevel: world.dangerLevel,
+    dangerLevel: Math.round(Math.min(100, Math.max(0, world.dangerLevel))),
     riotActive: world.riotActive,
     lockdownActive: world.lockdownActive,
     misconductWindowTicks: world.misconductWindow.serialise(),

@@ -1367,7 +1367,9 @@ export {
   NO_TUNNEL,
   createEscapeSystem,
   createEscapeState,
+  discoverTunnel,
   markRiotDoorBreached,
+  tryDogDetection,
 } from './systems/escapeSystem'
 export type { EscapeState, EscapeRoute, Tunnel, EscapeSystemOptions } from './systems/escapeSystem'
 export {

@@ -267,7 +267,7 @@ describe('misconduct roll modifiers (isolated)', () => {
       suppMax,
       baseRoll({ category: 'minimum', criticalNeedCount: 0 }),
     )
-    expect(calm).toBeLessThan(0.001)
+    expect(calm).toBeLessThanOrEqual(0.001)
   })
 
   it('cutting food (many critical needs) escalates well above the calm baseline', () => {

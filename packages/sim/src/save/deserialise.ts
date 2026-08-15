@@ -108,6 +108,21 @@ function requireInteger(
   return value
 }
 
+/** Danger is computed as a float; saves store the nearest whole percent. */
+function requireDangerLevel(value: JsonValue | undefined): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw invalid('dangerLevel', 'a number in 0..100', value)
+  }
+  const rounded = Math.round(value)
+  if (rounded < 0 || rounded > 100) {
+    throw new SaveError(
+      'invalid-save',
+      `save field 'dangerLevel' must be in 0..100, found ${value}`,
+    )
+  }
+  return rounded
+}
+
 const UINT32_MAX = 0xffff_ffff
 /** No prison runs for 4 billion ticks, but a number that large is not a tick. */
 const MAX_PLAYED_TICKS = Number.MAX_SAFE_INTEGER
@@ -362,7 +377,7 @@ export function assertSaveFile(save: JsonObject): asserts save is SaveFile {
   requireObject(save['cleaning'], 'cleaning')
   requireObject(save['laundry'], 'laundry')
 
-  requireInteger(save['dangerLevel'], 'dangerLevel', 0, 100)
+  requireDangerLevel(save['dangerLevel'])
   if (typeof save['riotActive'] !== 'boolean') {
     throw invalid('riotActive', 'a boolean', save['riotActive'])
   }
@@ -535,7 +550,7 @@ export function deserialiseSave(file: SaveFile): SaveState {
     deliveries: file.deliveries,
     cleaning: file.cleaning,
     laundry: file.laundry,
-    dangerLevel: file.dangerLevel,
+    dangerLevel: requireDangerLevel(file.dangerLevel),
     riotActive: file.riotActive,
     lockdownActive: file.lockdownActive,
     misconductWindowTicks: file.misconductWindowTicks,
