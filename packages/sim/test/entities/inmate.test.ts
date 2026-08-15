@@ -394,6 +394,50 @@ describe('cell assignment priority', () => {
       roomId: NO_ROOM,
     })
   })
+
+  it('skips cells whose sector does not admit the inmate category (T2.4 / T5.2)', () => {
+    const events = new RecordingSink()
+    const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false })
+    const minCell = furnishCell(world, events, { x: 2, y: 2, width: 4, height: 5 })
+    const maxCell = furnishCell(world, events, { x: 8, y: 2, width: 4, height: 5 })
+
+    const sector = world.sectors.create(DATA, {
+      name: 'Minimum wing',
+      access: 'shared',
+      categories: ['minimum'],
+    })
+    expect(sector).toBeDefined()
+    if (sector === undefined) throw new Error('sector')
+    const minRoom = world.rooms.get(minCell)
+    expect(minRoom).toBeDefined()
+    if (minRoom === undefined) throw new Error('min cell')
+    world.sectors.paintTiles(world.grid, minRoom.tiles, sector.id)
+
+    const housing = findHousing(world.rooms, world.inmates, 'maximum', 2, {
+      data: DATA,
+      grid: world.grid,
+      sectors: world.sectors,
+    })
+    expect(housing).toEqual({ kind: 'cell', roomId: maxCell })
+  })
+
+  it('prefers the cell whose grade is closest to entitlement', () => {
+    const events = new RecordingSink()
+    const world = createInmateWorld({ size: 40, data: DATA, continuousIntake: false })
+    const bare = furnishCell(world, events, { x: 2, y: 2, width: 4, height: 5 })
+    const lush = furnishCell(world, events, { x: 8, y: 2, width: 4, height: 5 })
+
+    const housing = findHousing(world.rooms, world.inmates, 'medium', 8, {
+      data: DATA,
+      grid: world.grid,
+      sectors: world.sectors,
+      grades: new Map([
+        [bare, { score: 1 }],
+        [lush, { score: 8 }],
+      ]),
+    })
+    expect(housing).toEqual({ kind: 'cell', roomId: lush })
+  })
 })
 
 /* -------------------------------------------------------------------------- */

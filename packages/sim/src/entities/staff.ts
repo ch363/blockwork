@@ -18,7 +18,7 @@ import { tileCount } from '../world/coords'
 import { PASSABILITY } from '../world/tileGrid'
 import { NO_ROOM } from '../world/rooms'
 
-import { isUnlocked } from './directorate'
+import { isUnlocked, hasFeature } from './directorate'
 import type { DirectorateState } from './directorate'
 import { NO_INMATE } from './inmate'
 
@@ -578,6 +578,7 @@ export interface StaffWorldView {
   }
   /** Optional morale state so firing clears injury tracking (T3.8). */
   readonly morale?: { clearStaff(staffId: number): void }
+  readonly combat?: { setVest(kind: 'staff', id: number, wearing: boolean): void }
   rooms: {
     readonly all: () => Iterable<{
       readonly id: number
@@ -698,6 +699,9 @@ export function hireStaff(options: HireStaffOptions): HireStaffResult {
     },
   }
   world.staff.add(entity)
+  if (hasFeature(world.data, world.directorate, 'protective_vests')) {
+    world.combat?.setVest('staff', id, true)
+  }
   if (def.hireCost > 0) {
     if (world.economy !== undefined) {
       world.economy.debit(tick, 'hire', def.hireCost, `Hired ${def.name}`, id)

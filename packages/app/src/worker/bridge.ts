@@ -58,6 +58,7 @@ import type {
   Tile,
   TileGridBuffers,
   TileMirror,
+  NewPrisonConfig,
   UtilityRouteKind,
   UtilityRouteResult,
 } from '@blockwork/sim'
@@ -158,6 +159,8 @@ export interface SimBridgeOptions {
   readonly sharedMemory?: boolean
   /** First-order material grace for a new prison (T8.4). */
   readonly firstOrderGrace?: boolean
+  /** New-prison panel choices (T8.8). */
+  readonly prison?: NewPrisonConfig
   /** Called on worker crash or message error (T8.15). */
   readonly onWorkerError?: (message: string) => void
 }
@@ -207,6 +210,8 @@ export class SimBridge {
   #speedOverride: { readonly speed: number; readonly reason: 'critical' } | null = null
   #nextRequestId = 1
   #disposed = false
+  /** Optional tap for onboarding / audio (T8.8). */
+  onCommandSent: ((command: Command) => void) | null = null
 
   constructor(options: SimBridgeOptions) {
     this.limits = options.limits ?? DEFAULT_SNAPSHOT_LIMITS
@@ -275,6 +280,7 @@ export class SimBridge {
       ...(options.firstOrderGrace === undefined
         ? {}
         : { firstOrderGrace: options.firstOrderGrace }),
+      ...(options.prison === undefined ? {} : { prison: options.prison }),
     }
     this.#worker.postMessage(init, [])
   }
@@ -390,6 +396,7 @@ export class SimBridge {
     this.#assertLive()
     assertCommand(command)
     this.#worker.postMessage({ type: 'sim:command', command }, [])
+    this.onCommandSent?.(command)
   }
 
   /**

@@ -13,7 +13,7 @@
  */
 
 import { createGame, loadGameData, CausalEventLog, uniformWorkforce } from '@blockwork/sim'
-import type { GameData, Game } from '@blockwork/sim'
+import type { GameData } from '@blockwork/sim'
 
 export const PERF_GATE_TICKS = 1000
 export const PERF_GATE_AGENTS = 400

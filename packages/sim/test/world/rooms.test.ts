@@ -283,4 +283,23 @@ describe('requirement evaluation (T1.3)', () => {
       missing: ['bed', 'toilet'],
     })
   })
+
+  it('halves cell minTiles and skips width/height when compactCells is on (T5.1)', () => {
+    const def = DATA.rooms.get('cell')
+    const room: Room = {
+      id: 3,
+      defId: 'cell',
+      tiles: [0, 1, 2],
+      bounds: { x: 0, y: 0, width: 2, height: 2 },
+      properties: { enclosed: true, indoors: true, outdoors: false, secure: true },
+    }
+    const normal = evaluateRoom(room, def)
+    const compact = evaluateRoom(room, def, undefined, { compactCells: true })
+    const normalTiles = normal.requirements.find((entry) => entry.subject === 'minTiles')
+    const compactTiles = compact.requirements.find((entry) => entry.subject === 'minTiles')
+    expect(normalTiles?.required).toBe(def.minTiles)
+    expect(compactTiles?.required).toBe(Math.max(1, Math.ceil(def.minTiles / 2)))
+    expect(compact.requirements.some((entry) => entry.subject === 'minWidth')).toBe(false)
+    expect(compact.requirements.some((entry) => entry.subject === 'minHeight')).toBe(false)
+  })
 })

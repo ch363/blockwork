@@ -7,6 +7,7 @@
  */
 
 import type { GameData, InmateWorld } from '@blockwork/sim'
+import { hasFeature } from '@blockwork/sim'
 
 export const OVERLAY_REQUEST_MODES = [
   'sectors',
@@ -109,7 +110,9 @@ export function buildOverlayData(
     case 'guardCoverage':
       return guardCoverageData(world, data)
     case 'fogOfWar':
-      return fogData(world)
+      return hasFeature(data, world.directorate, 'surveillance')
+        ? fogData(world)
+        : new Uint8Array(world.grid.tileCount)
   }
 }
 

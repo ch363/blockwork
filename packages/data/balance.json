@@ -237,6 +237,7 @@
     "staffOnlyCanteenDefIds": ["mess_hall"]
   },
   "economy": {
+    "_tuning": true,
     "startingFunds": 35000,
     "taxRate": 0.12,
     "taxReliefRateMultiplier": 0.6,

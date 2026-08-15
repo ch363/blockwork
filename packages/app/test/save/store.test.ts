@@ -468,7 +468,9 @@ describe('SaveStore load path integration (T8.6)', () => {
     expect(summaries).toHaveLength(1)
     expect(summaries[0]?.playedTicks).toBe(7200)
 
-    const restored = await reopenedStore.read(summaries[0]!.key)
+    const summary = summaries[0]
+    expect(summary).toBeDefined()
+    const restored = await reopenedStore.read(summary?.key ?? '')
     expect(restored).not.toBeNull()
     expect([...(restored ?? [])]).toEqual([...bytes])
     reopenedStore.close()

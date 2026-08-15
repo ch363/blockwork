@@ -194,7 +194,7 @@ describe('SimWorkerLoop save + auto-route', () => {
     expect(loaded.playedTicks).toBe(4)
     expect(loaded.grid.size).toBe(MAP_SIZE)
     expect(loaded.seed).toBe(SEED)
-    expect(CURRENT_SAVE_VERSION).toBe(4)
+    expect(CURRENT_SAVE_VERSION).toBe(5)
     expect(loaded.sectors.nextSectorId).toBeGreaterThanOrEqual(1)
   })
 

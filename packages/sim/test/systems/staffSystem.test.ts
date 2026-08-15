@@ -532,6 +532,31 @@ describe('officer fog of war (T2.7)', () => {
   })
 })
 
+describe('protective vests (T4.5 / T5.1)', () => {
+  it('issues a vest on hire only after protective_vests is researched', () => {
+    const events = new RecordingSink()
+    const world = createInmateWorld({
+      size: 24,
+      data: DATA,
+      continuousIntake: false,
+    })
+    for (let y = 1; y < 8; y += 1) {
+      for (let x = 1; x < 8; x += 1) putFloor(world, x, y)
+    }
+
+    const locked = hireStaff({ world, defId: 'officer', events, tick: 0, tx: 3, ty: 3 })
+    expect(locked.entity).toBeDefined()
+    if (locked.entity === undefined) throw new Error('hire')
+    expect(world.combat.wearingVest('staff', locked.entity.id)).toBe(false)
+
+    world.directorate.grant('protective_vests')
+    const unlocked = hireStaff({ world, defId: 'officer', events, tick: 1, tx: 5, ty: 5 })
+    expect(unlocked.entity).toBeDefined()
+    if (unlocked.entity === undefined) throw new Error('hire vest')
+    expect(world.combat.wearingVest('staff', unlocked.entity.id)).toBe(true)
+  })
+})
+
 /* -------------------------------------------------------------------------- */
 /* openDoorAt helper                                                           */
 /* -------------------------------------------------------------------------- */

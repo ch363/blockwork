@@ -42,6 +42,7 @@ export type ContractRejection =
   | 'not-active'
   | 'wrong-world'
   | 'prerequisites'
+  | 'locked'
 
 /* -------------------------------------------------------------------------- */
 /* Facility progress (meters future systems write)                             */

@@ -137,24 +137,23 @@ describe('danger formula components', () => {
       { ...zero, misconductLastWindow: 10, population: 10 },
       balance,
     )
-    // weight * (10/10) * 400 = 0.2 * 400 = 80
-    expect(misconductOnly.misconduct).toBeCloseTo(80)
+    // weight * (count / pop) * misconductScale
+    expect(misconductOnly.misconduct).toBeCloseTo(
+      balance.weights.misconduct * (10 / 10) * balance.misconductScale,
+    )
 
     const armedOnly = dangerComponents({ ...zero, pctInmatesArmed: 100 }, balance)
     // 0.15 * 1.0 * 300 = 45
     expect(armedOnly.armedInmates).toBeCloseTo(45)
 
     const moraleOnly = dangerComponents({ ...zero, staffMorale: 0 }, balance)
-    // 0.15 * 1 * 100 = 15
-    expect(moraleOnly.staffMorale).toBeCloseTo(15)
+    expect(moraleOnly.staffMorale).toBeCloseTo(balance.weights.staffMorale * 100)
 
     const coverageOnly = dangerComponents({ ...zero, guardCoverageRatio: 0 }, balance)
-    // 0.10 * 1 * 100 = 10
-    expect(coverageOnly.guardCoverage).toBeCloseTo(10)
+    expect(coverageOnly.guardCoverage).toBeCloseTo(balance.weights.guardCoverage * 100)
 
     const maxSecOnly = dangerComponents({ ...zero, pctMaxSecPopulation: 100 }, balance)
-    // 0.10 * 100 = 10
-    expect(maxSecOnly.maxSecurityShare).toBeCloseTo(10)
+    expect(maxSecOnly.maxSecurityShare).toBeCloseTo(balance.weights.maxSecurityShare * 100)
 
     expect(clampDanger(-5)).toBe(0)
     expect(clampDanger(150)).toBe(100)

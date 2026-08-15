@@ -3,6 +3,7 @@
     {
       "id": "bed",
       "name": "Bed",
+      "_tuning": true,
       "cost": 200,
       "hp": 60,
       "servesNeeds": [

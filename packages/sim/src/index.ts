@@ -263,7 +263,12 @@ export type {
   TraitDef,
 } from './data/schemas'
 
-export { allocateTileGridBuffers, createGame, createGameWorld } from './core/game'
+export {
+  allocateTileGridBuffers,
+  applyNewPrisonConfig,
+  createGame,
+  createGameWorld,
+} from './core/game'
 export type { Game, GameOptions, GameWorldOptions } from './core/game'
 
 export { Simulation, createEmptyWorld, nullEventSink } from './core/simulation'
@@ -1362,7 +1367,9 @@ export {
   NO_TUNNEL,
   createEscapeSystem,
   createEscapeState,
+  discoverTunnel,
   markRiotDoorBreached,
+  tryDogDetection,
 } from './systems/escapeSystem'
 export type { EscapeState, EscapeRoute, Tunnel, EscapeSystemOptions } from './systems/escapeSystem'
 export {

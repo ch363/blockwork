@@ -18,12 +18,14 @@ import type { ObjectEntity } from '../../src/entities/objects'
 import { NO_PIN, NO_STAFF, hireStaff } from '../../src/entities/staff'
 import type { StaffEntity } from '../../src/entities/staff'
 import {
+  CONTRACT_COMMANDS,
   CONTRACT_EVENTS,
   CONTRACT_SYSTEM_PERIOD,
   STARTING_CONTRACT_IDS,
   acceptContract,
   cancelContract,
   cancellationDebit,
+  contractCommandHandlers,
   createContractSystem,
   evaluatePredicate,
   maxConcurrentContracts,
@@ -563,5 +565,56 @@ describe('hidden contract reveal (T3.7)', () => {
     runContractTicks(w, events, 10)
     expect(events.of(CONTRACT_EVENTS.revealed)).toHaveLength(0)
     expect(w.contracts.wasRevealed('rescue_package')).toBe(false)
+  })
+})
+
+describe('credit line (T8.10 / T5.1)', () => {
+  it('refuses a loan until credit_line is researched', () => {
+    const w = world()
+    const events = new RecordingSink()
+    const sim = new Simulation({
+      seed: SEED,
+      world: w,
+      commandHandlers: contractCommandHandlers(DATA),
+      events,
+    })
+    sim.enqueue({
+      type: CONTRACT_COMMANDS.takeLoan,
+      issuedAtTick: 0,
+      payload: { amount: 1_000 },
+    })
+    sim.step()
+    expect(events.of(CONTRACT_EVENTS.rejected)[0]?.data).toMatchObject({ reason: 'locked' })
+    expect(w.economy.loanPrincipal).toBe(0)
+  })
+
+  it('draws and repays against the researched credit line', () => {
+    const w = world()
+    w.directorate.grant('credit_line')
+    const events = new RecordingSink()
+    const sim = new Simulation({
+      seed: SEED,
+      world: w,
+      commandHandlers: contractCommandHandlers(DATA),
+      events,
+    })
+    const amount = Math.min(2_000, DATA.balance.economy.loan.maxCap)
+    sim.enqueue({
+      type: CONTRACT_COMMANDS.takeLoan,
+      issuedAtTick: 0,
+      payload: { amount },
+    })
+    sim.step()
+    expect(w.economy.loanPrincipal).toBe(amount)
+    expect(w.economy.balance).toBe(DATA.balance.economy.startingFunds + amount)
+
+    sim.enqueue({
+      type: CONTRACT_COMMANDS.repayLoan,
+      issuedAtTick: 1,
+      payload: { amount },
+    })
+    sim.step()
+    expect(w.economy.loanPrincipal).toBe(0)
+    expect(w.economy.balance).toBe(DATA.balance.economy.startingFunds)
   })
 })

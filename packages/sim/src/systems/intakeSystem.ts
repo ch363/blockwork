@@ -608,7 +608,18 @@ export function arriveInmate(options: ArriveInmateOptions): InmateEntity | undef
 
   // Exclude this inmate from the free-cell search: they are already in the
   // registry with cellId NO_ROOM, so occupied cells are unaffected.
-  const housing = findHousing(world.rooms, world.inmates, component.category, component.entitlement)
+  const housing = findHousing(
+    world.rooms,
+    world.inmates,
+    component.category,
+    component.entitlement,
+    {
+      data: world.data,
+      grid: world.grid,
+      sectors: world.sectors,
+      grades: world.grading.breakdowns,
+    },
+  )
 
   if (housing.kind === 'cell') {
     // Reserve the cell, stage the inmate at reception, and queue an escort
@@ -873,7 +884,8 @@ function handleSetRequested(command: Command, context: SystemContext, data: Game
     reject(context, command, 'wrong-world')
     return
   }
-  const category = readString(command.payload, 'category')
+  const category =
+    readString(command.payload, 'category') ?? readString(command.payload, 'categoryId')
   const count = readNonNegativeInt(command.payload, 'count')
   if (category === undefined || count === undefined) {
     reject(context, command, 'malformed-payload')

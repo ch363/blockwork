@@ -80,6 +80,8 @@ export interface ProgramsProps {
   readonly onClose: () => void
   readonly onPin?: (programId: string) => void
   readonly onUnpin?: (programId: string) => void
+  readonly onEnrol?: (programId: string) => void
+  readonly onWithdraw?: (programId: string) => void
 }
 
 /** `9` → `"09:00"`. */
@@ -122,7 +124,15 @@ const ATTENDANCE_LABELS: Readonly<Record<ProgramRowModel['attendance'], string>>
   queue: 'Queue',
 }
 
-export function Programs({ model, onSelect, onClose, onPin, onUnpin }: ProgramsProps): JSX.Element {
+export function Programs({
+  model,
+  onSelect,
+  onClose,
+  onPin,
+  onUnpin,
+  onEnrol,
+  onWithdraw,
+}: ProgramsProps): JSX.Element {
   const open = model !== null
   const trapRef = useFocusTrap({ active: open, onEscape: onClose })
   const selected =
@@ -195,6 +205,8 @@ export function Programs({ model, onSelect, onClose, onPin, onUnpin }: ProgramsP
                   canPin={model.canPin}
                   {...(onPin === undefined ? {} : { onPin })}
                   {...(onUnpin === undefined ? {} : { onUnpin })}
+                  {...(onEnrol === undefined ? {} : { onEnrol })}
+                  {...(onWithdraw === undefined ? {} : { onWithdraw })}
                 />
               )}
             </aside>
@@ -210,11 +222,15 @@ function ProgramDetail({
   canPin,
   onPin,
   onUnpin,
+  onEnrol,
+  onWithdraw,
 }: {
   readonly row: ProgramRowModel
   readonly canPin: boolean
   readonly onPin?: (programId: string) => void
   readonly onUnpin?: (programId: string) => void
+  readonly onEnrol?: (programId: string) => void
+  readonly onWithdraw?: (programId: string) => void
 }): JSX.Element {
   return (
     <div class="bw-programs-card">
@@ -293,6 +309,13 @@ function ProgramDetail({
           Research Delegation to pin a programme to a slot of your choosing.
         </p>
       )}
+
+      <Button onClick={() => onEnrol?.(row.id)} disabled={onEnrol === undefined}>
+        Enrol inspected inmate
+      </Button>
+      <Button variant="ghost" onClick={() => onWithdraw?.(row.id)} disabled={onWithdraw === undefined}>
+        Withdraw inspected inmate
+      </Button>
     </div>
   )
 }

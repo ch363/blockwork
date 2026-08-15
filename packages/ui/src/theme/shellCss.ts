@@ -47,10 +47,10 @@ const BASE = `
      original mockup scale rather than creating a second one. */
   --hit: var(--hit-min);
   --f-md: var(--f-body);
-  --dur-fast: 120ms;
-  --dur: 220ms;
-  --dur-slow: 320ms;
-  --dur-cinematic: 560ms;
+  --dur-fast: calc(120ms * var(--motion-scale, 1));
+  --dur: calc(220ms * var(--motion-scale, 1));
+  --dur-slow: calc(320ms * var(--motion-scale, 1));
+  --dur-cinematic: calc(560ms * var(--motion-scale, 1));
   /* Fast out, slow in. The difference between "it moved" and "it has mass". */
   --ease: cubic-bezier(.22, .61, .36, 1);
   --ease-out: cubic-bezier(.16, 1, .3, 1);
@@ -115,6 +115,7 @@ const BASE = `
 .ico-svg { display: block; flex: 0 0 auto; }
 
 @media (prefers-reduced-motion: reduce) {
+  :root, .bw-shell { --motion-scale: 0; }
   .bw-shell, .bw-shell * {
     transition-duration: 1ms !important;
     animation-duration: 1ms !important;

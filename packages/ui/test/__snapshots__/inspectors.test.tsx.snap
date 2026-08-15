@@ -555,6 +555,24 @@ exports[`inspector snapshots > renders the inmate variant 1`] = `
       >
         Protective
       </button>
+      <button
+        aria-label="Assign kitchen labour"
+        class="bw-btn"
+        disabled=""
+        title="Assign kitchen labour"
+        type="button"
+      >
+        Kitchen work
+      </button>
+      <button
+        aria-label="Unassign labour"
+        class="bw-btn"
+        disabled=""
+        title="Unassign labour"
+        type="button"
+      >
+        Unassign work
+      </button>
     </div>
   </aside>
 </div>
@@ -1586,72 +1604,37 @@ exports[`inspector snapshots > renders the staff variant 1`] = `
           </span>
         </div>
       </div>
-    </div>
-    <div
-      class="bw-insp-foot"
-    >
-      <button
-        aria-label="Centre on selection"
-        class="bw-btn"
-        disabled=""
-        title="Centre on selection"
-        type="button"
+      <div
+        class="bw-insp-foot"
       >
-        <svg
-          aria-hidden="true"
-          class="ico-svg"
-          fill="none"
-          focusable="false"
-          height="16"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1.75"
-          viewBox="0 0 24 24"
-          width="16"
+        <button
+          aria-label="Accept pay demand"
+          class="bw-btn"
+          disabled=""
+          title="Accept pay demand"
+          type="button"
         >
-          <path
-            d="M11 18a7 7 0 100-14 7 7 0 000 14z"
-            vector-effect="non-scaling-stroke"
-          />
-          <path
-            d="M16.2 16.2L21 21"
-            vector-effect="non-scaling-stroke"
-          />
-        </svg>
-        Centre
-      </button>
-      <button
-        aria-label="Demolish selection"
-        class="bw-btn danger"
-        disabled=""
-        title="Demolish selection"
-        type="button"
-      >
-        <svg
-          aria-hidden="true"
-          class="ico-svg"
-          fill="none"
-          focusable="false"
-          height="16"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1.75"
-          viewBox="0 0 24 24"
-          width="16"
+          Accept pay
+        </button>
+        <button
+          aria-label="Refuse pay demand"
+          class="bw-btn"
+          disabled=""
+          title="Refuse pay demand"
+          type="button"
         >
-          <path
-            d="M4 8l6-4 10 6-2 3-4-2-2 3-4-2-2 3-2-7z"
-            vector-effect="non-scaling-stroke"
-          />
-          <path
-            d="M4 20h16"
-            vector-effect="non-scaling-stroke"
-          />
-        </svg>
-        Demolish
-      </button>
+          Refuse pay
+        </button>
+        <button
+          aria-label="Fire staff member"
+          class="bw-btn danger"
+          disabled=""
+          title="Fire staff member"
+          type="button"
+        >
+          Fire
+        </button>
+      </div>
     </div>
   </aside>
 </div>
